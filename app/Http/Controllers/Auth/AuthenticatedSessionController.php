@@ -29,7 +29,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         if (Auth::user()->getRoleNames()->isEmpty()) {
-            Auth::user()->assignRole('Student');
+            Auth::user()->assignDefaultStudentRole();
         }
 
         return redirect()->intended(route('dashboard', absolute: false));

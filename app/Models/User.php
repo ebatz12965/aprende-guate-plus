@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Permission\Models\Role as SpatieRole;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -59,6 +60,13 @@ class User extends Authenticatable
     {
         return $this->hasOne(StudentProfile::class);
     }
+    public function assignDefaultStudentRole(): void
+    {
+        $role = SpatieRole::findOrCreate('Student', $this->getDefaultGuardName());
+
+        $this->assignRole($role);
+    }
+
 
     public function learningPaths(): HasMany
     {

@@ -73,14 +73,14 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/mi-panel', [AdaptiveLearningController::class, 'dashboard'])->name('adaptive.dashboard');
     Route::get('/diagnostico', [AdaptiveLearningController::class, 'diagnostic'])->name('adaptive.diagnostic');
-    Route::post('/diagnostico/iniciar', [AdaptiveLearningController::class, 'startDiagnostic'])->name('adaptive.diagnostic.start');
+    Route::post('/diagnostico/iniciar', [AdaptiveLearningController::class, 'startDiagnostic'])->middleware('throttle:ai')->name('adaptive.diagnostic.start');
     Route::get('/diagnostico/{attempt}/preguntas', [AdaptiveLearningController::class, 'diagnosticQuestions'])->name('adaptive.diagnostic.questions');
-    Route::post('/diagnostico/{attempt}/finalizar', [AdaptiveLearningController::class, 'storeDiagnostic'])->name('adaptive.diagnostic.store');
+    Route::post('/diagnostico/{attempt}/finalizar', [AdaptiveLearningController::class, 'storeDiagnostic'])->middleware('throttle:ai')->name('adaptive.diagnostic.store');
     Route::get('/mi-ruta', [AdaptiveLearningController::class, 'path'])->name('adaptive.path');
     Route::get('/mi-ruta/fases/{item}', [AdaptiveLearningController::class, 'showPathItem'])->name('adaptive.path.item.show');
     Route::post('/mi-ruta/fases/{item}/quiz', [AdaptiveLearningController::class, 'submitPathItemQuiz'])->name('adaptive.path.item.quiz');
     Route::get('/tutor-ia', [AdaptiveLearningController::class, 'tutor'])->name('adaptive.tutor');
-    Route::post('/tutor-ia/mensajes', [AdaptiveLearningController::class, 'sendTutorMessage'])->name('adaptive.tutor.message');
+    Route::post('/tutor-ia/mensajes', [AdaptiveLearningController::class, 'sendTutorMessage'])->middleware('throttle:ai')->name('adaptive.tutor.message');
     Route::get('/retos', [AdaptiveLearningController::class, 'challenges'])->name('adaptive.challenges');
     Route::post('/retos/{challenge}', [AdaptiveLearningController::class, 'submitChallenge'])->name('adaptive.challenges.submit');
     Route::get('/mentorias', [AdaptiveLearningController::class, 'mentorship'])->name('adaptive.mentorship');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, MentorProfile, MentorshipSession, StudentProfile};
 use App\Services\AiTutorService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class AdaptiveLearningController extends Controller
@@ -27,20 +28,70 @@ class AdaptiveLearningController extends Controller
 
     public function diagnosticQuestions(Request $request, DiagnosticAttempt $attempt)
     {
-        abort_unless($attempt->user_id === $request->user()->id && $attempt->status === 'started', 404);
+        abort_unless($attempt->user_id === $request->user()->id, 404);
+
+        if ($attempt->status !== 'started') {
+            return redirect()->route('adaptive.diagnostic')->with('info', 'Este cuestionario ya fue procesado. Puedes iniciar un nuevo diagnóstico cuando lo necesites.');
+        }
         return view('adaptive.diagnostic-questions', compact('attempt'));
     }
 
     public function storeDiagnostic(Request $request, DiagnosticAttempt $attempt, AiTutorService $tutor)
     {
-        abort_unless($attempt->user_id === $request->user()->id && $attempt->status === 'started', 404);
+        abort_unless($attempt->user_id === $request->user()->id, 404);
+
+        if ($attempt->status !== 'started') {
+            return redirect()->route('adaptive.diagnostic')->with('info', 'Este cuestionario ya fue procesado. Puedes iniciar un nuevo diagnóstico cuando lo necesites.');
+        }
         $data = $request->validate(['answers'=>['required','array','size:4'], 'answers.*'=>['required','integer','between:0,2']]);
-        $plan = $tutor->learningPlan($attempt->primary_answer, $attempt->questions ?? [], $data['answers']);
-        $level = data_get($plan,'level','Inicial');
-        $attempt->update(['answers'=>$data['answers'], 'level'=>$level, 'score'=>0, 'skill_results'=>['summary'=>data_get($plan,'summary')], 'status'=>'completed']);
-        StudentProfile::updateOrCreate(['user_id'=>$request->user()->id], ['professional_goal'=>$attempt->primary_answer, 'current_level'=>$level]);
-        $path = LearningPath::create(['user_id'=>$request->user()->id, 'title'=>data_get($plan,'title','Ruta personalizada'), 'goal'=>$attempt->primary_answer, 'status'=>'active']);
-        foreach (data_get($plan,'items',[]) as $position=>$item) $path->items()->create(['title'=>data_get($item,'title','Fase de aprendizaje'), 'area'=>data_get($item,'area','Práctica'), 'description'=>data_get($item,'content.concept'), 'content'=>data_get($item,'content',[]), 'quiz'=>data_get($item,'quiz',[]), 'position'=>$position+1]);
+
+        try {
+            $plan = $tutor->learningPlan($attempt->primary_answer, $attempt->questions ?? [], $data['answers']);
+            $level = data_get($plan, 'level', 'Inicial');
+
+            DB::transaction(function () use ($attempt, $data, $level, $plan, $request) {
+                $attempt->update([
+                    'answers' => $data['answers'],
+                    'level' => $level,
+                    'score' => 0,
+                    'skill_results' => ['summary' => data_get($plan, 'summary')],
+                    'status' => 'completed',
+                ]);
+
+                StudentProfile::updateOrCreate(
+                    ['user_id' => $request->user()->id],
+                    ['professional_goal' => $attempt->primary_answer, 'current_level' => $level]
+                );
+
+                // Una actualización de diagnóstico sustituye la ruta anterior del estudiante.
+                LearningPath::where('user_id', $request->user()->id)->delete();
+
+                $path = LearningPath::create([
+                    'user_id' => $request->user()->id,
+                    'title' => data_get($plan, 'title', 'Ruta personalizada'),
+                    'goal' => $attempt->primary_answer,
+                    'status' => 'active',
+                ]);
+
+                foreach (data_get($plan, 'items', []) as $position => $item) {
+                    $path->items()->create([
+                        'title' => data_get($item, 'title', 'Fase de aprendizaje'),
+                        'area' => data_get($item, 'area', 'Práctica'),
+                        'description' => data_get($item, 'content.concept'),
+                        'content' => data_get($item, 'content', []),
+                        'quiz' => data_get($item, 'quiz', []),
+                        'position' => $position + 1,
+                    ]);
+                }
+            });
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()
+                ->withInput()
+                ->with('error', 'No se pudo generar tu ruta todavía. Tus respuestas siguen disponibles para que puedas intentarlo nuevamente.');
+        }
+
         return redirect()->route('adaptive.path')->with('success','Tu ruta personalizada está lista. Empieza con la primera fase.');
     }
 
