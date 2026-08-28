@@ -1,26 +1,23 @@
 <?php
 
 namespace App\Providers;
-use App\Models\User;
+
+use App\Models\ClassModel;
 use App\Models\Course;
 use App\Models\Module;
-use App\Models\ClassModel;
-use App\Policies\UserPolicy;
+use App\Models\User;
+use App\Policies\ClassPolicy;
 use App\Policies\CoursePolicy;
 use App\Policies\ModulePolicy;
-use App\Policies\ClassPolicy;
+use App\Policies\UserPolicy;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-
-#use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * The model to policy mappings for the application.
-     *
-     * @var array<class-string, class-string>
-     */
     protected $policies = [
         User::class => UserPolicy::class,
         Course::class => CoursePolicy::class,
@@ -28,29 +25,25 @@ class AppServiceProvider extends ServiceProvider
         ClassModel::class => ClassPolicy::class,
     ];
 
-    /**
-     * Register any authentication / authorization services.
-     */
     public function boot(): void
     {
         $this->registerPolicies();
 
-        // Gate para super admin
+        RateLimiter::for('ai', function (Request $request) {
+            $identity = $request->user()?->id ?? $request->ip();
+
+            return [
+                Limit::perMinute(6)->by('ai-minute:'.$identity),
+                Limit::perDay(60)->by('ai-day:'.$identity),
+            ];
+        });
+
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('admin') ? true : null;
+            return $user->hasRole('Admin') ? true : null;
         });
 
-        // Gates personalizados
-        Gate::define('manage-users', function ($user) {
-            return $user->hasRole(['admin']);
-        });
-
-        Gate::define('manage-courses', function ($user) {
-            return $user->hasRole(['admin', 'instructor']);
-        });
-
-        Gate::define('view-analytics', function ($user) {
-            return $user->hasRole(['admin', 'instructor']);
-        });
+        Gate::define('manage-users', fn ($user) => $user->hasRole(['Admin']));
+        Gate::define('manage-courses', fn ($user) => $user->hasRole(['Admin', 'Instructor']));
+        Gate::define('view-analytics', fn ($user) => $user->hasRole(['Admin', 'Instructor']));
     }
 }
