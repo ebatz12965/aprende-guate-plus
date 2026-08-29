@@ -36,6 +36,7 @@ Route::get('/cursos', [SearchController::class, 'courses'])->name('public.course
 Route::get('/curso/{course:slug}', [SearchController::class, 'courseDetail'])->name('public.course.detail');
 Route::get('/instructores', [SearchController::class, 'instructors'])->name('public.instructors');
 Route::get('/instructor/{user}', [SearchController::class, 'instructorProfile'])->name('public.instructor.profile');
+Route::get('/perfil/{user}', [AdaptiveLearningController::class, 'publicProfile'])->name('adaptive.public-profile');
 Route::get('/certificado/{certificate:code}', [CertificateController::class, 'show'])->name('certificate.show');
 
 /*
