@@ -19,6 +19,8 @@ use App\Http\Controllers\Admin\SubmissionController as AdminSubmissionController
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\LevelController as AdminLevelController;
+use App\Http\Controllers\Admin\AiSettingsController;
+use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\AdaptiveLearningController;
@@ -80,6 +82,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/mi-ruta', [AdaptiveLearningController::class, 'path'])->name('adaptive.path');
     Route::get('/mi-ruta/fases/{item}', [AdaptiveLearningController::class, 'showPathItem'])->name('adaptive.path.item.show');
     Route::post('/mi-ruta/fases/{item}/quiz', [AdaptiveLearningController::class, 'submitPathItemQuiz'])->name('adaptive.path.item.quiz');
+    Route::get('/mi-ruta/temas/{topic}', [AdaptiveLearningController::class, 'showTopic'])->name('adaptive.topic.show');
+    Route::post('/mi-ruta/temas/{topic}/leccion', [AdaptiveLearningController::class, 'generateTopicLesson'])->middleware('throttle:ai')->name('adaptive.topic.lesson');
+    Route::post('/mi-ruta/temas/{topic}/practica', [AdaptiveLearningController::class, 'generateTopicPractice'])->middleware('throttle:ai')->name('adaptive.topic.practice');
+    Route::post('/mi-ruta/temas/{topic}/practica/entregar', [AdaptiveLearningController::class, 'submitTopicPractice'])->name('adaptive.topic.practice.submit');
+    Route::get('/mi-ruta/temas/{topic}/practica/descargar', [AdaptiveLearningController::class, 'downloadTopicPractice'])->name('adaptive.topic.practice.download');
     Route::get('/tutor-ia', [AdaptiveLearningController::class, 'tutor'])->name('adaptive.tutor');
     Route::post('/tutor-ia/mensajes', [AdaptiveLearningController::class, 'sendTutorMessage'])->middleware('throttle:ai')->name('adaptive.tutor.message');
     Route::get('/retos', [AdaptiveLearningController::class, 'challenges'])->name('adaptive.challenges');
@@ -121,6 +128,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'r
     Route::resource('roles', AdminRoleController::class);
     Route::resource('categories', AdminCategoryController::class);
     Route::resource('levels', AdminLevelController::class);
+    Route::get('configuracion-ia', [AiSettingsController::class, 'edit'])->name('ai-settings.edit');
+    Route::put('configuracion-ia', [AiSettingsController::class, 'update'])->name('ai-settings.update');
+    Route::get('configuracion-correo', [MailSettingsController::class, 'edit'])->name('mail-settings.edit');
+    Route::put('configuracion-correo', [MailSettingsController::class, 'update'])->name('mail-settings.update');
+    Route::post('configuracion-correo/probar', [MailSettingsController::class, 'sendTest'])->name('mail-settings.test');
     Route::get('/permissions', [PermissionController::class, 'permissions'])->name('permissions.index');
     Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
 

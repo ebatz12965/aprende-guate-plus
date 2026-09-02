@@ -19,7 +19,7 @@ class EmailVerificationTest extends TestCase
 
         $response = $this->actingAs($user)->get('/verify-email');
 
-        $response->assertStatus(200);
+        $response->assertOk()->assertSee('Confirma tu correo electrónico')->assertSee($user->email);
     }
 
     public function test_email_can_be_verified(): void
@@ -38,7 +38,8 @@ class EmailVerificationTest extends TestCase
 
         Event::assertDispatched(Verified::class);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertSessionHas('success', '¡Correo confirmado correctamente! Tu cuenta ya está activa y puedes comenzar a aprender.');
     }
 
     public function test_email_is_not_verified_with_invalid_hash(): void
@@ -51,8 +52,10 @@ class EmailVerificationTest extends TestCase
             ['id' => $user->id, 'hash' => sha1('wrong-email')]
         );
 
-        $this->actingAs($user)->get($verificationUrl);
+        $response = $this->actingAs($user)->get($verificationUrl);
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
+        $response->assertRedirect(route('verification.notice'));
+        $response->assertSessionHas('error');
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, MentorProfile, MentorshipSession, StudentProfile};
+use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, LearningPathItemQuizAttempt, LearningPathTopic, LearningPathLesson, LearningPathPractice, LearningPathPracticeAttempt, MentorProfile, MentorshipSession, PlatformSetting, StudentProfile};
 use App\Services\AiTutorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,13 +13,15 @@ class AdaptiveLearningController extends Controller
     public function dashboard(Request $request)
     {
         $user = $request->user();
-        $path = $user->learningPaths()->where('status', 'active')->with('items')->latest()->first();
+        $path = $user->learningPaths()->where('status', 'active')->with('items.topics')->latest()->first();
         $total = $path?->items->count() ?? 0;
         $completed = $path?->items->where('status', 'completed')->count() ?? 0;
 
         return view('adaptive.dashboard', [
             'profile' => $user->studentProfile,
             'path' => $path,
+            'total' => $total,
+            'completed' => $completed,
             'progress' => $total ? (int) round($completed / $total * 100) : 0,
             'nextItem' => $path?->items->firstWhere('status', 'pending'),
             'challengeCount' => ChallengeSubmission::where('user_id', $user->id)->count(),
@@ -29,12 +31,13 @@ class AdaptiveLearningController extends Controller
 
     public function diagnostic()
     {
-        return view('adaptive.diagnostic');
+        return view('adaptive.diagnostic', ['settings' => PlatformSetting::aiLimits()]);
     }
 
     public function startDiagnostic(Request $request, AiTutorService $tutor)
     {
-        $data = $request->validate(['primary_answer' => ['required', 'string', 'min:12', 'max:500']]);
+        $settings = PlatformSetting::aiLimits();
+        $data = $request->validate(['primary_answer' => ['required', 'string', 'min:'.$settings['diagnostic_min_characters'], 'max:'.$settings['diagnostic_max_characters']]]);
         $attempt = DiagnosticAttempt::create([
             'user_id' => $request->user()->id,
             'primary_answer' => $data['primary_answer'],
@@ -67,43 +70,34 @@ class AdaptiveLearningController extends Controller
         $data = $request->validate(['answers' => ['required', 'array', 'size:4'], 'answers.*' => ['required', 'integer', 'between:0,2']]);
 
         try {
-            $plan = $tutor->learningPlan($attempt->primary_answer, $attempt->questions ?? [], $data['answers']);
-            $level = data_get($plan, 'level', 'Inicial');
+            $architecture = $tutor->learningArchitecture($attempt->primary_answer, $attempt->questions ?? [], $data['answers']);
+            $level = data_get($architecture, 'level', 'Inicial');
 
-            DB::transaction(function () use ($attempt, $data, $level, $plan, $request) {
+            DB::transaction(function () use ($attempt, $data, $level, $architecture, $request) {
                 $attempt->update([
-                    'answers' => $data['answers'],
-                    'level' => $level,
-                    'score' => 0,
-                    'skill_results' => ['summary' => data_get($plan, 'summary')],
-                    'status' => 'completed',
+                    'answers' => $data['answers'], 'level' => $level, 'score' => 0,
+                    'skill_results' => ['summary' => data_get($architecture, 'summary')], 'status' => 'completed',
                 ]);
-
-                StudentProfile::updateOrCreate(
-                    ['user_id' => $request->user()->id],
-                    ['professional_goal' => $attempt->primary_answer, 'current_level' => $level]
-                );
-
-                LearningPath::where('user_id', $request->user()->id)
-                    ->where('status', 'active')
-                    ->update(['status' => 'replaced']);
-
+                StudentProfile::updateOrCreate(['user_id' => $request->user()->id], ['professional_goal' => $attempt->primary_answer, 'current_level' => $level]);
+                LearningPath::where('user_id', $request->user()->id)->where('status', 'active')->update(['status' => 'replaced']);
                 $path = LearningPath::create([
-                    'user_id' => $request->user()->id,
-                    'title' => data_get($plan, 'title', 'Ruta personalizada'),
-                    'goal' => $attempt->primary_answer,
-                    'status' => 'active',
+                    'user_id' => $request->user()->id, 'title' => data_get($architecture, 'title', 'Ruta personalizada'),
+                    'goal' => $attempt->primary_answer, 'estimated_level' => $level,
+                    'estimated_hours' => data_get($architecture, 'total_hours'), 'generation_version' => 'pipeline-v1', 'status' => 'active',
                 ]);
-
-                foreach (data_get($plan, 'items', []) as $position => $item) {
-                    $path->items()->create([
-                        'title' => data_get($item, 'title', 'Fase de aprendizaje'),
-                        'area' => data_get($item, 'area', 'Práctica'),
-                        'description' => data_get($item, 'content.concept'),
-                        'content' => data_get($item, 'content', []),
-                        'quiz' => data_get($item, 'quiz', []),
+                foreach (data_get($architecture, 'modules', []) as $position => $module) {
+                    $item = $path->items()->create([
+                        'title' => data_get($module, 'title', 'Módulo de aprendizaje'), 'area' => data_get($module, 'skill_type', 'general'),
+                        'description' => data_get($module, 'description'), 'content' => ['generation' => 'architecture'],
+                        'quiz' => ['question' => '¿Qué conviene hacer antes de avanzar?', 'options' => ['Revisar los temas del módulo', 'Saltar al siguiente módulo', 'Ignorar las dudas'], 'answer' => 0],
                         'position' => $position + 1,
                     ]);
+                    foreach (data_get($module, 'topics', []) as $topicPosition => $topic) {
+                        $item->topics()->create([
+                            'title' => data_get($topic, 'title', 'Tema'), 'learning_objective' => data_get($topic, 'learning_objective', 'Comprender y aplicar el tema.'),
+                            'practice_type' => data_get($topic, 'practice_type', 'case_study'), 'position' => $topicPosition + 1,
+                        ]);
+                    }
                 }
             });
         } catch (\Throwable $exception) {
@@ -119,13 +113,13 @@ class AdaptiveLearningController extends Controller
 
     public function path(Request $request)
     {
-        return view('adaptive.path', ['path' => $request->user()->learningPaths()->where('status', 'active')->with('items')->latest()->first()]);
+        return view('adaptive.path', ['path' => $request->user()->learningPaths()->where('status', 'active')->with('items.topics')->latest()->first()]);
     }
 
     public function showPathItem(Request $request, int $item)
     {
         $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
-        $item = $path->items()->findOrFail($item);
+        $item = $path->items()->with('topics.lesson', 'topics.practice')->findOrFail($item);
 
         abort_if($path->items()->where('position', '<', $item->position)->where('status', '!=', 'completed')->exists(), 403, 'Completa el mini-quiz anterior para desbloquear esta fase.');
 
@@ -136,14 +130,87 @@ class AdaptiveLearningController extends Controller
         return view('adaptive.path-item', compact('path', 'item'));
     }
 
-    public function submitPathItemQuiz(Request $request, int $item)
+    public function showTopic(Request $request, int $topic)
     {
         $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
+        $topic = LearningPathTopic::with(['module.learningPath', 'lesson', 'practice'])->findOrFail($topic);
+        abort_unless($topic->module->learning_path_id === $path->id, 404);
+        abort_if($path->items()->where('position', '<', $topic->module->position)->where('status', '!=', 'completed')->exists(), 403);
+        if ($topic->status === 'pending') $topic->update(['status' => 'in_progress']);
+        return view('adaptive.topic', compact('path', 'topic'));
+    }
+
+    public function generateTopicLesson(Request $request, int $topic, AiTutorService $tutor)
+    {
+        $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
+        $topic = LearningPathTopic::with('module')->findOrFail($topic);
+        abort_unless($topic->module->learning_path_id === $path->id, 404);
+        if (! $topic->lesson) {
+            $lesson = $tutor->generateLesson($path, $topic);
+            $topic->lesson()->create(['content' => ['summary' => $lesson['summary'], 'key_concepts' => $lesson['key_concepts'], 'steps' => $lesson['steps']], 'resources' => ['youtube_queries' => $lesson['youtube_queries']], 'quiz' => $lesson['quiz'], 'generated_at' => now()]);
+        }
+        return redirect()->route('adaptive.topic.show', $topic);
+    }
+
+    public function generateTopicPractice(Request $request, int $topic, AiTutorService $tutor)
+    {
+        $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
+        $topic = LearningPathTopic::with('module')->findOrFail($topic);
+        abort_unless($topic->module->learning_path_id === $path->id, 404);
+        if (! $topic->practice) {
+            $practice = $tutor->generatePractice($path, $topic);
+            $topic->practice()->create(['type' => $topic->practice_type, 'title' => $practice['title'], 'instructions' => ['context' => $practice['context'], 'steps' => $practice['instructions']], 'artifact' => ['label' => $practice['artifact_label'], 'language' => $practice['artifact_language'], 'content' => $practice['artifact_content']], 'expected_solution' => $practice['expected_solution'], 'generated_at' => now()]);
+        }
+        return redirect()->route('adaptive.topic.show', $topic);
+    }
+
+    public function submitTopicPractice(Request $request, int $topic)
+    {
+        $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
+        $topic = LearningPathTopic::with(['module', 'practice'])->findOrFail($topic);
+        abort_unless($topic->module->learning_path_id === $path->id && $topic->practice, 404);
+        $data = $request->validate(['answer' => ['required', 'string', 'max:12000']]);
+        LearningPathPracticeAttempt::create(['learning_path_practice_id' => $topic->practice->id, 'user_id' => $request->user()->id, 'answer' => $data['answer'], 'submitted_at' => now()]);
+        $topic->update(['status' => 'completed']);
+        return back()->with('success', 'Práctica registrada. Puedes continuar con el siguiente tema o repasar esta lección.');
+    }
+
+    public function downloadTopicPractice(Request $request, int $topic)
+    {
+        $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
+        $topic = LearningPathTopic::with(['module', 'practice'])->findOrFail($topic);
+        abort_unless($topic->module->learning_path_id === $path->id && $topic->practice?->type === 'excel_dataset', 404);
+        $artifact = $topic->practice->artifact ?? [];
+        return response((string) data_get($artifact, 'content'), 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.data_get($artifact, 'label', 'practica.csv').'"']);
+    }
+
+    public function submitPathItemQuiz(Request $request, int $item)
+    {
+        $user = $request->user();
+        $path = $user->learningPaths()->where('status', 'active')->latest()->firstOrFail();
         $item = $path->items()->findOrFail($item);
         $data = $request->validate(['answer' => ['required', 'integer', 'between:0,2']]);
+        $selectedAnswer = (int) $data['answer'];
 
-        if ($data['answer'] !== (int) data_get($item->quiz, 'answer', -1)) {
-            return back()->with('error', 'Aún no es la respuesta correcta. Revisa el concepto y el ejemplo e inténtalo otra vez.');
+$storedAnswer = (int) data_get($item->quiz, 'answer', -1);
+        $correctAnswer = $this->knownFormulaAnswer($item->quiz) ?? $storedAnswer;
+
+        if ($correctAnswer !== $storedAnswer) {
+            $item->update(['quiz' => array_replace($item->quiz ?? [], ['answer' => $correctAnswer])]);
+        }
+
+        $isCorrect = $selectedAnswer === $correctAnswer;
+
+        LearningPathItemQuizAttempt::create([
+            'learning_path_item_id' => $item->id,
+            'user_id' => $user->id,
+            'selected_answer' => $selectedAnswer,
+            'is_correct' => $isCorrect,
+            'attempted_at' => now(),
+        ]);
+
+        if (! $isCorrect) {
+            return back()->with('quiz_error', 'Aún no es la respuesta correcta. Revisa el concepto y el ejemplo e inténtalo otra vez.');
         }
 
         $item->update(['status' => 'completed']);
@@ -266,5 +333,29 @@ class AdaptiveLearningController extends Controller
             'profile' => $profile,
             'completedPaths' => $user->learningPaths()->where('status', 'completed')->latest()->get(),
         ]);
+    }
+    private function knownFormulaAnswer(array $quiz): ?int
+    {
+        $question = \Illuminate\Support\Str::lower((string) data_get($quiz, 'question'));
+        $formulas = [
+            '=a1+b1' => ['suma', 'sumar'],
+            '=a1-b1' => ['resta', 'restar'],
+            '=a1*b1' => ['multiplica', 'multiplicación', 'producto'],
+            '=a1/b1' => ['divide', 'división', 'reparte'],
+        ];
+
+        foreach ($formulas as $formula => $keywords) {
+            if (! str_contains($question, $formula)) {
+                continue;
+            }
+
+            foreach (data_get($quiz, 'options', []) as $index => $option) {
+                if (\Illuminate\Support\Str::contains(\Illuminate\Support\Str::lower((string) $option), $keywords)) {
+                    return $index;
+                }
+            }
+        }
+
+        return null;
     }
 }
