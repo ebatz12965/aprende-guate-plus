@@ -1,0 +1,164 @@
+{"kind":"deck","id":"pr/s1lgov","name":"Deck"}
+{"kind":"layout","layoutId":"29d7b76f-4706-4dac-8d80-16e49dc3dcfc","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"fcea5fdb-133c-4bfb-9b09-1def46c8444e","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/tvkx9m","slide":1,"title":"APRENDE GUATE PLUS","textShapes":6}
+{"kind":"shape","id":"sh/3m94vilw","slide":1,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/4nil43mh","slide":1,"bbox":[0,0,22,720]}
+{"kind":"textbox","id":"sh/pormx832","slide":1,"text":"APRENDE GUATE PLUS","textPreview":"APRENDE GUATE PLUS","textChars":18,"textLines":1,"bbox":[80,78,470,24]}
+{"kind":"textbox","id":"sh/uhg3yt4f","slide":1,"text":"Resultado del incremento\ny aseguramiento de\nseguridad y calidad","textPreview":"Resultado del incremento | y aseguramiento de | seguridad y calidad","textChars":63,"textLines":3,"bbox":[80,145,790,205]}
+{"kind":"textbox","id":"sh/fip4ryl0","slide":1,"text":"Avance funcional del Sprint 1 · Plataforma inteligente para competencias digitales y empleabilidad","textPreview":"Avance funcional del Sprint 1 · Plataforma inteligente para competencias digitales y empleabilidad","textChars":98,"textLines":1,"bbox":[84,384,750,60]}
+{"kind":"shape","id":"sh/gjyl03ml","slide":1,"bbox":[84,480,160,5]}
+{"kind":"textbox","id":"sh/hkrmt836","slide":1,"text":"Estado al 29 de agosto de 2026","textPreview":"Estado al 29 de agosto de 2026","textChars":30,"textLines":1,"bbox":[84,515,400,28]}
+{"kind":"textbox","id":"sh/6tg3ut4j","slide":1,"text":"Proyecto de Graduación","textPreview":"Proyecto de Graduación","textChars":22,"textLines":1,"bbox":[84,610,350,24]}
+{"kind":"textbox","id":"sh/7ep4ne54","slide":1,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[1160,680,48,18]}
+{"kind":"notes","id":"nt/tvkx9m","slide":1,"text":""}
+{"kind":"slide","id":"sl/fcp90k","slide":2,"title":"RESULTADO DEL INCREMENTO","textShapes":20}
+{"kind":"textbox","id":"sh/x47exc7a","slide":2,"text":"RESULTADO DEL INCREMENTO","textPreview":"RESULTADO DEL INCREMENTO","textChars":24,"textLines":1,"bbox":[72,46,650,24]}
+{"kind":"textbox","id":"sh/a1wfmx8j","slide":2,"text":"El incremento consolida la experiencia de aprendizaje personalizada","textPreview":"El incremento consolida la experiencia de aprendizaje personalizada","textChars":67,"textLines":1,"bbox":[72,82,1136,54]}
+{"kind":"textbox","id":"sh/v2pwv2p4","slide":2,"text":"La plataforma ya integra diagnóstico, ruta, tutor, práctica y perfil profesional.","textPreview":"La plataforma ya integra diagnóstico, ruta, tutor, práctica y perfil profesional.","textChars":81,"textLines":1,"bbox":[72,145,1000,34]}
+{"kind":"shape","id":"sh/8zexk7qd","slide":2,"bbox":[72,194,105,5]}
+{"kind":"shape","id":"sh/90netc7y","slide":2,"bbox":[72,242,44,44]}
+{"kind":"textbox","id":"sh/mxwfix8n","slide":2,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[85,251,20,20]}
+{"kind":"textbox","id":"sh/ny5wr2ps","slide":2,"text":"Diagnóstico inteligente","textPreview":"Diagnóstico inteligente","textChars":23,"textLines":1,"bbox":[136,242,430,25]}
+{"kind":"textbox","id":"sh/0vexgnqh","slide":2,"text":"Pregunta inicial y cuestionario adaptado.","textPreview":"Pregunta inicial y cuestionario adaptado.","textChars":41,"textLines":1,"bbox":[136,270,450,30]}
+{"kind":"shape","id":"sh/lwneps72","slide":2,"bbox":[72,330,44,44]}
+{"kind":"textbox","id":"sh/pcbyh036","slide":2,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[85,339,20,20]}
+{"kind":"textbox","id":"sh/4b2hovml","slide":2,"text":"Ruta personalizada","textPreview":"Ruta personalizada","textChars":18,"textLines":1,"bbox":[136,330,430,25]}
+{"kind":"textbox","id":"sh/3qtgfq5g","slide":2,"text":"Fases, contenido, mini-quiz y desbloqueo progresivo.","textPreview":"Fases, contenido, mini-quiz y desbloqueo progresivo.","textChars":52,"textLines":1,"bbox":[136,358,450,30]}
+{"kind":"shape","id":"sh/2pkzml4v","slide":2,"bbox":[72,418,44,44]}
+{"kind":"textbox","id":"sh/horydgna","slide":2,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[85,427,20,20]}
+{"kind":"textbox","id":"sh/gnihkbmp","slide":2,"text":"Tutor IA","textPreview":"Tutor IA","textChars":8,"textLines":1,"bbox":[136,418,430,25]}
+{"kind":"textbox","id":"sh/fm9gbq54","slide":2,"text":"Mensajes breves, límite de caracteres y formato estructurado.","textPreview":"Mensajes breves, límite de caracteres y formato estructurado.","textChars":61,"textLines":1,"bbox":[136,446,450,30]}
+{"kind":"shape","id":"sh/ul0zil4j","slide":2,"bbox":[72,506,44,44]}
+{"kind":"textbox","id":"sh/tkry9gny","slide":2,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[85,515,20,20]}
+{"kind":"textbox","id":"sh/sjixgbmt","slide":2,"text":"Preparación laboral","textPreview":"Preparación laboral","textChars":19,"textLines":1,"bbox":[136,506,430,25]}
+{"kind":"textbox","id":"sh/kfmpcfyl","slide":2,"text":"Perfil, CV, experiencia, escolaridad y rutas completadas.","textPreview":"Perfil, CV, experiencia, escolaridad y rutas completadas.","textChars":57,"textLines":1,"bbox":[136,534,450,30]}
+{"kind":"shape","id":"sh/5gfqlkz6","slide":2,"bbox":[680,242,528,292]}
+{"kind":"textbox","id":"sh/id47a5gv","slide":2,"text":"Resultado observable","textPreview":"Resultado observable","textChars":20,"textLines":1,"bbox":[720,278,260,28]}
+{"kind":"textbox","id":"sh/jed8jah0","slide":2,"text":"El estudiante recibe una ruta contextualizada y avanza con evidencia de aprendizaje, no mediante un botón de completar.","textPreview":"El estudiante recibe una ruta contextualizada y avanza con evidencia de aprendizaje, no mediante un botón de completar.","textChars":119,"textLines":1,"bbox":[720,326,422,95]}
+{"kind":"textbox","id":"sh/wbmp8vyp","slide":2,"text":"La aplicación conserva rutas completadas como logros del perfil profesional.","textPreview":"La aplicación conserva rutas completadas como logros del perfil profesional.","textChars":76,"textLines":1,"bbox":[720,457,410,52]}
+{"kind":"textbox","id":"sh/xcvqh0za","slide":2,"text":"Aprende Guate Plus · Informe de avance","textPreview":"Aprende Guate Plus · Informe de avance","textChars":38,"textLines":1,"bbox":[72,680,500,18]}
+{"kind":"textbox","id":"sh/a9476lgj","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1160,680,48,18]}
+{"kind":"notes","id":"nt/fcp90k","slide":2,"text":""}
+{"kind":"slide","id":"sl/lx4ye3","slide":3,"title":"RESULTADO DEL INCREMENTO","textShapes":15}
+{"kind":"textbox","id":"sh/fu9kfm1g","slide":3,"text":"RESULTADO DEL INCREMENTO","textPreview":"RESULTADO DEL INCREMENTO","textChars":24,"textLines":1,"bbox":[72,46,650,24]}
+{"kind":"textbox","id":"sh/gvi18r21","slide":3,"text":"Las fases se transformaron en una experiencia guiada","textPreview":"Las fases se transformaron en una experiencia guiada","textChars":52,"textLines":1,"bbox":[72,82,1136,54]}
+{"kind":"textbox","id":"sh/hgb2hcjm","slide":3,"text":"El contenido se adapta al tema de la ruta y no depende de una única plantilla de Excel.","textPreview":"El contenido se adapta al tema de la ruta y no depende de una única plantilla de Excel.","textChars":87,"textLines":1,"bbox":[72,145,1000,34]}
+{"kind":"shape","id":"sh/6p0j2xkz","slide":3,"bbox":[72,194,105,5]}
+{"kind":"shape","id":"sh/7q9kb21k","slide":3,"bbox":[72,250,340,275]}
+{"kind":"textbox","id":"sh/sri1472p","slide":3,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[100,277,40,36]}
+{"kind":"textbox","id":"sh/tsr2dcja","slide":3,"text":"Lo que debes aprender","textPreview":"Lo que debes aprender","textChars":21,"textLines":1,"bbox":[100,336,280,48]}
+{"kind":"textbox","id":"sh/ilgjyxkn","slide":3,"text":"Panel lateral con subtemas y descripciones.","textPreview":"Panel lateral con subtemas y descripciones.","textChars":43,"textLines":1,"bbox":[100,398,270,80]}
+{"kind":"shape","id":"sh/jmp07218","slide":3,"bbox":[448,250,340,275]}
+{"kind":"textbox","id":"sh/jyxgnq9g","slide":3,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[476,277,40,36]}
+{"kind":"textbox","id":"sh/ydofel8b","slide":3,"text":"Ejemplo breve","textPreview":"Ejemplo breve","textChars":13,"textLines":1,"bbox":[476,336,280,48]}
+{"kind":"textbox","id":"sh/l0fypgrm","slide":3,"text":"Una simulación por cada subtema.","textPreview":"Una simulación por cada subtema.","textChars":32,"textLines":1,"bbox":[476,398,270,80]}
+{"kind":"shape","id":"sh/kz6xgbq1","slide":3,"bbox":[824,250,340,275]}
+{"kind":"textbox","id":"sh/72hgrq9s","slide":3,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[852,277,40,36]}
+{"kind":"textbox","id":"sh/618fil87","slide":3,"text":"Práctica ahora","textPreview":"Práctica ahora","textChars":14,"textLines":1,"bbox":[852,336,280,48]}
+{"kind":"textbox","id":"sh/t4zyt0ry","slide":3,"text":"Selector de tema y cinco ejercicios por opción.","textPreview":"Selector de tema y cinco ejercicios por opción.","textChars":47,"textLines":1,"bbox":[852,398,270,80]}
+{"kind":"textbox","id":"sh/83qxkvqd","slide":3,"text":"Ejemplo: una fase de Fórmulas básicas incluye suma, resta, multiplicación, división, SUMA por rango y BUSCARV.","textPreview":"Ejemplo: una fase de Fórmulas básicas incluye suma, resta, multiplicación, división, SUMA por rango y BUSCARV.","textChars":110,"textLines":1,"bbox":[72,570,1040,32]}
+{"kind":"textbox","id":"sh/n6dwf69o","slide":3,"text":"Aprende Guate Plus · Informe de avance","textPreview":"Aprende Guate Plus · Informe de avance","textChars":38,"textLines":1,"bbox":[72,680,500,18]}
+{"kind":"textbox","id":"sh/254f61s3","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1160,680,48,18]}
+{"kind":"notes","id":"nt/lx4ye3","slide":3,"text":""}
+{"kind":"slide","id":"sl/xi9tzl","slide":4,"title":"EVIDENCIA FUNCIONAL","textShapes":22}
+{"kind":"textbox","id":"sh/ihsb2lgj","slide":4,"text":"EVIDENCIA FUNCIONAL","textPreview":"EVIDENCIA FUNCIONAL","textChars":19,"textLines":1,"bbox":[72,46,650,24]}
+{"kind":"textbox","id":"sh/54jax0fu","slide":4,"text":"La práctica contextual convierte contenido en aplicación","textPreview":"La práctica contextual convierte contenido en aplicación","textChars":56,"textLines":1,"bbox":[72,82,1136,54]}
+{"kind":"textbox","id":"sh/4jat4vy9","slide":4,"text":"Las operaciones de Excel muestran ejercicios verificables; otros temas muestran actividades guiadas.","textPreview":"Las operaciones de Excel muestran ejercicios verificables; otros temas muestran actividades guiadas.","textChars":100,"textLines":1,"bbox":[72,145,1000,34]}
+{"kind":"shape","id":"sh/r6lczax0","slide":4,"bbox":[72,194,105,5]}
+{"kind":"shape","id":"sh/q5cb65gf","slide":4,"bbox":[72,245,510,330]}
+{"kind":"textbox","id":"sh/d83u1kf6","slide":4,"text":"Fórmulas básicas","textPreview":"Fórmulas básicas","textChars":16,"textLines":1,"bbox":[105,275,260,30]}
+{"kind":"shape","id":"sh/s7ut8fyl","slide":4,"bbox":[105,330,190,46]}
+{"kind":"textbox","id":"sh/7ahsn6xw","slide":4,"text":"Suma","textPreview":"Suma","textChars":4,"textLines":1,"bbox":[117,340,115,18]}
+{"kind":"textbox","id":"sh/698bu1gb","slide":4,"text":"5 ejercicios","textPreview":"5 ejercicios","textChars":12,"textLines":1,"bbox":[227,341,58,16]}
+{"kind":"shape","id":"sh/g7ipsnyd","slide":4,"bbox":[325,330,190,46]}
+{"kind":"textbox","id":"sh/18r6l8fy","slide":4,"text":"Resta","textPreview":"Resta","textChars":5,"textLines":1,"bbox":[337,340,115,18]}
+{"kind":"textbox","id":"sh/e5g7qdg7","slide":4,"text":"5 ejercicios","textPreview":"5 ejercicios","textChars":12,"textLines":1,"bbox":[447,341,58,16]}
+{"kind":"shape","id":"sh/f6pojixs","slide":4,"bbox":[105,396,190,46]}
+{"kind":"textbox","id":"sh/obipwnyp","slide":4,"text":"Multiplicación","textPreview":"Multiplicación","textChars":14,"textLines":1,"bbox":[117,406,115,18]}
+{"kind":"textbox","id":"sh/pcr6psfu","slide":4,"text":"5 ejercicios","textPreview":"5 ejercicios","textChars":12,"textLines":1,"bbox":[227,407,58,16]}
+{"kind":"shape","id":"sh/2907udgj","slide":4,"bbox":[325,396,190,46]}
+{"kind":"textbox","id":"sh/3a9onix4","slide":4,"text":"División","textPreview":"División","textChars":8,"textLines":1,"bbox":[337,406,115,18]}
+{"kind":"textbox","id":"sh/4fy5k3y5","slide":4,"text":"5 ejercicios","textPreview":"5 ejercicios","textChars":12,"textLines":1,"bbox":[447,407,58,16]}
+{"kind":"shape","id":"sh/5g76dofq","slide":4,"bbox":[105,462,190,46]}
+{"kind":"textbox","id":"sh/lczmhkre","slide":4,"text":"SUMA por rango","textPreview":"SUMA por rango","textChars":14,"textLines":1,"bbox":[117,472,115,18]}
+{"kind":"textbox","id":"sh/kbqlofq9","slide":4,"text":"5 ejercicios","textPreview":"5 ejercicios","textChars":12,"textLines":1,"bbox":[227,473,58,16]}
+{"kind":"shape","id":"sh/jax4fa9o","slide":4,"bbox":[325,462,190,46]}
+{"kind":"textbox","id":"sh/y9o3mp83","slide":4,"text":"BUSCARV","textPreview":"BUSCARV","textChars":7,"textLines":1,"bbox":[337,472,115,18]}
+{"kind":"textbox","id":"sh/t0zml4rq","slide":4,"text":"5 ejercicios","textPreview":"5 ejercicios","textChars":12,"textLines":1,"bbox":[447,473,58,16]}
+{"kind":"shape","id":"sh/8zq5szq5","slide":4,"bbox":[655,245,553,330]}
+{"kind":"textbox","id":"sh/7yh4ju9k","slide":4,"text":"Simulaciones","textPreview":"Simulaciones","textChars":12,"textLines":1,"bbox":[690,275,220,30]}
+{"kind":"shape","id":"sh/6d8nqp8z","slide":4,"bbox":[690,340,8,8]}
+{"kind":"textbox","id":"sh/h4jmp4rm","slide":4,"text":"Hoja de cálculo animada para operaciones y rangos.","textPreview":"Hoja de cálculo animada para operaciones y rangos.","textChars":50,"textLines":1,"bbox":[712,330,418,44]}
+{"kind":"shape","id":"sh/g3a5wzqh","slide":4,"bbox":[690,402,8,8]}
+{"kind":"textbox","id":"sh/e9kjq1oj","slide":4,"text":"Tabla de búsqueda para demostrar BUSCARV.","textPreview":"Tabla de búsqueda para demostrar BUSCARV.","textChars":41,"textLines":1,"bbox":[712,392,418,44]}
+{"kind":"shape","id":"sh/fatkj6p4","slide":4,"bbox":[690,464,8,8]}
+{"kind":"textbox","id":"sh/0b21sb6p","slide":4,"text":"Pasos animados para temas como componentes de computación.","textPreview":"Pasos animados para temas como componentes de computación.","textChars":58,"textLines":1,"bbox":[712,454,438,44]}
+{"kind":"textbox","id":"sh/1cv2lg7a","slide":4,"text":"Aprende Guate Plus · Informe de avance","textPreview":"Aprende Guate Plus · Informe de avance","textChars":38,"textLines":1,"bbox":[72,680,500,18]}
+{"kind":"textbox","id":"sh/2d4julov","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1160,680,48,18]}
+{"kind":"notes","id":"nt/xi9tzl","slide":4,"text":""}
+{"kind":"slide","id":"sl/3uv6am","slide":5,"title":"SEGURIDAD DEL SPRINT","textShapes":15}
+{"kind":"textbox","id":"sh/07q1ofq9","slide":5,"text":"SEGURIDAD DEL SPRINT","textPreview":"SEGURIDAD DEL SPRINT","textChars":20,"textLines":1,"bbox":[72,46,650,24]}
+{"kind":"textbox","id":"sh/f6hkva9o","slide":5,"text":"Controles aplicados desde el desarrollo, no sólo al final","textPreview":"Controles aplicados desde el desarrollo, no sólo al final","textChars":57,"textLines":1,"bbox":[72,82,1136,54]}
+{"kind":"textbox","id":"sh/e58jm5s3","slide":5,"text":"Se redujeron riesgos de acceso indebido, abuso de IA y exposición de información.","textPreview":"Se redujeron riesgos de acceso indebido, abuso de IA y exposición de información.","textChars":81,"textLines":1,"bbox":[72,145,1000,34]}
+{"kind":"shape","id":"sh/d4z2t0ry","slide":5,"bbox":[72,194,105,5]}
+{"kind":"shape","id":"sh/s3q1kvad","slide":5,"bbox":[72,244,340,164]}
+{"kind":"textbox","id":"sh/r2xkra9s","slide":5,"text":"Autenticación y acceso","textPreview":"Autenticación y acceso","textChars":22,"textLines":1,"bbox":[96,266,290,42]}
+{"kind":"textbox","id":"sh/q1oji5s7","slide":5,"text":"Roles Student, Instructor y Admin; verificación de correo; políticas de autorización.","textPreview":"Roles Student, Instructor y Admin; verificación de correo; políticas de autorización.","textChars":85,"textLines":1,"bbox":[96,314,288,74]}
+{"kind":"shape","id":"sh/x0j254r2","slide":5,"bbox":[448,244,340,164]}
+{"kind":"textbox","id":"sh/czalwzqh","slide":5,"text":"Protección de sesiones","textPreview":"Protección de sesiones","textChars":22,"textLines":1,"bbox":[472,266,290,42]}
+{"kind":"textbox","id":"sh/i18vuh8n","slide":5,"text":"Regeneración de sesión en inicio social, cookies y configuración segura para producción.","textPreview":"Regeneración de sesión en inicio social, cookies y configuración segura para producción.","textChars":88,"textLines":1,"bbox":[472,314,288,74]}
+{"kind":"shape","id":"sh/32hwnm9s","slide":5,"bbox":[824,244,340,164]}
+{"kind":"textbox","id":"sh/43qdwrqd","slide":5,"text":"IA segura","textPreview":"IA segura","textChars":9,"textLines":1,"bbox":[848,266,290,42]}
+{"kind":"textbox","id":"sh/54jepwry","slide":5,"text":"Instrucciones contra prompt injection, ocultamiento de datos sensibles, límites de mensajes y rate limiting.","textPreview":"Instrucciones contra prompt injection, ocultamiento de datos sensibles, límites de mensajes y rate limiting.","textChars":108,"textLines":1,"bbox":[848,314,288,74]}
+{"kind":"shape","id":"sh/ud8vqh8b","slide":5,"bbox":[260,462,340,164]}
+{"kind":"textbox","id":"sh/vehwjm9w","slide":5,"text":"Entrada y archivos","textPreview":"Entrada y archivos","textChars":18,"textLines":1,"bbox":[284,484,290,42]}
+{"kind":"textbox","id":"sh/gzqdsrqh","slide":5,"text":"Validación de formularios, límites de tamaño, tipo PDF para CV y control de carga.","textPreview":"Validación de formularios, límites de tamaño, tipo PDF para CV y control de carga.","textChars":82,"textLines":1,"bbox":[284,532,288,74]}
+{"kind":"shape","id":"sh/h0zelwr2","slide":5,"bbox":[636,462,340,164]}
+{"kind":"textbox","id":"sh/e9sf218f","slide":5,"text":"Cabeceras HTTP","textPreview":"Cabeceras HTTP","textChars":14,"textLines":1,"bbox":[660,484,290,42]}
+{"kind":"textbox","id":"sh/fa1wv690","slide":5,"text":"Protecciones de navegador aplicadas mediante middleware de security headers.","textPreview":"Protecciones de navegador aplicadas mediante middleware de security headers.","textChars":76,"textLines":1,"bbox":[660,532,288,74]}
+{"kind":"textbox","id":"sh/bedsnyps","slide":5,"text":"Aprende Guate Plus · Informe de avance","textPreview":"Aprende Guate Plus · Informe de avance","textChars":38,"textLines":1,"bbox":[72,680,500,18]}
+{"kind":"textbox","id":"sh/ad4beto7","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1160,680,48,18]}
+{"kind":"notes","id":"nt/3uv6am","slide":5,"text":""}
+{"kind":"slide","id":"sl/oss65r","slide":6,"title":"CALIDAD DEL SPRINT","textShapes":16}
+{"kind":"textbox","id":"sh/6hkv6dgn","slide":6,"text":"CALIDAD DEL SPRINT","textPreview":"CALIDAD DEL SPRINT","textChars":18,"textLines":1,"bbox":[72,46,650,24]}
+{"kind":"textbox","id":"sh/tkve18fy","slide":6,"text":"La calidad se verifica continuamente con evidencia automatizada","textPreview":"La calidad se verifica continuamente con evidencia automatizada","textChars":63,"textLines":1,"bbox":[72,82,1136,54]}
+{"kind":"textbox","id":"sh/sjmd83yt","slide":6,"text":"Cada cambio relevante se acompaña de compilación de vistas, migraciones y pruebas funcionales.","textPreview":"Cada cambio relevante se acompaña de compilación de vistas, migraciones y pruebas funcionales.","textChars":94,"textLines":1,"bbox":[72,145,1000,34]}
+{"kind":"shape","id":"sh/jutcvyxw","slide":6,"bbox":[72,194,105,5]}
+{"kind":"shape","id":"sh/itkv2tgb","slide":6,"bbox":[72,245,330,250]}
+{"kind":"textbox","id":"sh/5wbux8f2","slide":6,"text":"32","textPreview":"32","textChars":2,"textLines":1,"bbox":[108,283,190,70]}
+{"kind":"textbox","id":"sh/kv2d43yh","slide":6,"text":"pruebas automatizadas aprobadas","textPreview":"pruebas automatizadas aprobadas","textChars":31,"textLines":1,"bbox":[108,362,240,48]}
+{"kind":"textbox","id":"sh/3qxw7ixg","slide":6,"text":"96 aserciones verificadas","textPreview":"96 aserciones verificadas","textChars":25,"textLines":1,"bbox":[108,429,210,28]}
+{"kind":"shape","id":"sh/2p4vexgv","slide":6,"bbox":[465,246,72,5]}
+{"kind":"textbox","id":"sh/sba9ojex","slide":6,"text":"Pruebas de seguridad IA","textPreview":"Pruebas de seguridad IA","textChars":23,"textLines":1,"bbox":[465,268,310,28]}
+{"kind":"textbox","id":"sh/dcjah4vi","slide":6,"text":"Ocultamiento de claves y resistencia a instrucciones maliciosas.","textPreview":"Ocultamiento de claves y resistencia a instrucciones maliciosas.","textChars":64,"textLines":1,"bbox":[465,306,310,52]}
+{"kind":"shape","id":"sh/q9srm9w7","slide":6,"bbox":[830,246,72,5]}
+{"kind":"textbox","id":"sh/ra1sfedc","slide":6,"text":"Pruebas de perfiles","textPreview":"Pruebas de perfiles","textChars":19,"textLines":1,"bbox":[830,268,310,28]}
+{"kind":"textbox","id":"sh/4na9kze1","slide":6,"text":"Privacidad pública/privada y visualización de logros.","textPreview":"Privacidad pública/privada y visualización de logros.","textChars":53,"textLines":1,"bbox":[830,306,310,52]}
+{"kind":"shape","id":"sh/58jad4vm","slide":6,"bbox":[465,381,72,5]}
+{"kind":"textbox","id":"sh/il8ripwv","slide":6,"text":"Pruebas de rutas","textPreview":"Pruebas de rutas","textChars":16,"textLines":1,"bbox":[465,403,310,28]}
+{"kind":"textbox","id":"sh/3mh8budg","slide":6,"text":"Simulaciones y práctica por tema de fórmulas y computación.","textPreview":"Simulaciones y práctica por tema de fórmulas y computación.","textChars":59,"textLines":1,"bbox":[465,441,310,52]}
+{"kind":"shape","id":"sh/gjq9gfep","slide":6,"bbox":[830,381,72,5]}
+{"kind":"textbox","id":"sh/hkzq9kva","slide":6,"text":"Validación técnica","textPreview":"Validación técnica","textChars":18,"textLines":1,"bbox":[830,403,310,28]}
+{"kind":"textbox","id":"sh/x47yxw32","slide":6,"text":"Sintaxis PHP, cache de Blade y migraciones ejecutadas.","textPreview":"Sintaxis PHP, cache de Blade y migraciones ejecutadas.","textChars":54,"textLines":1,"bbox":[830,441,310,52]}
+{"kind":"textbox","id":"sh/c3yxor2h","slide":6,"text":"Aprende Guate Plus · Informe de avance","textPreview":"Aprende Guate Plus · Informe de avance","textChars":38,"textLines":1,"bbox":[72,680,500,18]}
+{"kind":"textbox","id":"sh/b2pgvmlw","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1160,680,48,18]}
+{"kind":"notes","id":"nt/oss65r","slide":6,"text":""}
+{"kind":"slide","id":"sl/tainha","slide":7,"title":"Conclusión del incremento","textShapes":13}
+{"kind":"textbox","id":"sh/zm18fmx8","slide":7,"text":"Conclusión del incremento","textPreview":"Conclusión del incremento","textChars":25,"textLines":1,"bbox":[72,72,730,60]}
+{"kind":"textbox","id":"sh/0nu98ryt","slide":7,"text":"El Sprint 1 deja una base funcional, verificable y segura para continuar con retos, mentorías y automatización de pruebas.","textPreview":"El Sprint 1 deja una base funcional, verificable y segura para continuar con retos, mentorías y automatización de pruebas.","textChars":122,"textLines":1,"bbox":[72,150,880,70]}
+{"kind":"shape","id":"sh/lo3qhcfe","slide":7,"bbox":[72,285,1035,72]}
+{"kind":"textbox","id":"sh/mpcrahgz","slide":7,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[94,305,28,28]}
+{"kind":"textbox","id":"sh/nql8jmxk","slide":7,"text":"Incremento entregado","textPreview":"Incremento entregado","textChars":20,"textLines":1,"bbox":[148,299,310,28]}
+{"kind":"textbox","id":"sh/8ru9cryp","slide":7,"text":"Aprendizaje adaptativo, perfil profesional y práctica contextual.","textPreview":"Aprendizaje adaptativo, perfil profesional y práctica contextual.","textChars":65,"textLines":1,"bbox":[470,301,600,30]}
+{"kind":"shape","id":"sh/9s3qlwfa","slide":7,"bbox":[72,385,1035,72]}
+{"kind":"textbox","id":"sh/2t87yxgf","slide":7,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[94,405,28,28]}
+{"kind":"textbox","id":"sh/3uh872h0","slide":7,"text":"Seguridad incorporada","textPreview":"Seguridad incorporada","textChars":21,"textLines":1,"bbox":[148,399,310,28]}
+{"kind":"textbox","id":"sh/7epcrml4","slide":7,"text":"Controles de acceso, validación, sesiones, IA y cabeceras.","textPreview":"Controles de acceso, validación, sesiones, IA y cabeceras.","textChars":58,"textLines":1,"bbox":[470,401,600,30]}
+{"kind":"shape","id":"sh/6dgbyh4j","slide":7,"bbox":[72,485,1035,72]}
+{"kind":"textbox","id":"sh/tg7utw3a","slide":7,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[94,505,28,28]}
+{"kind":"textbox","id":"sh/sfyt0rmp","slide":7,"text":"Calidad demostrable","textPreview":"Calidad demostrable","textChars":19,"textLines":1,"bbox":[148,499,310,28]}
+{"kind":"textbox","id":"sh/jqpsn2l8","slide":7,"text":"32 pruebas y 96 aserciones aprobadas durante el desarrollo.","textPreview":"32 pruebas y 96 aserciones aprobadas durante el desarrollo.","textChars":59,"textLines":1,"bbox":[470,501,600,30]}
+{"kind":"textbox","id":"sh/ipgbux4n","slide":7,"text":"Siguiente enfoque: CI/CD, pruebas end-to-end, análisis de dependencias y auditoría OWASP en ambiente de pruebas.","textPreview":"Siguiente enfoque: CI/CD, pruebas end-to-end, análisis de dependencias y auditoría OWASP en ambiente de pruebas.","textChars":112,"textLines":1,"bbox":[72,625,1040,26]}
+{"kind":"textbox","id":"sh/5s7apc3e","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1160,680,48,18]}
+{"kind":"notes","id":"nt/tainha","slide":7,"text":""}

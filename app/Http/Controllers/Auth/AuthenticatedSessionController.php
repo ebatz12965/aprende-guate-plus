@@ -32,6 +32,10 @@ class AuthenticatedSessionController extends Controller
             Auth::user()->assignDefaultStudentRole();
         }
 
+        if (Auth::user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! Auth::user()->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

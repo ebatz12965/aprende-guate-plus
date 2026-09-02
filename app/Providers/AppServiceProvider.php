@@ -5,7 +5,9 @@ namespace App\Providers;
 use App\Models\ClassModel;
 use App\Models\Course;
 use App\Models\Module;
+use App\Models\PlatformSetting;
 use App\Models\User;
+use App\Services\MailConfigurationService;
 use App\Policies\ClassPolicy;
 use App\Policies\CoursePolicy;
 use App\Policies\ModulePolicy;
@@ -29,12 +31,15 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
+        app(MailConfigurationService::class)->apply();
+
         RateLimiter::for('ai', function (Request $request) {
             $identity = $request->user()?->id ?? $request->ip();
+            $settings = PlatformSetting::aiLimits();
 
             return [
-                Limit::perMinute(6)->by('ai-minute:'.$identity),
-                Limit::perDay(60)->by('ai-day:'.$identity),
+                Limit::perMinute($settings['tutor_minute_limit'])->by('ai-minute:'.$identity),
+                Limit::perDay($settings['tutor_daily_limit'])->by('ai-day:'.$identity),
             ];
         });
 

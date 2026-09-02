@@ -29,7 +29,13 @@ class SocialiteController extends Controller
                     'name' => $socialUser->getName(),
                     'email' => $socialUser->getEmail(),
                     'password' => \Hash::make(\Str::random(24)),
+                    'email_verified_at' => now(),
                 ]);
+            }
+
+            if (! $user->hasVerifiedEmail()) {
+                // Google entrega un correo autenticado en el flujo OAuth; no bloqueamos esta vía de acceso.
+                $user->forceFill(['email_verified_at' => now()])->save();
             }
 
             if ($user->getRoleNames()->isEmpty()) {
