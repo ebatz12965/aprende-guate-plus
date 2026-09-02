@@ -29,20 +29,95 @@ class AiTutorService
     public function learningPlan(string $goal, array $questions, array $answers): array
     {
         $fallback = [
-            'level' => 'Inicial', 'title' => 'Ruta personalizada: fundamentos para tu meta',
+            'level' => 'Inicial',
+            'title' => 'Ruta personalizada: fundamentos para tu meta',
             'summary' => 'Avanza paso a paso con ejemplos breves y práctica.',
             'items' => [
-                ['title'=>'Fundamentos esenciales','area'=>'Base','content'=>['concept'=>'Identifica los conceptos y herramientas básicas de tu objetivo.','example'=>'Elige una tarea cotidiana y descríbela en tres pasos claros.','activity'=>'Haz una lista de los tres conceptos que necesitas dominar.'], 'quiz'=>['question'=>'¿Qué es mejor al comenzar?', 'options'=>['Practicar una base pequeña','Intentar todo a la vez','Evitar ejemplos'], 'answer'=>0]],
-                ['title'=>'Práctica guiada','area'=>'Aplicación','content'=>['concept'=>'Aplica un método simple con una situación real.','example'=>'Resuelve un ejemplo pequeño antes de pasar a uno complejo.','activity'=>'Repite el ejemplo con datos o contexto distinto.'], 'quiz'=>['question'=>'¿Cuál es un buen siguiente paso?', 'options'=>['Aumentar poco a poco la dificultad','Saltar la práctica','Memorizar sin aplicar'], 'answer'=>0]],
-                ['title'=>'Mini proyecto','area'=>'Práctica','content'=>['concept'=>'Integra lo aprendido en una entrega sencilla.','example'=>'Explica tu solución a otra persona con palabras claras.','activity'=>'Crea una entrega breve y revisa qué mejorarías.'], 'quiz'=>['question'=>'¿Para qué sirve un mini proyecto?', 'options'=>['Aplicar y evidenciar aprendizaje','Evitar feedback','Reemplazar toda práctica'], 'answer'=>0]],
+                [
+                    'title' => 'Fundamentos esenciales',
+                    'area' => 'Base',
+                    'content' => [
+                        'concept' => 'Identifica los conceptos y herramientas básicas de tu objetivo.',
+                        'topics' => [
+                            ['title' => 'Conceptos clave', 'description' => 'Reconoce los términos esenciales antes de aplicarlos.'],
+                            ['title' => 'Herramientas básicas', 'description' => 'Ubica las funciones o recursos que necesitarás usar.'],
+                            ['title' => 'Primer procedimiento', 'description' => 'Sigue un proceso corto y repetible para practicar.'],
+                        ],
+                        'example' => 'Elige una tarea cotidiana y divídela en tres pasos claros.',
+                        'simulation' => [
+                            'type' => 'steps',
+                            'title' => 'Proceso guiado',
+                            'steps' => [
+                                ['label' => '1', 'description' => 'Identifica el objetivo de la tarea.'],
+                                ['label' => '2', 'description' => 'Aplica el concepto en un ejemplo pequeño.'],
+                                ['label' => '3', 'description' => 'Comprueba el resultado y anota lo aprendido.'],
+                            ],
+                        ],
+                        'activity' => 'Haz una lista de los tres conceptos que necesitas dominar.',
+                    ],
+                    'quiz' => ['question' => '¿Qué es mejor al comenzar?', 'options' => ['Practicar una base pequeña', 'Intentar todo a la vez', 'Evitar ejemplos'], 'answer' => 0],
+                ],
+                [
+                    'title' => 'Práctica guiada',
+                    'area' => 'Aplicación',
+                    'content' => [
+                        'concept' => 'Aplica un método simple con una situación real.',
+                        'topics' => [
+                            ['title' => 'Caso pequeño', 'description' => 'Comienza con una situación fácil de comprobar.'],
+                            ['title' => 'Uso de la herramienta', 'description' => 'Aplica el procedimiento sin saltar pasos.'],
+                            ['title' => 'Revisión', 'description' => 'Compara tu resultado con el objetivo inicial.'],
+                        ],
+                        'example' => 'Resuelve un ejemplo pequeño antes de pasar a uno complejo.',
+                        'simulation' => [
+                            'type' => 'steps',
+                            'title' => 'Práctica en tres pasos',
+                            'steps' => [
+                                ['label' => '1', 'description' => 'Prepara la información necesaria.'],
+                                ['label' => '2', 'description' => 'Ejecuta el procedimiento.'],
+                                ['label' => '3', 'description' => 'Verifica y ajusta el resultado.'],
+                            ],
+                        ],
+                        'activity' => 'Repite el ejemplo con datos o contexto distinto.',
+                    ],
+                    'quiz' => ['question' => '¿Cuál es un buen siguiente paso?', 'options' => ['Aumentar poco a poco la dificultad', 'Saltar la práctica', 'Memorizar sin aplicar'], 'answer' => 0],
+                ],
+                [
+                    'title' => 'Mini proyecto',
+                    'area' => 'Práctica',
+                    'content' => [
+                        'concept' => 'Integra lo aprendido en una entrega sencilla.',
+                        'topics' => [
+                            ['title' => 'Planificación', 'description' => 'Define qué vas a crear y qué resultado esperas.'],
+                            ['title' => 'Aplicación', 'description' => 'Combina los conocimientos practicados en las fases anteriores.'],
+                            ['title' => 'Mejora', 'description' => 'Identifica una mejora concreta después de revisar tu entrega.'],
+                        ],
+                        'example' => 'Explica tu solución a otra persona con palabras claras.',
+                        'simulation' => [
+                            'type' => 'steps',
+                            'title' => 'Construcción del mini proyecto',
+                            'steps' => [
+                                ['label' => '1', 'description' => 'Define una entrega pequeña.'],
+                                ['label' => '2', 'description' => 'Crea una primera versión.'],
+                                ['label' => '3', 'description' => 'Revísala y explica qué aprendiste.'],
+                            ],
+                        ],
+                        'activity' => 'Crea una entrega breve y revisa qué mejorarías.',
+                    ],
+                    'quiz' => ['question' => '¿Para qué sirve un mini proyecto?', 'options' => ['Aplicar y evidenciar aprendizaje', 'Evitar feedback', 'Reemplazar toda práctica'], 'answer' => 0],
+                ],
             ],
         ];
-        $context = json_encode(['goal'=>$goal, 'questions'=>$questions, 'answers'=>$answers], JSON_UNESCAPED_UNICODE);
+
+        $context = json_encode(['goal' => $goal, 'questions' => $questions, 'answers' => $answers], JSON_UNESCAPED_UNICODE);
         $prompt = 'Crea una ruta de aprendizaje MUY concreta para el estudiante usando este diagnóstico: '.$context.'. '
-            .'Devuelve SOLO JSON válido con este formato exacto: {"level":"Inicial|Intermedio|Avanzado","title":"máximo 10 palabras","summary":"máximo 25 palabras","items":[{"title":"máximo 6 palabras","area":"máximo 3 palabras","content":{"concept":"máximo 45 palabras","example":"máximo 35 palabras","activity":"máximo 25 palabras"},"quiz":{"question":"máximo 20 palabras","options":["opción 1","opción 2","opción 3"],"answer":0}}]}. '
-            .'Genera exactamente 3 items. La respuesta answer es el índice 0, 1 o 2. No incluyas markdown ni texto fuera del JSON.';
-        $plan = $this->askJson($prompt, $fallback);
-        $valid = count(data_get($plan, 'items', [])) === 3 && collect($plan['items'])->every(fn ($item) => count(data_get($item, 'quiz.options', [])) === 3 && in_array((int) data_get($item, 'quiz.answer', -1), [0, 1, 2], true));
+            .'Devuelve SOLO JSON válido con este formato exacto: {"level":"Inicial|Intermedio|Avanzado","title":"máximo 10 palabras","summary":"máximo 25 palabras","items":[{"title":"máximo 6 palabras","area":"máximo 3 palabras","content":{"concept":"máximo 45 palabras","topics":[{"title":"máximo 5 palabras","description":"máximo 22 palabras"},{"title":"máximo 5 palabras","description":"máximo 22 palabras"},{"title":"máximo 5 palabras","description":"máximo 22 palabras"}],"example":"máximo 35 palabras","simulations":[{"type":"spreadsheet o steps","title":"máximo 6 palabras","formula":"solo si type es spreadsheet","cells":[{"label":"A1","value":"10"},{"label":"B1","value":"20"}],"result":{"label":"C1","value":"30"},"steps":[{"label":"1","description":"máximo 12 palabras"},{"label":"2","description":"máximo 12 palabras"},{"label":"3","description":"máximo 12 palabras"}]},{"type":"spreadsheet o steps","title":"máximo 6 palabras","formula":"solo si type es spreadsheet","cells":[],"result":{},"steps":[]},{"type":"spreadsheet o steps","title":"máximo 6 palabras","formula":"solo si type es spreadsheet","cells":[],"result":{},"steps":[]}],"activity":"máximo 25 palabras"},"quiz":{"question":"máximo 20 palabras","options":["opción 1","opción 2","opción 3"],"answer":0}}]}. '
+            .'Genera exactamente 3 items, exactamente 3 topics y exactamente 3 simulations por item, en el mismo orden que los topics. Cada simulación debe demostrar el tema correspondiente con un caso distinto y cercano a la meta del estudiante. Usa type spreadsheet solo cuando una hoja de cálculo sea útil; en los demás temas usa steps. La respuesta answer es el índice 0, 1 o 2. No incluyas markdown ni texto fuera del JSON.';
+        $plan = $this->askJson($prompt, $fallback, 1500);
+        $valid = count(data_get($plan, 'items', [])) === 3
+            && collect($plan['items'])->every(fn ($item) => count(data_get($item, 'quiz.options', [])) === 3
+                && count(data_get($item, 'content.topics', [])) === 3
+                && in_array((int) data_get($item, 'quiz.answer', -1), [0, 1, 2], true));
+
         return $valid ? $plan : $fallback;
     }
 
@@ -58,11 +133,11 @@ class AiTutorService
         return is_string($content) && $content !== '' ? $this->redactSensitiveContent($content) : $fallback;
     }
 
-    private function askJson(string $prompt, array $fallback): array
+    private function askJson(string $prompt, array $fallback, int $maxTokens = 900): array
     {
         if (! config('ai.key')) return $fallback;
         $response = Http::baseUrl(config('ai.base_url'))->withToken(config('ai.key'))->acceptJson()->timeout(45)->post('/chat/completions', [
-            'model' => config('ai.model'), 'messages' => [['role'=>'system','content'=>'Responde únicamente JSON válido, sin markdown.'], ['role'=>'user','content'=>$prompt]], 'temperature' => 0.2, 'max_tokens' => 900,
+            'model' => config('ai.model'), 'messages' => [['role'=>'system','content'=>'Responde únicamente JSON válido, sin markdown.'], ['role'=>'user','content'=>$prompt]], 'temperature' => 0.2, 'max_tokens' => $maxTokens,
         ]);
         $content = data_get($response->json(), 'choices.0.message.content');
         if (! $response->successful() || ! is_string($content)) return $fallback;
