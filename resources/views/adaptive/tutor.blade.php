@@ -1,23 +1,23 @@
 @extends('layouts.platform')
 @section('content')
 <div class="mx-auto max-w-4xl">
-    <p class="text-sm font-bold text-indigo-600">PASO 3 · TUTOR IA</p>
+    <p class="text-sm font-bold text-blue-600">PASO 3 · TUTOR IA</p>
     <h1 class="mt-2 text-3xl font-extrabold">Tu apoyo para aprender, 24/7</h1>
     <p class="mt-2 text-slate-500">Haz una pregunta concreta. El Tutor responde de forma breve para ayudarte a avanzar.</p>
 
     <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" x-data="tutorChat()" x-init="formatSavedMessages()">
         <div id="tutor-messages" class="h-[420px] space-y-4 overflow-y-auto p-5">
-            <div class="max-w-xl rounded-2xl rounded-tl-sm bg-indigo-50 p-4 text-sm text-indigo-950">Hola, soy tu Tutor IA. ¿Qué estás aprendiendo hoy?</div>
+            <div class="max-w-xl rounded-2xl rounded-tl-sm bg-blue-50 p-4 text-sm text-blue-950">Hola, soy tu Tutor IA. ¿Qué estás aprendiendo hoy?</div>
             @foreach($conversation->messages as $message)
                 <div class="flex {{ $message->role === 'user' ? 'justify-end' : '' }}">
-                    <div class="tutor-message max-w-xl rounded-2xl p-4 text-sm {{ $message->role === 'user' ? 'rounded-tr-sm bg-indigo-600 text-white' : 'rounded-tl-sm bg-slate-100 text-slate-800' }}">{{ $message->content }}</div>
+                    <div class="tutor-message max-w-xl rounded-2xl p-4 text-sm {{ $message->role === 'user' ? 'rounded-tr-sm bg-blue-600 text-white' : 'rounded-tl-sm bg-slate-100 text-slate-800' }}">{{ $message->content }}</div>
                 </div>
             @endforeach
         </div>
         <form @submit.prevent="send" class="border-t border-slate-100 p-4">
             <div class="flex gap-3">
-                <textarea x-model="message" required maxlength="600" rows="2" placeholder="Escribe tu pregunta..." class="flex-1 resize-none rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
-                <button :disabled="loading" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50" x-text="loading ? 'Pensando...' : 'Enviar'"></button>
+                <textarea x-model="message" required maxlength="600" rows="2" placeholder="Escribe tu pregunta..." class="flex-1 resize-none rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500"></textarea>
+                <button :disabled="loading" class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50" x-text="loading ? 'Pensando...' : 'Enviar'"></button>
             </div>
             <p class="mt-2 text-right text-xs text-slate-400"><span x-text="message.length"></span>/600 caracteres</p>
         </form>
@@ -37,7 +37,7 @@ function tutorChat() {
             const row = document.createElement('div');
             row.className = `flex ${role === 'user' ? 'justify-end' : ''}`;
             const bubble = document.createElement('div');
-            bubble.className = `tutor-message max-w-xl rounded-2xl p-4 text-sm ${role === 'user' ? 'rounded-tr-sm bg-indigo-600 text-white' : 'rounded-tl-sm bg-slate-100 text-slate-800'}`;
+            bubble.className = `tutor-message max-w-xl rounded-2xl p-4 text-sm ${role === 'user' ? 'rounded-tr-sm bg-blue-600 text-white' : 'rounded-tl-sm bg-slate-100 text-slate-800'}`;
             this.formatBubble(bubble, text);
             row.appendChild(bubble);
             document.querySelector('#tutor-messages').appendChild(row);

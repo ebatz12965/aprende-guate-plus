@@ -79,6 +79,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/diagnostico/iniciar', [AdaptiveLearningController::class, 'startDiagnostic'])->middleware('throttle:ai')->name('adaptive.diagnostic.start');
     Route::get('/diagnostico/{attempt}/preguntas', [AdaptiveLearningController::class, 'diagnosticQuestions'])->name('adaptive.diagnostic.questions');
     Route::post('/diagnostico/{attempt}/finalizar', [AdaptiveLearningController::class, 'storeDiagnostic'])->middleware('throttle:ai')->name('adaptive.diagnostic.store');
+    Route::get('/diagnostico/{attempt}/generando', [AdaptiveLearningController::class, 'diagnosticGeneration'])->name('adaptive.diagnostic.generation');
+    Route::post('/diagnostico/{attempt}/reintentar', [AdaptiveLearningController::class, 'retryDiagnosticGeneration'])->middleware('throttle:ai')->name('adaptive.diagnostic.retry');
     Route::get('/mi-ruta', [AdaptiveLearningController::class, 'path'])->name('adaptive.path');
     Route::get('/mi-ruta/fases/{item}', [AdaptiveLearningController::class, 'showPathItem'])->name('adaptive.path.item.show');
     Route::post('/mi-ruta/fases/{item}/quiz', [AdaptiveLearningController::class, 'submitPathItemQuiz'])->name('adaptive.path.item.quiz');

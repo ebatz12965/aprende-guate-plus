@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\LearningPath;
 use App\Models\LearningPathTopic;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AiTutorService
@@ -38,7 +39,7 @@ class AiTutorService
             .'Usa el diagnóstico: '.json_encode(['questions' => $questions, 'answers' => $answers], JSON_UNESCAPED_UNICODE).'. '
             .'Genera entre 5 y 8 módulos progresivos; cada uno debe tener 3 a 5 temas concretos, objetivos laborales claros y un tipo de práctica permitido. '
             .'No generes teoría detallada, datasets, código ni ejercicios.';
-        $result = $this->askStructured($prompt, $fallback, $this->architectureSchema(), 'learning_architecture', 1800);
+        $result = $this->askStructured($prompt, $fallback, $this->architectureSchema(), 'learning_architecture', config('ai.architecture_max_tokens'));
 
         return $this->validArchitecture($result) ? $result : $fallback;
     }
@@ -59,7 +60,7 @@ class AiTutorService
             'quiz' => ['question' => '¿Qué debes hacer al aplicar este tema?', 'options' => ['Seguir el objetivo y revisar el resultado', 'Omitir el proceso', 'Memorizar sin contexto'], 'answer' => 0],
         ];
         $prompt = 'Genera una lección breve y aplicada para la meta "'.$path->goal.'", módulo "'.$topic->module->title.'" y tema "'.$topic->title.'". Objetivo: "'.$topic->learning_objective.'". No generes práctica.';
-        $result = $this->askStructured($prompt, $fallback, $this->lessonSchema(), 'topic_lesson', 1100);
+        $result = $this->askStructured($prompt, $fallback, $this->lessonSchema(), 'topic_lesson', config('ai.lesson_max_tokens'));
         return $this->validLesson($result) ? $result : $fallback;
     }
 
@@ -71,7 +72,7 @@ class AiTutorService
             .'Si el tipo es excel_dataset, artifact_content debe ser CSV con encabezados y al menos 8 filas ficticias. '
             .'Si es code_bug o code_complete, artifact_content debe ser código ejecutable o corregible con TODO/comentario y artifact_language debe indicar lenguaje. '
             .'Para los demás tipos incluye un caso o escenario realista. No inventes datos sensibles.';
-        $result = $this->askStructured($prompt, $fallback, $this->practiceSchema(), 'topic_practice', 1400);
+        $result = $this->askStructured($prompt, $fallback, $this->practiceSchema(), 'topic_practice', config('ai.practice_max_tokens'));
         return $this->validPractice($result, $topic->practice_type) ? $result : $fallback;
     }
 
@@ -162,10 +163,16 @@ class AiTutorService
     private function askStructured(string $prompt, array $fallback, array $schema, string $name, int $maxTokens): array
     {
         if (! config('ai.key')) return $fallback;
-        $response = Http::baseUrl(config('ai.base_url'))->withToken(config('ai.key'))->acceptJson()->timeout(50)->retry(2, 300)->post('/chat/completions', [
-            'model' => config('ai.model'), 'messages' => [['role'=>'system','content'=>'Responde únicamente con datos que cumplan el esquema. No incluyas Markdown.'], ['role'=>'user','content'=>$prompt]], 'temperature' => 0.2, 'max_tokens' => $maxTokens,
-            'response_format' => ['type' => 'json_schema', 'json_schema' => ['name' => $name, 'strict' => true, 'schema' => $schema]],
-        ]);
+        $startedAt = hrtime(true);
+        $response = Http::baseUrl(config('ai.base_url'))->withToken(config('ai.key'))->acceptJson()
+            ->connectTimeout(config('ai.connect_timeout'))
+            ->timeout(config('ai.generation_timeout'))
+            ->retry(config('ai.retry_times'), 300, null, false)
+            ->post('/chat/completions', [
+                'model' => config('ai.model'), 'messages' => [['role'=>'system','content'=>'Responde únicamente con datos que cumplan el esquema. No incluyas Markdown.'], ['role'=>'user','content'=>$prompt]], 'temperature' => 0.2, 'max_tokens' => $maxTokens,
+                'response_format' => ['type' => 'json_schema', 'json_schema' => ['name' => $name, 'strict' => true, 'schema' => $schema]],
+            ]);
+        Log::info('ai.structured_request', ['operation' => $name, 'duration_ms' => (int) ((hrtime(true) - $startedAt) / 1_000_000), 'successful' => $response->successful()]);
         $content = data_get($response->json(), 'choices.0.message.content');
         if (! $response->successful() || ! is_string($content)) return $fallback;
         $decoded = json_decode(trim($content), true);
@@ -175,7 +182,11 @@ class AiTutorService
     private function askText(string $system, array $messages, string $fallback): string
     {
         if (! config('ai.key')) return $fallback;
-        $response = Http::baseUrl(config('ai.base_url'))->withToken(config('ai.key'))->acceptJson()->timeout(35)->post('/chat/completions', ['model' => config('ai.model'), 'messages' => array_merge([['role'=>'system','content'=>$system]], $messages), 'temperature' => 0.35, 'max_tokens' => 180]);
+        $startedAt = hrtime(true);
+        $response = Http::baseUrl(config('ai.base_url'))->withToken(config('ai.key'))->acceptJson()
+            ->connectTimeout(config('ai.connect_timeout'))->timeout(config('ai.tutor_timeout'))
+            ->post('/chat/completions', ['model' => config('ai.model'), 'messages' => array_merge([['role'=>'system','content'=>$system]], $messages), 'temperature' => 0.35, 'max_tokens' => 180]);
+        Log::info('ai.tutor_request', ['duration_ms' => (int) ((hrtime(true) - $startedAt) / 1_000_000), 'successful' => $response->successful()]);
         $content = data_get($response->json(), 'choices.0.message.content');
         return $response->successful() && is_string($content) && $content !== '' ? $this->redactSensitiveContent($content) : $fallback;
     }

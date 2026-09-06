@@ -11,7 +11,8 @@ class LearningPathTopic extends Model
 {
     protected $fillable = [
         'learning_path_item_id', 'title', 'learning_objective', 'practice_type',
-        'position', 'status', 'metadata',
+        'position', 'status', 'metadata', 'lesson_generation_status', 'practice_generation_status',
+        'generation_error', 'generation_requested_at',
     ];
 
     protected function casts(): array

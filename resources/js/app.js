@@ -1,21 +1,27 @@
 import Alpine from 'alpinejs';
-import Hls from 'hls.js';
 
 window.Alpine = Alpine;
 Alpine.start();
 
 window.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('video[data-hls-source]').forEach((video) => {
-        const source = video.dataset.hlsSource;
+    const hlsVideos = [...document.querySelectorAll('video[data-hls-source]')];
 
-        if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = source;
-        } else if (Hls.isSupported()) {
-            const player = new Hls();
-            player.loadSource(source);
-            player.attachMedia(video);
-        }
+    hlsVideos.filter((video) => video.canPlayType('application/vnd.apple.mpegurl')).forEach((video) => {
+        video.src = video.dataset.hlsSource;
     });
+
+    const hlsCandidates = hlsVideos.filter((video) => !video.canPlayType('application/vnd.apple.mpegurl'));
+    if (hlsCandidates.length) {
+        import('hls.js').then(({ default: Hls }) => {
+            if (!Hls.isSupported()) return;
+
+            hlsCandidates.forEach((video) => {
+                const player = new Hls();
+                player.loadSource(video.dataset.hlsSource);
+                player.attachMedia(video);
+            });
+        });
+    }
 
     const taskKey = 'aprendeGuateVideoTask';
     const showProgress = (label, percent, state = 'processing') => {

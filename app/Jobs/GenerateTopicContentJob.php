@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\LearningPathTopic;
+use App\Services\AiTutorService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
+
+class GenerateTopicContentJob implements ShouldQueue
+{
+    use Queueable;
+
+    public int $tries = 1;
+
+    public int $timeout = 75;
+
+    public function __construct(public int $topicId, public string $type)
+    {
+    }
+
+    public function handle(AiTutorService $tutor): void
+    {
+        $topic = LearningPathTopic::with('module.learningPath')->find($this->topicId);
+
+        if (! $topic || ! in_array($this->type, ['lesson', 'practice'], true)) {
+            return;
+        }
+
+        $relation = $this->type;
+        $statusColumn = "{$this->type}_generation_status";
+
+        if ($topic->{$relation}) {
+            $topic->update([$statusColumn => 'completed', 'generation_error' => null]);
+
+            return;
+        }
+
+        $topic->update([$statusColumn => 'processing', 'generation_error' => null]);
+
+        try {
+            $path = $topic->module->learningPath;
+
+            if ($this->type === 'lesson') {
+                $lesson = $tutor->generateLesson($path, $topic);
+                $topic->lesson()->firstOrCreate([], [
+                    'content' => ['summary' => $lesson['summary'], 'key_concepts' => $lesson['key_concepts'], 'steps' => $lesson['steps']],
+                    'resources' => ['youtube_queries' => $lesson['youtube_queries']],
+                    'quiz' => $lesson['quiz'],
+                    'generated_at' => now(),
+                ]);
+            } else {
+                $practice = $tutor->generatePractice($path, $topic);
+                $topic->practice()->firstOrCreate([], [
+                    'type' => $topic->practice_type,
+                    'title' => $practice['title'],
+                    'instructions' => ['context' => $practice['context'], 'steps' => $practice['instructions']],
+                    'artifact' => ['label' => $practice['artifact_label'], 'language' => $practice['artifact_language'], 'content' => $practice['artifact_content']],
+                    'expected_solution' => $practice['expected_solution'],
+                    'generated_at' => now(),
+                ]);
+            }
+
+            $topic->update([$statusColumn => 'completed', 'generation_error' => null]);
+        } catch (Throwable $exception) {
+            $topic->update([
+                $statusColumn => 'failed',
+                'generation_error' => 'No se pudo generar este contenido. Puedes intentarlo nuevamente.',
+            ]);
+
+            throw $exception;
+        }
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        LearningPathTopic::whereKey($this->topicId)->update([
+            "{$this->type}_generation_status" => 'failed',
+            'generation_error' => 'No se pudo generar este contenido. Puedes intentarlo nuevamente.',
+        ]);
+    }
+}

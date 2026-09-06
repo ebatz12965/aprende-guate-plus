@@ -1,33 +1,16 @@
-@extends('layouts.platform')
+@extends('layouts.admin')
 
 @section('content')
-    <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-8">
-        Dashboard
-    </h1>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Usuarios -->
-        <div class="bg-gray-50 border border-gray-200 rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-800">Usuarios Registrados</h3>
-            <p class="mt-2 text-3xl font-bold text-gray-900">
-                {{ $users }}
-            </p>
-        </div>
-
-        <!-- Cursos -->
-        <div class="bg-gray-50 border border-gray-200 rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-800">Cursos</h3>
-            <p class="mt-2 text-3xl font-bold text-gray-900">
-                #
-            </p>
-        </div>
-
-        <!-- Categorías -->
-        <div class="bg-gray-50 border border-gray-200 rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-800">Categorías</h3>
-            <p class="mt-2 text-3xl font-bold text-gray-900">
-                #
-            </p>
-        </div>
+<div class="max-w-6xl">
+    <div class="mb-8">
+        <p class="text-sm font-bold text-blue-700">RESUMEN OPERATIVO</p>
+        <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Panel administrativo</h1>
+        <p class="mt-2 text-slate-500">Controla usuarios, contenido, inteligencia artificial y servicios de Aprende Guate.</p>
     </div>
+    <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <section class="admin-stat-card"><p>Usuarios registrados</p><strong>{{ $users }}</strong><span>Personas con una cuenta en la plataforma</span></section>
+        <section class="admin-stat-card"><p>Contenido académico</p><strong>Gestionar</strong><span>Organiza cursos, módulos, clases y evaluaciones</span><a href="{{ route('admin.courses.index') }}">Ir a cursos →</a></section>
+        <section class="admin-stat-card"><p>Configuración</p><strong>IA y correo</strong><span>Ajusta límites de uso y servicios salientes</span><a href="{{ route('admin.ai-settings.edit') }}">Ver configuración →</a></section>
+    </div>
+</div>
 @endsection

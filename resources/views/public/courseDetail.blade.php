@@ -34,7 +34,7 @@
                 {{-- Botón de Inscripción Inteligente --}}
                 @auth
                     @if(auth()->user()->courses->contains($course))
-                        <a href="{{ route('student.course.study', $course) }}" class="w-full text-center block rounded-md bg-green-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500">
+                        <a href="{{ route('student.course.study', $course) }}" class="w-full text-center block rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
                             Ir al Curso
                         </a>
                     @else

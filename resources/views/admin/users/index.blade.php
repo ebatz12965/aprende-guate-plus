@@ -1,4 +1,4 @@
-@extends('layouts.platform')
+@extends('layouts.admin')
 
 @section('content')
     <div class="flex items-center justify-between mb-8">

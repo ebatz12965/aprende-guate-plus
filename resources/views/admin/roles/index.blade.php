@@ -1,64 +1,19 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gestión de Roles</title>
+@extends('layouts.admin')
 
-    <!-- Tailwind CSS desde CDN para estilos rápidos -->
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans antialiased p-6">
-
-<h1 class="text-3xl font-bold mb-6">Gestión de Roles</h1>
-
-<div class="bg-white shadow rounded-lg p-6">
-    <h2 class="text-2xl font-semibold mb-4">Listado de Roles</h2>
-
-    @if($roles->count() > 0)
-        <table class="min-w-full border border-gray-200">
-            <thead class="bg-gray-100">
-            <tr>
-                <th class="py-2 px-4 text-left border-b">ID</th>
-                <th class="py-2 px-4 text-left border-b">Nombre de Rol</th>
-                <th class="py-2 px-4 text-left border-b">Creado</th>
-                <th class="py-2 px-4 text-left border-b">Actualizado</th>
-                <th class="py-2 px-4 text-center border-b">Acciones</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach($roles as $role)
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="py-2 px-4">{{ $role->id }}</td>
-                    <td class="py-2 px-4">{{ $role->name }}</td>
-                    <td class="py-2 px-4">{{ $role->created_at->format('d/m/Y H:i') }}</td>
-                    <td class="py-2 px-4">{{ $role->updated_at->format('d/m/Y H:i') }}</td>
-                    <td class="py-2 px-4"></td>
-                    <td class="py-2 px-4 text-center flex justify-center gap-2">
-                        <!-- Botón Editar -->
-                        <a href="#"
-                           class="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-1 px-3 rounded">
-                            Editar
-                        </a>
-
-                        <!-- Botón Eliminar -->
-                        <form action="{{ route('admin.roles.destroy', $user->id) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar este usuario?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                    class="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded">
-                                Eliminar
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
-    @else
-        <p class="text-gray-500">No hay roles registrados.</p>
-    @endif
+@section('content')
+<div class="mx-auto max-w-5xl">
+    <div class="mb-8">
+        <p class="text-sm font-bold text-blue-700">CONTROL DE ACCESO</p>
+        <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Roles del sistema</h1>
+        <p class="mt-2 text-slate-500">Consulta los roles disponibles para organizar los permisos de Aprende Guate.</p>
+    </div>
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50"><tr><th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Rol</th><th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Creado</th><th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Actualizado</th></tr></thead>
+                <tbody class="divide-y divide-slate-100 bg-white">@forelse($roles as $role)<tr><td class="px-6 py-4"><span class="rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-800">{{ $role->name }}</span></td><td class="px-6 py-4 text-sm text-slate-600">{{ $role->created_at->format('d/m/Y H:i') }}</td><td class="px-6 py-4 text-sm text-slate-600">{{ $role->updated_at->format('d/m/Y H:i') }}</td></tr>@empty<tr><td colspan="3" class="px-6 py-10 text-center text-slate-500">No hay roles registrados.</td></tr>@endforelse</tbody>
+            </table>
+        </div>
+    </section>
 </div>
-
-</body>
-</html>
+@endsection

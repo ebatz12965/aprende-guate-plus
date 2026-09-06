@@ -1,18 +1,8 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Gestión de Permisos') }}
-        </h2>
-    </x-slot>
+@extends('layouts.admin')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{-- Aquí se montará el componente de Vue --}}
-                    <permissions-component></permissions-component>
-                </div>
-            </div>
-        </div>
-    </div>
-</x-app-layout>
+@section('content')
+<div class="mx-auto max-w-6xl">
+    <div class="mb-8"><p class="text-sm font-bold text-blue-700">CONTROL DE ACCESO</p><h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Gestión de permisos</h1><p class="mt-2 text-slate-500">Configura los permisos disponibles en la plataforma.</p></div>
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><permissions-component></permissions-component></section>
+</div>
+@endsection

@@ -19,7 +19,7 @@
                                            class="flex items-center"
                                            :class="{ 'text-sky-600 font-bold': selectedClass === {{ $class->id }}, 'text-gray-500 hover:text-gray-800': selectedClass !== {{ $class->id }} }">
                                             @if(!$class->progress->isEmpty())
-                                                <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                             @endif
                                             <span>{{ $class->name }}</span>
                                         </a>
@@ -42,7 +42,7 @@
                             <form action="{{ route('student.class.complete', $class) }}" method="POST">
                                 @csrf
                                 @if(!$class->progress->isEmpty())
-                                    <button type="button" class="rounded-md bg-green-100 px-3 py-2 text-sm font-semibold text-green-700 shadow-sm" disabled>
+                                    <button type="button" class="rounded-md bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-700 shadow-sm" disabled>
                                         Completada
                                     </button>
                                 @else
