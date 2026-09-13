@@ -32,7 +32,7 @@ class GenerateLearningPathJob implements ShouldQueue
         }
 
         try {
-            $architecture = $tutor->learningArchitecture($attempt->primary_answer, $attempt->questions ?? [], $attempt->answers ?? []);
+            $architecture = $tutor->learningArchitecture($attempt->primary_answer, $attempt->questions ?? [], $attempt->answers ?? [], $attempt->user_id);
             $level = data_get($architecture, 'level', 'Inicial');
 
             DB::transaction(function () use ($attempt, $architecture, $level) {

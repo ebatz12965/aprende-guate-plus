@@ -52,26 +52,13 @@
                 <a href="{{ route('admin.roles.index') }}" class="{{ $navItemClass('admin.roles.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15.5 7.5 18l1.2-5-3.8-3.2 5-.4L12 4.7l2.1 4.7 5 .4-3.8 3.2 1.2 5z"/></svg>Roles
                 </a>
-                <a href="{{ route('admin.permissions.index') }}" class="{{ $navItemClass('admin.permissions.*') }}">
-                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V7z"/><path d="m9 12 2 2 4-4"/></svg>Permisos
-                </a>
-            @endrole
-
-            <p class="admin-sidebar-label mt-7">CONTENIDO</p>
-            <a href="{{ route('admin.courses.index') }}" class="{{ $navItemClass('admin.courses.*') }}">
-                <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5.75A1.75 1.75 0 0 1 5.75 4H20v14.5"/><path d="M4 19.5c0-1.1.9-2 2-2h14"/><path d="M8 8h8M8 12h6"/></svg>Cursos y recursos
-            </a>
-            @role('Admin')
-                <a href="{{ route('admin.categories.index') }}" class="{{ $navItemClass('admin.categories.*') }}">
-                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="12" cy="17" r="3"/></svg>Categorías
-                </a>
-                <a href="{{ route('admin.levels.index') }}" class="{{ $navItemClass('admin.levels.*') }}">
-                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9m8 10V5m8 14V2"/></svg>Niveles
-                </a>
 
                 <p class="admin-sidebar-label mt-7">CONFIGURACIÓN</p>
                 <a href="{{ route('admin.ai-settings.edit') }}" class="{{ $navItemClass('admin.ai-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 9h.01M9 15h6"/></svg>Límites de IA
+                </a>
+                <a href="{{ route('admin.ai-usage.index') }}" class="{{ $navItemClass('admin.ai-usage.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5m5 14V9m5 10V3m5 16v-7"/></svg>Consumo de IA
                 </a>
                 <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Correo saliente

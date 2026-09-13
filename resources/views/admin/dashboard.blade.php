@@ -9,7 +9,7 @@
     </div>
     <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         <section class="admin-stat-card"><p>Usuarios registrados</p><strong>{{ $users }}</strong><span>Personas con una cuenta en la plataforma</span></section>
-        <section class="admin-stat-card"><p>Contenido académico</p><strong>Gestionar</strong><span>Organiza cursos, módulos, clases y evaluaciones</span><a href="{{ route('admin.courses.index') }}">Ir a cursos →</a></section>
+        
         <section class="admin-stat-card"><p>Configuración</p><strong>IA y correo</strong><span>Ajusta límites de uso y servicios salientes</span><a href="{{ route('admin.ai-settings.edit') }}">Ver configuración →</a></section>
     </div>
 </div>

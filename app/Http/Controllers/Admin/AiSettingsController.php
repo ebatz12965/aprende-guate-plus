@@ -22,6 +22,7 @@ class AiSettingsController extends Controller
             'tutor_daily_limit' => ['required', 'integer', 'min:1', 'max:5000'],
             'diagnostic_min_characters' => ['required', 'integer', 'min:1', 'max:1000', 'lte:diagnostic_max_characters'],
             'diagnostic_max_characters' => ['required', 'integer', 'min:10', 'max:5000'],
+            'ai_token_budget' => ['required', 'integer', 'min:0', 'max:1000000000'],
         ]);
 
         foreach ($data as $key => $value) {

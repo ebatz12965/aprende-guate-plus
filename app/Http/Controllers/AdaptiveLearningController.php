@@ -44,7 +44,7 @@ class AdaptiveLearningController extends Controller
             'user_id' => $request->user()->id,
             'primary_answer' => $data['primary_answer'],
             'answers' => [],
-            'questions' => $tutor->diagnosticQuestions($data['primary_answer']),
+            'questions' => $tutor->diagnosticQuestions($data['primary_answer'], $request->user()->id),
         ]);
 
         return redirect()->route('adaptive.diagnostic.questions', $attempt);
@@ -253,7 +253,7 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
         $conversation = AiConversation::firstOrCreate(['user_id' => $request->user()->id, 'title' => 'Tutor IA']);
         $conversation->messages()->create(['role' => 'user', 'content' => $data['message']]);
         $history = $conversation->messages()->latest()->take(6)->get()->reverse()->map(fn ($message) => ['role' => $message->role, 'content' => $message->content])->values()->all();
-        $reply = $tutor->reply($history, $request->user()->name);
+        $reply = $tutor->reply($history, $request->user()->name, $request->user()->id);
         $conversation->messages()->create(['role' => 'assistant', 'content' => $reply]);
 
         return response()->json(['reply' => $reply]);

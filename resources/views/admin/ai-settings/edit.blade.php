@@ -25,6 +25,14 @@
 
         <section class="platform-feature">
             <div class="flex items-start gap-3">
+                <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-100 font-bold text-blue-700">#</div>
+                <div><h2 class="font-bold text-slate-900">Cuota de tokens</h2><p class="mt-1 text-sm text-slate-500">Registra el total de tokens adquiridos o asignados. El panel de consumo calculará el saldo estimado con las solicitudes registradas.</p></div>
+            </div>
+            <div class="mt-5"><label class="block text-sm font-bold text-slate-700">Tokens adquiridos / cuota actual<input required min="0" max="1000000000" type="number" name="ai_token_budget" value="{{ old('ai_token_budget', $settings['ai_token_budget']) }}" class="mt-2 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500"><span class="mt-1 block text-xs font-normal text-slate-500">Usa 0 si todavía no deseas calcular un saldo. Ajusta el total cuando compres o asignes una nueva cuota.</span></label></div>
+        </section>
+
+        <section class="platform-feature">
+            <div class="flex items-start gap-3">
                 <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sky-100 font-bold text-sky-700">Aa</div>
                 <div><h2 class="font-bold text-slate-900">Pregunta inicial del diagnóstico</h2><p class="mt-1 text-sm text-slate-500">Se aplica tanto al diagnóstico inicial como cuando el estudiante actualiza su diagnóstico.</p></div>
             </div>
