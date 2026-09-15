@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\LearningPathTopic;
+use App\Models\AiContentVersion;
 use App\Services\AiTutorService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -44,15 +45,16 @@ class GenerateTopicContentJob implements ShouldQueue
 
             if ($this->type === 'lesson') {
                 $lesson = $tutor->generateLesson($path, $topic);
-                $topic->lesson()->firstOrCreate([], [
+                $generatedLesson = $topic->lesson()->firstOrCreate([], [
                     'content' => ['summary' => $lesson['summary'], 'key_concepts' => $lesson['key_concepts'], 'steps' => $lesson['steps']],
                     'resources' => ['youtube_queries' => $lesson['youtube_queries']],
                     'quiz' => $lesson['quiz'],
                     'generated_at' => now(),
                 ]);
+                AiContentVersion::firstOrCreate(['content_type' => 'lesson', 'content_id' => $generatedLesson->id, 'version' => 1], ['payload' => ['content' => $generatedLesson->content, 'resources' => $generatedLesson->resources, 'quiz' => $generatedLesson->quiz]]);
             } else {
                 $practice = $tutor->generatePractice($path, $topic);
-                $topic->practice()->firstOrCreate([], [
+                $generatedPractice = $topic->practice()->firstOrCreate([], [
                     'type' => $topic->practice_type,
                     'title' => $practice['title'],
                     'instructions' => ['context' => $practice['context'], 'steps' => $practice['instructions']],
@@ -60,6 +62,7 @@ class GenerateTopicContentJob implements ShouldQueue
                     'expected_solution' => $practice['expected_solution'],
                     'generated_at' => now(),
                 ]);
+                AiContentVersion::firstOrCreate(['content_type' => 'practice', 'content_id' => $generatedPractice->id, 'version' => 1], ['payload' => ['instructions' => $generatedPractice->instructions, 'artifact' => $generatedPractice->artifact, 'expected_solution' => $generatedPractice->expected_solution]]);
             }
 
             $topic->update([$statusColumn => 'completed', 'generation_error' => null]);

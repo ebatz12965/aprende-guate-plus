@@ -69,3 +69,19 @@
     .student-sidebar-label { @apply px-3 text-[11px] font-extrabold tracking-[0.12em] text-slate-400; }
     .student-layout-switch { @apply mb-2 block w-full rounded-xl bg-blue-50 px-3 py-2.5 text-left text-sm font-bold text-blue-800 transition hover:bg-blue-100; }
 }
+
+/* En pantallas de escritorio, las vistas del estudiante aprovechan toda el área
+   disponible. Los elementos internos que limitan textos y formularios se
+   mantienen para conservar una lectura cómoda. */
+@media (min-width: 1024px) {
+    .student-content > .mx-auto.max-w-2xl,
+    .student-content > .mx-auto.max-w-3xl,
+    .student-content > .mx-auto.max-w-4xl,
+    .student-content > .mx-auto.max-w-5xl,
+    .student-content > .mx-auto.max-w-6xl,
+    .student-content > .mx-auto.max-w-7xl {
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+    }
+}

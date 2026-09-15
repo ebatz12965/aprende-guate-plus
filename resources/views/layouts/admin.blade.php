@@ -18,6 +18,7 @@
 @endphp
 <div x-data="{
         sidebarOpen: false,
+        profileOpen: false,
         toggleTheme() {
             document.documentElement.classList.toggle('dark');
             localStorage.setItem('admin-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
@@ -60,7 +61,9 @@
                 <a href="{{ route('admin.ai-usage.index') }}" class="{{ $navItemClass('admin.ai-usage.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5m5 14V9m5 10V3m5 16v-7"/></svg>Consumo de IA
                 </a>
-                <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
+                <a href="{{ route('admin.ai-orchestrator.index') }}" class="{{ $navItemClass('admin.ai-orchestrator.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Orquestador IA
+                </a>                <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Correo saliente
                 </a>
             @endrole
@@ -93,10 +96,20 @@
                     <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
                     <span class="hidden sm:inline">Tema</span>
                 </button>
-                <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 rounded-xl p-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
-                    <span class="grid h-9 w-9 place-items-center rounded-lg bg-blue-100 text-blue-800">{{ Str::upper(Str::substr(auth()->user()->name, 0, 1)) }}</span>
-                    <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
-                </a>
+
+                <div class="relative">
+                    <button @click="profileOpen = !profileOpen" @keydown.escape.window="profileOpen = false" :aria-expanded="profileOpen" aria-haspopup="menu" class="flex items-center gap-2 rounded-xl p-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+                        <span class="grid h-9 w-9 place-items-center rounded-lg bg-blue-100 text-blue-800">{{ Str::upper(Str::substr(auth()->user()->name, 0, 1)) }}</span>
+                        <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
+                        <svg class="hidden h-4 w-4 text-slate-400 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <div x-cloak x-show="profileOpen" @click.outside="profileOpen = false" x-transition class="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10" role="menu">
+                        <a href="{{ route('profile.edit') }}" class="platform-menu-link" role="menuitem">Mi perfil</a>
+                        <form method="POST" action="{{ route('logout') }}">@csrf
+                            <button class="platform-menu-link w-full text-left text-rose-700 hover:bg-rose-50 hover:text-rose-800" role="menuitem">Cerrar sesión</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </header>
 

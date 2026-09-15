@@ -51,6 +51,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(LearningPath::class);
     }
 
+    public function userSkills(): HasMany
+    {
+        return $this->hasMany(UserSkill::class);
+    }
+
+    public function aiRequests(): HasMany
+    {
+        return $this->hasMany(AiRequest::class);
+    }
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new \App\Notifications\VerifyEmailNotification());

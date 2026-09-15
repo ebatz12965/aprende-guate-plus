@@ -10,6 +10,8 @@ class AiTokenUsage extends Model
     protected $fillable = [
         'user_id',
         'operation',
+        'agent_slug',
+        'provider',
         'model',
         'prompt_tokens',
         'completion_tokens',

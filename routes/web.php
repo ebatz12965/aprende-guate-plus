@@ -4,6 +4,7 @@ use App\Http\Controllers\AdaptiveLearningController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\AiUsageController;
+use App\Http\Controllers\Admin\AiOrchestratorController;
 use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -56,7 +57,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tutor-ia', [AdaptiveLearningController::class, 'tutor'])->name('adaptive.tutor');
     Route::post('/tutor-ia/mensajes', [AdaptiveLearningController::class, 'sendTutorMessage'])->middleware('throttle:ai')->name('adaptive.tutor.message');
     Route::get('/retos', [AdaptiveLearningController::class, 'challenges'])->name('adaptive.challenges');
-    Route::post('/retos/{challenge}', [AdaptiveLearningController::class, 'submitChallenge'])->name('adaptive.challenges.submit');
+    Route::get('/retos/{challenge}', [AdaptiveLearningController::class, 'showChallenge'])->name('adaptive.challenges.show');
+    Route::post('/retos/{challenge}', [AdaptiveLearningController::class, 'submitChallenge'])->middleware('throttle:ai')->name('adaptive.challenges.submit');
+    Route::get('/retos/{challenge}/material/{resource}', [AdaptiveLearningController::class, 'downloadChallengeResource'])->whereNumber('resource')->name('adaptive.challenges.resource');
+    Route::get('/retos/evidencias/{submission}/archivo', [AdaptiveLearningController::class, 'downloadChallengeAttachment'])->name('adaptive.challenges.attachment');
     Route::get('/mentorias', [AdaptiveLearningController::class, 'mentorship'])->name('adaptive.mentorship');
     Route::post('/mentorias/{mentor}/solicitar', [AdaptiveLearningController::class, 'requestMentorship'])->name('adaptive.mentorship.request');
     Route::get('/perfil-profesional', [AdaptiveLearningController::class, 'career'])->name('adaptive.career');
@@ -79,6 +83,7 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:Admin'])->group(
     Route::get('configuracion-ia', [AiSettingsController::class, 'edit'])->name('ai-settings.edit');
     Route::put('configuracion-ia', [AiSettingsController::class, 'update'])->name('ai-settings.update');
     Route::get('consumo-ia', [AiUsageController::class, 'index'])->name('ai-usage.index');
+    Route::get('orquestador-ia', [AiOrchestratorController::class, 'index'])->name('ai-orchestrator.index');
     Route::get('configuracion-correo', [MailSettingsController::class, 'edit'])->name('mail-settings.edit');
     Route::put('configuracion-correo', [MailSettingsController::class, 'update'])->name('mail-settings.update');
     Route::post('configuracion-correo/probar', [MailSettingsController::class, 'sendTest'])->name('mail-settings.test');});

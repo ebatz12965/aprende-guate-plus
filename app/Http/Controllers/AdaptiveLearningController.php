@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Jobs\GenerateLearningPathJob;
 use App\Jobs\GenerateTopicContentJob;
-use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, LearningPathItemQuizAttempt, LearningPathTopic, LearningPathLesson, LearningPathPractice, LearningPathPracticeAttempt, MentorProfile, MentorshipSession, PlatformSetting, StudentProfile};
+use App\Jobs\EvaluateChallengeSubmissionJob;
+use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, LearningPathItemQuizAttempt, LearningPathTopic, LearningPathLesson, LearningPathPractice, LearningPathPracticeAttempt, MentorProfile, Skill, SkillEvidence, UserSkill, MentorshipSession, PlatformSetting, StudentProfile};
 use App\Services\AiTutorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -186,7 +187,13 @@ class AdaptiveLearningController extends Controller
         $topic = LearningPathTopic::with(['module', 'practice'])->findOrFail($topic);
         abort_unless($topic->module->learning_path_id === $path->id && $topic->practice, 404);
         $data = $request->validate(['answer' => ['required', 'string', 'max:12000']]);
-        LearningPathPracticeAttempt::create(['learning_path_practice_id' => $topic->practice->id, 'user_id' => $request->user()->id, 'answer' => $data['answer'], 'submitted_at' => now()]);
+        $attempt = LearningPathPracticeAttempt::create(['learning_path_practice_id' => $topic->practice->id, 'user_id' => $request->user()->id, 'answer' => $data['answer'], 'submitted_at' => now()]);
+        $skill = Skill::where('slug', data_get($topic->metadata, 'skill_slug'))->first();
+        if ($skill) {
+            $userSkill = UserSkill::firstOrCreate(['user_id' => $request->user()->id, 'skill_id' => $skill->id], ['level' => 0, 'confidence' => 0]);
+            $userSkill->update(['level' => max(1, (int) $userSkill->level), 'confidence' => min(100, max((float) $userSkill->confidence, 25)), 'last_evidenced_at' => now()]);
+            SkillEvidence::create(['user_skill_id' => $userSkill->id, 'source_type' => 'learning_path_practice_attempt', 'source_id' => $attempt->id, 'summary' => 'Práctica entregada: '.$topic->title, 'metadata' => ['topic_id' => $topic->id, 'practice_type' => $topic->practice_type]]);
+        }
         $topic->update(['status' => 'completed']);
         return back()->with('success', 'Práctica registrada. Puedes continuar con el siguiente tema o repasar esta lección.');
     }
@@ -197,7 +204,8 @@ class AdaptiveLearningController extends Controller
         $topic = LearningPathTopic::with(['module', 'practice'])->findOrFail($topic);
         abort_unless($topic->module->learning_path_id === $path->id && $topic->practice?->type === 'excel_dataset', 404);
         $artifact = $topic->practice->artifact ?? [];
-        return response((string) data_get($artifact, 'content'), 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.data_get($artifact, 'label', 'practica.csv').'"']);
+        $csv = "\xEF\xBB\xBF".(string) data_get($artifact, 'content');
+        return response($csv, 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.data_get($artifact, 'label', 'practica.csv').'"']);
     }
 
     public function submitPathItemQuiz(Request $request, int $item)
@@ -261,17 +269,59 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
 
     public function challenges(Request $request)
     {
-        return view('adaptive.challenges', ['challenges' => Challenge::latest()->get(), 'submissions' => ChallengeSubmission::where('user_id', $request->user()->id)->get()->keyBy('challenge_id')]);
+        return view('adaptive.challenges', [
+            'challenges' => Challenge::latest()->get(),
+            'submissions' => ChallengeSubmission::where('user_id', $request->user()->id)->get()->keyBy('challenge_id'),
+        ]);
+    }
+
+    public function showChallenge(Request $request, Challenge $challenge)
+    {
+        return view('adaptive.challenge-show', [
+            'challenge' => $challenge,
+            'submission' => ChallengeSubmission::where('challenge_id', $challenge->id)->where('user_id', $request->user()->id)->first(),
+        ]);
     }
 
     public function submitChallenge(Request $request, Challenge $challenge)
     {
-        $data = $request->validate(['answer' => ['required', 'string', 'max:12000']]);
-        ChallengeSubmission::updateOrCreate(['challenge_id' => $challenge->id, 'user_id' => $request->user()->id], ['answer' => $data['answer'], 'status' => 'submitted']);
+        $data = $request->validate([
+            'answer' => ['nullable', 'string', 'max:12000', 'required_without:attachment'],
+            'methodology' => ['required', 'string', 'max:6000'],
+            'attachment' => ['nullable', 'file', 'max:20480', 'mimes:pdf,txt,csv,xlsx,xls,doc,docx,ppt,pptx,png,jpg,jpeg,webp,zip'],
+        ]);
 
-        return back()->with('success', 'Reto enviado. Un mentor o la IA podrá darte retroalimentación.');
+        $existing = ChallengeSubmission::where('challenge_id', $challenge->id)->where('user_id', $request->user()->id)->first();
+        $payload = ['answer' => $data['answer'] ?? null, 'methodology' => $data['methodology'], 'status' => 'queued', 'score' => null, 'feedback' => null, 'evaluation' => null, 'evaluated_at' => null];
+
+        if ($request->hasFile('attachment')) {
+            if ($existing?->attachment_path) Storage::disk('local')->delete($existing->attachment_path);
+            $file = $request->file('attachment');
+            $path = $file->store('challenge-evidence/'.$request->user()->id, 'local');
+            $payload = array_merge($payload, ['attachment_path' => $path, 'attachment_name' => $file->getClientOriginalName(), 'attachment_mime' => $file->getMimeType(), 'attachment_size' => $file->getSize(), 'attachment_analysis' => null]);
+        }
+
+        $submission = ChallengeSubmission::updateOrCreate(['challenge_id' => $challenge->id, 'user_id' => $request->user()->id], $payload);
+        EvaluateChallengeSubmissionJob::dispatch($submission->id)->onQueue('ai');
+
+        return redirect()->route('adaptive.challenges.show', $challenge)->with('success', 'Evidencia guardada. El agente evaluador preparará tu resultado en segundo plano.');
     }
 
+    public function downloadChallengeResource(Request $request, Challenge $challenge, int $resource)
+    {
+        $item = data_get($challenge->resources ?? [], $resource);
+        abort_unless(is_array($item) && filled(data_get($item, 'content')), 404);
+        $mime = (string) data_get($item, 'mime', 'text/plain; charset=UTF-8');
+        $content = (string) data_get($item, 'content');
+        if (str_starts_with(strtolower($mime), 'text/csv')) { $content = "\xEF\xBB\xBF".$content; }
+        return response($content, 200, ['Content-Type' => $mime, 'Content-Disposition' => 'attachment; filename="'.str_replace('"', '', data_get($item, 'filename', 'material.txt')).'"']);
+    }
+
+    public function downloadChallengeAttachment(Request $request, ChallengeSubmission $submission)
+    {
+        abort_unless($submission->user_id === $request->user()->id && $submission->attachment_path && Storage::disk('local')->exists($submission->attachment_path), 404);
+        return Storage::disk('local')->download($submission->attachment_path, $submission->attachment_name);
+    }
     public function mentorship(Request $request)
     {
         return view('adaptive.mentorship', ['mentors' => MentorProfile::with('user')->get(), 'sessions' => MentorshipSession::where('student_id', $request->user()->id)->with('mentor')->latest()->get()]);

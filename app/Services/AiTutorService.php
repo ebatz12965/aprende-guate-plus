@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\AI\AiGateway;
+
 use App\Models\AiTokenUsage;
 use App\Models\LearningPath;
 use App\Models\LearningPathTopic;
@@ -12,6 +14,8 @@ use Illuminate\Support\Str;
 class AiTutorService
 {
     private const PRACTICE_TYPES = ['excel_dataset', 'code_bug', 'code_complete', 'case_study', 'language_activity', 'theory_quiz'];
+
+    public function __construct(private readonly AiGateway $gateway) {}
 
     public function reply(array $messages, string $studentName, ?int $userId = null): string
     {
@@ -45,6 +49,11 @@ class AiTutorService
         return $this->validArchitecture($result) ? $result : $fallback;
     }
 
+    public function careerProfile(string $goal, array $questions, array $answers, ?int $userId = null): array
+    {
+        return app(CareerProfilerService::class)->profile($goal, $questions, $answers, $userId);
+    }
+
     // Compatibilidad para integraciones previas.
     public function learningPlan(string $goal, array $questions, array $answers): array
     {
@@ -72,11 +81,38 @@ class AiTutorService
             .'Tipo obligatorio: '.$topic->practice_type.'. Objetivo: "'.$topic->learning_objective.'". '
             .'Si el tipo es excel_dataset, artifact_content debe ser CSV con encabezados y al menos 8 filas ficticias. '
             .'Si es code_bug o code_complete, artifact_content debe ser código ejecutable o corregible con TODO/comentario y artifact_language debe indicar lenguaje. '
-            .'Para los demás tipos incluye un caso o escenario realista. No inventes datos sensibles.';
+            .'Para los demás tipos incluye un caso o escenario realista. No inventes datos sensibles. Todo contenido, nombres, instrucciones y datos deben estar en español latinoamericano claro, con acentos UTF-8 correctos. Los CSV deben usar encabezados en español y texto UTF-8 compatible con Excel.';
         $result = $this->askStructured($prompt, $fallback, $this->practiceSchema(), 'topic_practice', config('ai.practice_max_tokens'), $path->user_id);
         return $this->validPractice($result, $topic->practice_type) ? $result : $fallback;
     }
 
+    public function evaluateChallengeSubmission(\App\Models\Challenge $challenge, \App\Models\ChallengeSubmission $submission, ?string $fileExcerpt = null): array
+    {
+        $fallback = [
+            'generated_by_ai' => false,
+            'score' => null,
+            'summary' => 'La evidencia quedó almacenada y está pendiente de evaluación automática.',
+            'criteria' => [],
+            'strengths' => [],
+            'improvements' => ['Mantén una explicación clara del procedimiento y adjunta los entregables solicitados.'],
+            'integrity_note' => 'La plataforma no infiere autoría; valida que la evidencia sea tuya antes de enviarla.',
+        ];
+        $brief = [
+            'title' => $challenge->title,
+            'case_context' => $challenge->case_context ?: $challenge->description,
+            'objectives' => $challenge->objectives ?? [],
+            'deliverables' => $challenge->deliverables ?? [],
+            'requirements' => $challenge->requirements ?? [],
+            'rubric' => $challenge->rubric ?? [],
+            'student_response' => $submission->answer,
+            'methodology' => $submission->methodology,
+            'attachment' => ['name' => $submission->attachment_name, 'mime' => $submission->attachment_mime, 'size' => $submission->attachment_size, 'inspectable_excerpt' => $fileExcerpt],
+        ];
+        $prompt = 'Evalúa una evidencia de aprendizaje con una rúbrica. Responde exclusivamente en español latinoamericano claro. Usa únicamente los datos proporcionados; no inventes que leíste un archivo binario si no hay una vista previa textual. Puntúa cada criterio, explica de forma concreta qué se cumplió y qué falta. Datos: '.json_encode($brief, JSON_UNESCAPED_UNICODE);
+        $result = $this->gateway->structured('evaluator', $prompt, $this->challengeEvaluationSchema(), 'challenge_evaluation', $submission->user_id, 850);
+        if (! $result || ! $this->validChallengeEvaluation($result)) return $fallback;
+        return array_merge($result, ['generated_by_ai' => true]);
+    }
     private function architectureFallback(string $goal): array
     {
         $type = $this->skillTypeFor($goal);
@@ -163,37 +199,23 @@ class AiTutorService
 
     private function askStructured(string $prompt, array $fallback, array $schema, string $name, int $maxTokens, ?int $userId = null): array
     {
-        if (! config('ai.key')) return $fallback;
-        $startedAt = hrtime(true);
-        $response = Http::baseUrl(config('ai.base_url'))->withToken(config('ai.key'))->acceptJson()
-            ->connectTimeout(config('ai.connect_timeout'))
-            ->timeout(config('ai.generation_timeout'))
-            ->retry(config('ai.retry_times'), 300, null, false)
-            ->post('/chat/completions', [
-                'model' => config('ai.model'), 'messages' => [['role'=>'system','content'=>'Responde únicamente con datos que cumplan el esquema. No incluyas Markdown.'], ['role'=>'user','content'=>$prompt]], 'temperature' => 0.2, 'max_tokens' => $maxTokens,
-                'response_format' => ['type' => 'json_schema', 'json_schema' => ['name' => $name, 'strict' => true, 'schema' => $schema]],
-            ]);
-        $duration = (int) ((hrtime(true) - $startedAt) / 1_000_000);
-        $this->recordUsage($response->json('usage', []), $name, $userId, $duration, $response->successful());
-        Log::info('ai.structured_request', ['operation' => $name, 'duration_ms' => $duration, 'successful' => $response->successful()]);
-        $content = data_get($response->json(), 'choices.0.message.content');
-        if (! $response->successful() || ! is_string($content)) return $fallback;
-        $decoded = json_decode(trim($content), true);
-        return is_array($decoded) ? $decoded : $fallback;
+        return $this->gateway->structured($this->agentFor($name), $prompt, $schema, $name, $userId, $maxTokens) ?? $fallback;
     }
 
     private function askText(string $system, array $messages, string $fallback, ?int $userId = null, string $operation = 'tutor_reply'): string
     {
-        if (! config('ai.key')) return $fallback;
-        $startedAt = hrtime(true);
-        $response = Http::baseUrl(config('ai.base_url'))->withToken(config('ai.key'))->acceptJson()
-            ->connectTimeout(config('ai.connect_timeout'))->timeout(config('ai.tutor_timeout'))
-            ->post('/chat/completions', ['model' => config('ai.model'), 'messages' => array_merge([['role'=>'system','content'=>$system]], $messages), 'temperature' => 0.35, 'max_tokens' => 180]);
-        $duration = (int) ((hrtime(true) - $startedAt) / 1_000_000);
-        $this->recordUsage($response->json('usage', []), $operation, $userId, $duration, $response->successful());
-        Log::info('ai.tutor_request', ['duration_ms' => $duration, 'successful' => $response->successful()]);
-        $content = data_get($response->json(), 'choices.0.message.content');
-        return $response->successful() && is_string($content) && $content !== '' ? $this->redactSensitiveContent($content) : $fallback;
+        return $this->gateway->text('tutor', $system, $messages, $operation, $userId, 180) ?? $fallback;
+    }
+
+    private function agentFor(string $operation): string
+    {
+        return match ($operation) {
+            'diagnostic_questions' => 'career_profiler',
+            'learning_architecture' => 'learning_path',
+            'topic_lesson' => 'theory_content',
+            'topic_practice' => 'exercise_generator',
+            default => 'tutor',
+        };
     }
 
     private function recordUsage(mixed $usage, string $operation, ?int $userId, int $duration, bool $successful): void
