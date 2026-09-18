@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, LearningPathItemQuizAttempt, LearningPathTopic, LearningPathLesson, LearningPathPractice, LearningPathPracticeAttempt, MentorProfile, MentorshipSession, PlatformSetting, StudentProfile};
+use App\Jobs\GenerateLearningPathJob;
+use App\Jobs\GenerateTopicContentJob;
+use App\Jobs\GenerateMilestoneChallengeJob;
+use App\Jobs\EvaluateChallengeSubmissionJob;
+use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, LearningPathItemQuizAttempt, LearningPathTopic, LearningPathLesson, LearningPathPractice, LearningPathPracticeAttempt, MentorProfile, Skill, SkillEvidence, UserSkill, MentorshipSession, PlatformSetting, StudentProfile};
 use App\Services\AiTutorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +27,7 @@ class AdaptiveLearningController extends Controller
             'total' => $total,
             'completed' => $completed,
             'progress' => $total ? (int) round($completed / $total * 100) : 0,
-            'nextItem' => $path?->items->firstWhere('status', 'pending'),
+            'nextItem' => $path?->items->firstWhere('status', 'in_progress') ?? $path?->items->firstWhere('status', 'pending'),
             'challengeCount' => ChallengeSubmission::where('user_id', $user->id)->count(),
             'upcomingSession' => MentorshipSession::where('student_id', $user->id)->whereIn('status', ['requested', 'scheduled'])->with('mentor')->orderBy('scheduled_at')->first(),
         ]);
@@ -42,7 +46,7 @@ class AdaptiveLearningController extends Controller
             'user_id' => $request->user()->id,
             'primary_answer' => $data['primary_answer'],
             'answers' => [],
-            'questions' => $tutor->diagnosticQuestions($data['primary_answer']),
+            'questions' => $tutor->diagnosticQuestions($data['primary_answer'], $request->user()->id),
         ]);
 
         return redirect()->route('adaptive.diagnostic.questions', $attempt);
@@ -59,7 +63,7 @@ class AdaptiveLearningController extends Controller
         return view('adaptive.diagnostic-questions', compact('attempt'));
     }
 
-    public function storeDiagnostic(Request $request, DiagnosticAttempt $attempt, AiTutorService $tutor)
+    public function storeDiagnostic(Request $request, DiagnosticAttempt $attempt)
     {
         abort_unless($attempt->user_id === $request->user()->id, 404);
 
@@ -69,46 +73,45 @@ class AdaptiveLearningController extends Controller
 
         $data = $request->validate(['answers' => ['required', 'array', 'size:4'], 'answers.*' => ['required', 'integer', 'between:0,2']]);
 
-        try {
-            $architecture = $tutor->learningArchitecture($attempt->primary_answer, $attempt->questions ?? [], $data['answers']);
-            $level = data_get($architecture, 'level', 'Inicial');
+        $attempt->update([
+            'answers' => $data['answers'],
+            'status' => 'generating',
+            'generation_error' => null,
+            'generation_requested_at' => now(),
+        ]);
 
-            DB::transaction(function () use ($attempt, $data, $level, $architecture, $request) {
-                $attempt->update([
-                    'answers' => $data['answers'], 'level' => $level, 'score' => 0,
-                    'skill_results' => ['summary' => data_get($architecture, 'summary')], 'status' => 'completed',
-                ]);
-                StudentProfile::updateOrCreate(['user_id' => $request->user()->id], ['professional_goal' => $attempt->primary_answer, 'current_level' => $level]);
-                LearningPath::where('user_id', $request->user()->id)->where('status', 'active')->update(['status' => 'replaced']);
-                $path = LearningPath::create([
-                    'user_id' => $request->user()->id, 'title' => data_get($architecture, 'title', 'Ruta personalizada'),
-                    'goal' => $attempt->primary_answer, 'estimated_level' => $level,
-                    'estimated_hours' => data_get($architecture, 'total_hours'), 'generation_version' => 'pipeline-v1', 'status' => 'active',
-                ]);
-                foreach (data_get($architecture, 'modules', []) as $position => $module) {
-                    $item = $path->items()->create([
-                        'title' => data_get($module, 'title', 'Módulo de aprendizaje'), 'area' => data_get($module, 'skill_type', 'general'),
-                        'description' => data_get($module, 'description'), 'content' => ['generation' => 'architecture'],
-                        'quiz' => ['question' => '¿Qué conviene hacer antes de avanzar?', 'options' => ['Revisar los temas del módulo', 'Saltar al siguiente módulo', 'Ignorar las dudas'], 'answer' => 0],
-                        'position' => $position + 1,
-                    ]);
-                    foreach (data_get($module, 'topics', []) as $topicPosition => $topic) {
-                        $item->topics()->create([
-                            'title' => data_get($topic, 'title', 'Tema'), 'learning_objective' => data_get($topic, 'learning_objective', 'Comprender y aplicar el tema.'),
-                            'practice_type' => data_get($topic, 'practice_type', 'case_study'), 'position' => $topicPosition + 1,
-                        ]);
-                    }
-                }
-            });
-        } catch (\Throwable $exception) {
-            report($exception);
+        GenerateLearningPathJob::dispatch($attempt->id)->onQueue('ai');
 
-            return back()
-                ->withInput()
-                ->with('error', 'No se pudo generar tu ruta todavía. Tus respuestas siguen disponibles para que puedas intentarlo nuevamente.');
+        return redirect()->route('adaptive.diagnostic.generation', $attempt)
+            ->with('success', 'Estamos preparando tu ruta personalizada en segundo plano.');
+    }
+
+    public function diagnosticGeneration(Request $request, DiagnosticAttempt $attempt)
+    {
+        abort_unless($attempt->user_id === $request->user()->id, 404);
+
+        if ($attempt->status === 'completed') {
+            return redirect()->route('adaptive.path')->with('success', 'Tu ruta personalizada está lista. Empieza con la primera fase.');
         }
 
-        return redirect()->route('adaptive.path')->with('success', 'Tu ruta personalizada está lista. Empieza con la primera fase.');
+        return view('adaptive.diagnostic-generating', compact('attempt'));
+    }
+
+    public function retryDiagnosticGeneration(Request $request, DiagnosticAttempt $attempt)
+    {
+        abort_unless($attempt->user_id === $request->user()->id, 404);
+        abort_unless($attempt->status === 'failed', 409);
+
+        $attempt->update([
+            'status' => 'generating',
+            'generation_error' => null,
+            'generation_requested_at' => now(),
+        ]);
+
+        GenerateLearningPathJob::dispatch($attempt->id)->onQueue('ai');
+
+        return redirect()->route('adaptive.diagnostic.generation', $attempt)
+            ->with('success', 'Reintentamos la generación de tu ruta.');
     }
 
     public function path(Request $request)
@@ -140,28 +143,43 @@ class AdaptiveLearningController extends Controller
         return view('adaptive.topic', compact('path', 'topic'));
     }
 
-    public function generateTopicLesson(Request $request, int $topic, AiTutorService $tutor)
+    public function generateTopicLesson(Request $request, int $topic)
     {
-        $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
-        $topic = LearningPathTopic::with('module')->findOrFail($topic);
-        abort_unless($topic->module->learning_path_id === $path->id, 404);
-        if (! $topic->lesson) {
-            $lesson = $tutor->generateLesson($path, $topic);
-            $topic->lesson()->create(['content' => ['summary' => $lesson['summary'], 'key_concepts' => $lesson['key_concepts'], 'steps' => $lesson['steps']], 'resources' => ['youtube_queries' => $lesson['youtube_queries']], 'quiz' => $lesson['quiz'], 'generated_at' => now()]);
-        }
-        return redirect()->route('adaptive.topic.show', $topic);
+        return $this->queueTopicContent($request, $topic, 'lesson');
     }
 
-    public function generateTopicPractice(Request $request, int $topic, AiTutorService $tutor)
+    public function generateTopicPractice(Request $request, int $topic)
+    {
+        return $this->queueTopicContent($request, $topic, 'practice');
+    }
+
+    private function queueTopicContent(Request $request, int $topicId, string $type)
     {
         $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
-        $topic = LearningPathTopic::with('module')->findOrFail($topic);
+        $topic = LearningPathTopic::with($type)->findOrFail($topicId);
         abort_unless($topic->module->learning_path_id === $path->id, 404);
-        if (! $topic->practice) {
-            $practice = $tutor->generatePractice($path, $topic);
-            $topic->practice()->create(['type' => $topic->practice_type, 'title' => $practice['title'], 'instructions' => ['context' => $practice['context'], 'steps' => $practice['instructions']], 'artifact' => ['label' => $practice['artifact_label'], 'language' => $practice['artifact_language'], 'content' => $practice['artifact_content']], 'expected_solution' => $practice['expected_solution'], 'generated_at' => now()]);
+
+        $statusColumn = "{$type}_generation_status";
+
+        if ($topic->{$type}) {
+            return redirect()->route('adaptive.topic.show', $topic);
         }
-        return redirect()->route('adaptive.topic.show', $topic);
+
+        if (in_array($topic->{$statusColumn}, ['queued', 'processing'], true)) {
+            return redirect()->route('adaptive.topic.show', $topic)
+                ->with('info', 'La generación ya está en proceso. Esta página se actualizará automáticamente.');
+        }
+
+        $topic->update([
+            $statusColumn => 'queued',
+            'generation_error' => null,
+            'generation_requested_at' => now(),
+        ]);
+
+        GenerateTopicContentJob::dispatch($topic->id, $type)->onQueue('ai');
+
+        return redirect()->route('adaptive.topic.show', $topic)
+            ->with('success', 'La generación comenzó en segundo plano. Puedes seguir navegando mientras se prepara el contenido.');
     }
 
     public function submitTopicPractice(Request $request, int $topic)
@@ -170,7 +188,13 @@ class AdaptiveLearningController extends Controller
         $topic = LearningPathTopic::with(['module', 'practice'])->findOrFail($topic);
         abort_unless($topic->module->learning_path_id === $path->id && $topic->practice, 404);
         $data = $request->validate(['answer' => ['required', 'string', 'max:12000']]);
-        LearningPathPracticeAttempt::create(['learning_path_practice_id' => $topic->practice->id, 'user_id' => $request->user()->id, 'answer' => $data['answer'], 'submitted_at' => now()]);
+        $attempt = LearningPathPracticeAttempt::create(['learning_path_practice_id' => $topic->practice->id, 'user_id' => $request->user()->id, 'answer' => $data['answer'], 'submitted_at' => now()]);
+        $skill = Skill::where('slug', data_get($topic->metadata, 'skill_slug'))->first();
+        if ($skill) {
+            $userSkill = UserSkill::firstOrCreate(['user_id' => $request->user()->id, 'skill_id' => $skill->id], ['level' => 0, 'confidence' => 0]);
+            $userSkill->update(['level' => max(1, (int) $userSkill->level), 'confidence' => min(100, max((float) $userSkill->confidence, 25)), 'last_evidenced_at' => now()]);
+            SkillEvidence::create(['user_skill_id' => $userSkill->id, 'source_type' => 'learning_path_practice_attempt', 'source_id' => $attempt->id, 'summary' => 'Práctica entregada: '.$topic->title, 'metadata' => ['topic_id' => $topic->id, 'practice_type' => $topic->practice_type]]);
+        }
         $topic->update(['status' => 'completed']);
         return back()->with('success', 'Práctica registrada. Puedes continuar con el siguiente tema o repasar esta lección.');
     }
@@ -181,7 +205,8 @@ class AdaptiveLearningController extends Controller
         $topic = LearningPathTopic::with(['module', 'practice'])->findOrFail($topic);
         abort_unless($topic->module->learning_path_id === $path->id && $topic->practice?->type === 'excel_dataset', 404);
         $artifact = $topic->practice->artifact ?? [];
-        return response((string) data_get($artifact, 'content'), 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.data_get($artifact, 'label', 'practica.csv').'"']);
+        $csv = "\xEF\xBB\xBF".(string) data_get($artifact, 'content');
+        return response($csv, 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.data_get($artifact, 'label', 'practica.csv').'"']);
     }
 
     public function submitPathItemQuiz(Request $request, int $item)
@@ -214,11 +239,12 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
         }
 
         $item->update(['status' => 'completed']);
+        $this->queueEligibleMilestoneChallenges($path);
 
         if (! $path->items()->where('status', '!=', 'completed')->exists()) {
             $path->update(['status' => 'completed']);
 
-            return redirect()->route('adaptive.career')->with('success', '¡Ruta completada! Ya aparece como un logro en tu perfil profesional.');
+            return redirect()->route('adaptive.career')->with('success', '¡Ruta completada! Se desbloqueó tu reto opcional final y ya aparece como un logro en tu perfil profesional.');
         }
 
         return redirect()->route('adaptive.path')->with('success', '¡Mini-quiz aprobado! La siguiente fase ya está desbloqueada.');
@@ -237,7 +263,7 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
         $conversation = AiConversation::firstOrCreate(['user_id' => $request->user()->id, 'title' => 'Tutor IA']);
         $conversation->messages()->create(['role' => 'user', 'content' => $data['message']]);
         $history = $conversation->messages()->latest()->take(6)->get()->reverse()->map(fn ($message) => ['role' => $message->role, 'content' => $message->content])->values()->all();
-        $reply = $tutor->reply($history, $request->user()->name);
+        $reply = $tutor->reply($history, $request->user()->name, $request->user()->id);
         $conversation->messages()->create(['role' => 'assistant', 'content' => $reply]);
 
         return response()->json(['reply' => $reply]);
@@ -245,17 +271,91 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
 
     public function challenges(Request $request)
     {
-        return view('adaptive.challenges', ['challenges' => Challenge::latest()->get(), 'submissions' => ChallengeSubmission::where('user_id', $request->user()->id)->get()->keyBy('challenge_id')]);
+        $user = $request->user();
+        $path = $user->learningPaths()->whereIn('status', ['active', 'completed'])->with('items')->latest()->first();
+        $total = $path?->items->count() ?? 0;
+        $completed = $path?->items->where('status', 'completed')->count() ?? 0;
+        $progress = $total ? (int) floor($completed / $total * 100) : 0;
+        $challenges = $path ? Challenge::where('user_id', $user->id)->where('learning_path_id', $path->id)->orderBy('milestone')->get() : collect();
+
+        return view('adaptive.challenges', [
+            'path' => $path,
+            'progress' => $progress,
+            'challenges' => $challenges,
+            'challengesByMilestone' => $challenges->keyBy('milestone'),
+            'submissions' => ChallengeSubmission::where('user_id', $user->id)->whereIn('challenge_id', $challenges->pluck('id'))->get()->keyBy('challenge_id'),
+        ]);
     }
 
+    public function showChallenge(Request $request, Challenge $challenge)
+    {
+        $this->ensurePersonalChallenge($request, $challenge);
+        return view('adaptive.challenge-show', [
+            'challenge' => $challenge,
+            'submission' => ChallengeSubmission::where('challenge_id', $challenge->id)->where('user_id', $request->user()->id)->first(),
+        ]);
+    }
     public function submitChallenge(Request $request, Challenge $challenge)
     {
-        $data = $request->validate(['answer' => ['required', 'string', 'max:12000']]);
-        ChallengeSubmission::updateOrCreate(['challenge_id' => $challenge->id, 'user_id' => $request->user()->id], ['answer' => $data['answer'], 'status' => 'submitted']);
+        $this->ensurePersonalChallenge($request, $challenge);
+        $data = $request->validate([
+            'answer' => ['nullable', 'string', 'max:12000', 'required_without:attachment'],
+            'methodology' => ['required', 'string', 'max:6000'],
+            'attachment' => ['nullable', 'file', 'max:20480', 'mimes:pdf,txt,csv,xlsx,xls,doc,docx,ppt,pptx,png,jpg,jpeg,webp,zip'],
+        ]);
 
-        return back()->with('success', 'Reto enviado. Un mentor o la IA podrá darte retroalimentación.');
+        $existing = ChallengeSubmission::where('challenge_id', $challenge->id)->where('user_id', $request->user()->id)->first();
+        $payload = ['answer' => $data['answer'] ?? null, 'methodology' => $data['methodology'], 'status' => 'queued', 'score' => null, 'feedback' => null, 'evaluation' => null, 'evaluated_at' => null];
+
+        if ($request->hasFile('attachment')) {
+            if ($existing?->attachment_path) Storage::disk('local')->delete($existing->attachment_path);
+            $file = $request->file('attachment');
+            $path = $file->store('challenge-evidence/'.$request->user()->id, 'local');
+            $payload = array_merge($payload, ['attachment_path' => $path, 'attachment_name' => $file->getClientOriginalName(), 'attachment_mime' => $file->getMimeType(), 'attachment_size' => $file->getSize(), 'attachment_analysis' => null]);
+        }
+
+        $submission = ChallengeSubmission::updateOrCreate(['challenge_id' => $challenge->id, 'user_id' => $request->user()->id], $payload);
+        EvaluateChallengeSubmissionJob::dispatch($submission->id)->onQueue('ai');
+
+        return redirect()->route('adaptive.challenges.show', $challenge)->with('success', 'Evidencia guardada. El agente evaluador preparará tu resultado en segundo plano.');
     }
 
+    public function downloadChallengeResource(Request $request, Challenge $challenge, int $resource)
+    {
+        $this->ensurePersonalChallenge($request, $challenge);
+        $item = data_get($challenge->resources ?? [], $resource);
+        abort_unless(is_array($item) && filled(data_get($item, 'content')), 404);
+        $mime = (string) data_get($item, 'mime', 'text/plain; charset=UTF-8');
+        $content = (string) data_get($item, 'content');
+        if (str_starts_with(strtolower($mime), 'text/csv')) { $content = "\xEF\xBB\xBF".$content; }
+        return response($content, 200, ['Content-Type' => $mime, 'Content-Disposition' => 'attachment; filename="'.str_replace('"', '', data_get($item, 'filename', 'material.txt')).'"']);
+    }
+
+    private function queueEligibleMilestoneChallenges(LearningPath $path): void
+    {
+        $total = $path->items()->count();
+        if ($total === 0) return;
+
+        $progress = (int) floor($path->items()->where('status', 'completed')->count() / $total * 100);
+        foreach ([25, 50, 75, 100] as $milestone) {
+            if ($progress < $milestone) continue;
+            $challenge = Challenge::firstOrCreate(
+                ['user_id' => $path->user_id, 'learning_path_id' => $path->id, 'milestone' => $milestone],
+                ['title' => 'Reto práctico del '.$milestone.'%', 'area' => 'Ruta personalizada', 'level' => $path->estimated_level ?: 'Inicial', 'description' => 'Estamos preparando un reto relacionado con tu ruta.', 'generation_status' => 'queued']
+            );
+            if ($challenge->wasRecentlyCreated) GenerateMilestoneChallengeJob::dispatch($path->id, $milestone)->onQueue('ai');
+        }
+    }
+
+    private function ensurePersonalChallenge(Request $request, Challenge $challenge): void
+    {
+        abort_unless($challenge->user_id === $request->user()->id && $challenge->learning_path_id && $challenge->generation_status === 'completed', 404);
+    }
+    public function downloadChallengeAttachment(Request $request, ChallengeSubmission $submission)
+    {
+        abort_unless($submission->user_id === $request->user()->id && $submission->attachment_path && Storage::disk('local')->exists($submission->attachment_path), 404);
+        return Storage::disk('local')->download($submission->attachment_path, $submission->attachment_name);
+    }
     public function mentorship(Request $request)
     {
         return view('adaptive.mentorship', ['mentors' => MentorProfile::with('user')->get(), 'sessions' => MentorshipSession::where('student_id', $request->user()->id)->with('mentor')->latest()->get()]);

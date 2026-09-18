@@ -19,10 +19,6 @@ return new class extends Migration
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
 
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Instructor
-            $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
-            $table->foreignId('level_id')->nullable()->constrained('levels')->onDelete('set null');
-
-            $table->string('cover_image_url')->nullable();
 
             $table->timestamps();
         });

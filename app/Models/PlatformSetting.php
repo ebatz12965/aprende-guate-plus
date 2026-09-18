@@ -69,6 +69,11 @@ class PlatformSetting extends Model
         ];
     }
 
+    public static function aiTokenBudget(): int
+    {
+        return static::integer('ai_token_budget', 0, 0, 1_000_000_000);
+    }
+
     public static function aiLimits(): array
     {
         return [
@@ -76,6 +81,7 @@ class PlatformSetting extends Model
             'tutor_daily_limit' => static::integer('tutor_daily_limit', 60, 1, 5000),
             'diagnostic_min_characters' => static::integer('diagnostic_min_characters', 12, 1, 1000),
             'diagnostic_max_characters' => static::integer('diagnostic_max_characters', 500, 10, 5000),
+            'ai_token_budget' => static::aiTokenBudget(),
         ];
     }
 

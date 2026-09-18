@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\GenerateLearningPathJob;
+use App\Jobs\GenerateTopicContentJob;
 use App\Models\LearningPath;
+use App\Services\AiTutorService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class AdaptiveLearningPipelineTest extends TestCase
@@ -15,6 +19,7 @@ class AdaptiveLearningPipelineTest extends TestCase
     public function test_diagnostic_creates_a_granular_architecture_instead_of_three_complete_phases(): void
     {
         Http::fake();
+        Queue::fake();
         $user = User::factory()->create();
         $attempt = \App\Models\DiagnosticAttempt::create([
             'user_id' => $user->id,
@@ -25,8 +30,12 @@ class AdaptiveLearningPipelineTest extends TestCase
         ]);
 
         $this->actingAs($user)->post(route('adaptive.diagnostic.store', $attempt), ['answers' => [0, 1, 1, 2]])
-            ->assertRedirect(route('adaptive.path'));
+            ->assertRedirect(route('adaptive.diagnostic.generation', $attempt));
+        Queue::assertPushed(GenerateLearningPathJob::class, fn ($job) => $job->attemptId === $attempt->id);
+        (new GenerateLearningPathJob($attempt->id))->handle(app(AiTutorService::class));
 
+        $attempt->refresh();
+        $this->assertSame('completed', $attempt->status);
         $path = LearningPath::where('user_id', $user->id)->firstOrFail();
         $this->assertGreaterThanOrEqual(5, $path->items()->count());
         $this->assertDatabaseHas('learning_path_topics', ['learning_path_item_id' => $path->items()->first()->id]);
@@ -36,8 +45,11 @@ class AdaptiveLearningPipelineTest extends TestCase
     public function test_office_topic_generates_and_downloads_a_csv_practice(): void
     {
         Http::fake();
+        Queue::fake();
         [$user, $topic] = $this->topicFor('Mejorar el manejo de Office', 'excel_dataset');
         $this->actingAs($user)->post(route('adaptive.topic.practice', $topic))->assertRedirect();
+        Queue::assertPushed(GenerateTopicContentJob::class, fn ($job) => $job->topicId === $topic->id && $job->type === 'practice');
+        (new GenerateTopicContentJob($topic->id, 'practice'))->handle(app(AiTutorService::class));
 
         $this->assertDatabaseHas('learning_path_practices', ['learning_path_topic_id' => $topic->id, 'type' => 'excel_dataset']);
         $this->actingAs($user)->get(route('adaptive.topic.practice.download', $topic))->assertOk()
@@ -48,8 +60,11 @@ class AdaptiveLearningPipelineTest extends TestCase
     public function test_programming_topic_generates_a_code_artifact_and_records_submission(): void
     {
         Http::fake();
+        Queue::fake();
         [$user, $topic] = $this->topicFor('Conseguir trabajo de Desarrollador Web', 'code_bug');
         $this->actingAs($user)->post(route('adaptive.topic.practice', $topic))->assertRedirect();
+        Queue::assertPushed(GenerateTopicContentJob::class, fn ($job) => $job->topicId === $topic->id && $job->type === 'practice');
+        (new GenerateTopicContentJob($topic->id, 'practice'))->handle(app(AiTutorService::class));
 
         $this->actingAs($user)->get(route('adaptive.topic.show', $topic))->assertOk()->assertSee('function validarCorreo');
         $this->actingAs($user)->post(route('adaptive.topic.practice.submit', $topic), ['answer' => 'Corregí la función para validar el correo.'])->assertSessionHas('success');

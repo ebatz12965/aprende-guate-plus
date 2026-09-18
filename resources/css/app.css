@@ -21,3 +21,67 @@
     .video-progress-track { @apply mt-3 h-2 overflow-hidden rounded-full bg-slate-100; }
     .video-progress-fill { @apply h-full rounded-full bg-sky-600 transition-all duration-300; }
 }
+
+
+@layer components {
+    .admin-sidebar-link { @apply mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-800; }
+    .admin-sidebar-link-active { @apply bg-blue-700 text-white shadow-md shadow-blue-700/20 hover:bg-blue-700 hover:text-white; }
+    .admin-sidebar-icon { @apply h-5 w-5 shrink-0; }
+    .admin-sidebar-label { @apply px-3 text-[11px] font-extrabold tracking-[0.12em] text-slate-400; }
+    .admin-student-link { @apply flex items-center gap-3 rounded-xl bg-blue-50 px-3 py-3 text-sm font-bold text-blue-800 transition hover:bg-blue-100; }
+    .admin-theme-toggle { @apply inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50; }
+    .admin-stat-card { @apply rounded-2xl border border-blue-100 bg-white p-6 shadow-sm; }
+    .admin-stat-card p { @apply text-sm font-bold text-slate-500; }
+    .admin-stat-card strong { @apply mt-3 block text-3xl font-extrabold tracking-tight text-slate-900; }
+    .admin-stat-card span { @apply mt-2 block text-sm leading-6 text-slate-500; }
+    .admin-stat-card a { @apply mt-5 inline-block text-sm font-bold text-blue-700 hover:text-blue-900; }
+}
+
+@layer base {
+    .dark .admin-shell { background-color: #020617; color: #f1f5f9; }
+    .dark .admin-sidebar, .dark .admin-topbar { border-color: #1e293b; background-color: #0f172a; }
+    .dark .admin-sidebar-link { color: #cbd5e1; }
+    .dark .admin-sidebar-link:hover { background-color: #1e293b; color: #fff; }
+    .dark .admin-sidebar-link-active, .dark .admin-sidebar-link-active:hover { background-color: #2563eb; color: #fff; }
+    .dark .admin-sidebar-label { color: #94a3b8; }
+    .dark .admin-student-link { background-color: rgb(23 37 84 / .7); color: #bfdbfe; }
+    .dark .admin-student-link:hover { background-color: #1e3a8a; }
+    .dark .admin-theme-toggle { border-color: #334155; background-color: #1e293b; color: #f1f5f9; }
+    .dark .admin-theme-toggle:hover, .dark .admin-topbar .bg-slate-100 { background-color: #334155; }
+    .dark .admin-topbar .text-slate-900, .dark .admin-topbar .text-slate-700 { color: #f1f5f9; }
+    .dark .admin-topbar .text-slate-500 { color: #94a3b8; }
+    .dark .admin-content .bg-white, .dark .admin-content .platform-feature, .dark .admin-content .admin-stat-card { border-color: #334155; background-color: #0f172a; }
+    .dark .admin-content .bg-gray-50, .dark .admin-content .bg-slate-50 { background-color: #1e293b; }
+    .dark .admin-content .border-gray-200, .dark .admin-content .border-slate-200 { border-color: #334155; }
+    .dark .admin-content .divide-gray-200 > :not([hidden]) ~ :not([hidden]), .dark .admin-content .divide-slate-200 > :not([hidden]) ~ :not([hidden]), .dark .admin-content .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
+    .dark .admin-content .text-gray-900, .dark .admin-content .text-slate-900 { color: #f1f5f9; }
+    .dark .admin-content .text-gray-800, .dark .admin-content .text-gray-700, .dark .admin-content .text-slate-700 { color: #e2e8f0; }
+    .dark .admin-content .text-gray-600, .dark .admin-content .text-gray-500, .dark .admin-content .text-slate-600, .dark .admin-content .text-slate-500 { color: #cbd5e1; }
+    .dark .admin-content input, .dark .admin-content select, .dark .admin-content textarea { border-color: #475569; background-color: #1e293b; color: #f1f5f9; }
+    .dark .admin-content input::placeholder, .dark .admin-content textarea::placeholder { color: #94a3b8; }
+    .dark .admin-content .bg-blue-100 { background-color: rgb(23 37 84 / .7); }
+    .dark .admin-content .text-blue-800 { color: #bfdbfe; }
+}
+
+@layer components {
+    .student-sidebar-link { @apply mb-1 flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-800; }
+    .student-sidebar-link-active { @apply bg-blue-700 text-white shadow-md shadow-blue-700/20 hover:bg-blue-700 hover:text-white; }
+    .student-sidebar-label { @apply px-3 text-[11px] font-extrabold tracking-[0.12em] text-slate-400; }
+    .student-layout-switch { @apply mb-2 block w-full rounded-xl bg-blue-50 px-3 py-2.5 text-left text-sm font-bold text-blue-800 transition hover:bg-blue-100; }
+}
+
+/* En pantallas de escritorio, las vistas del estudiante aprovechan toda el área
+   disponible. Los elementos internos que limitan textos y formularios se
+   mantienen para conservar una lectura cómoda. */
+@media (min-width: 1024px) {
+    .student-content > .mx-auto.max-w-2xl,
+    .student-content > .mx-auto.max-w-3xl,
+    .student-content > .mx-auto.max-w-4xl,
+    .student-content > .mx-auto.max-w-5xl,
+    .student-content > .mx-auto.max-w-6xl,
+    .student-content > .mx-auto.max-w-7xl {
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+    }
+}

@@ -22,12 +22,14 @@ class AdminAiSettingsTest extends TestCase
             'tutor_daily_limit' => 25,
             'diagnostic_min_characters' => 20,
             'diagnostic_max_characters' => 300,
+            'ai_token_budget' => 15000,
         ])->assertSessionHas('success');
 
         $this->assertSame(4, PlatformSetting::aiLimits()['tutor_minute_limit']);
         $this->assertSame(25, PlatformSetting::aiLimits()['tutor_daily_limit']);
         $this->assertSame(20, PlatformSetting::aiLimits()['diagnostic_min_characters']);
         $this->assertSame(300, PlatformSetting::aiLimits()['diagnostic_max_characters']);
+        $this->assertSame(15000, PlatformSetting::aiLimits()['ai_token_budget']);
     }
 
     public function test_diagnostic_form_uses_the_limits_saved_by_an_administrator(): void

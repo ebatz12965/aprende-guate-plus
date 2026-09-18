@@ -8,7 +8,6 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Role as SpatieRole;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -34,28 +33,6 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    public function courses(): BelongsToMany
-    {
-        return $this->belongsToMany(Course::class, 'course_enrollments');
-    }
-
-    public function taughtCourses(): HasMany
-    {
-        return $this->hasMany(Course::class, 'user_id');
-    }
-
-    public function submissions(): HasMany
-    {
-        return $this->hasMany(Submission::class);
-    }
-
-    /**
-     * Obtiene los registros de progreso de clases completadas por el usuario.
-     */
-    public function completedClasses(): HasMany
-    {
-        return $this->hasMany(ClassProgress::class);
-    }
 
     public function studentProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
@@ -74,6 +51,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(LearningPath::class);
     }
 
+    public function userSkills(): HasMany
+    {
+        return $this->hasMany(UserSkill::class);
+    }
+
+    public function aiRequests(): HasMany
+    {
+        return $this->hasMany(AiRequest::class);
+    }
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new \App\Notifications\VerifyEmailNotification());

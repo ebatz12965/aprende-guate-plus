@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\GenerateMilestoneChallengeJob;
+use App\Models\Challenge;
 use App\Models\LearningPath;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class LearningPhaseContentTest extends TestCase
@@ -70,6 +73,23 @@ class LearningPhaseContentTest extends TestCase
         ]);
         $this->assertDatabaseHas('learning_path_items', ['id' => $item->id, 'status' => 'completed']);
         $this->assertDatabaseHas('learning_paths', ['id' => $path->id, 'status' => 'completed']);
+    }
+    public function test_completing_a_quarter_of_the_route_queues_only_the_matching_optional_challenge(): void
+    {
+        Queue::fake();
+        $user = User::factory()->create();
+        $path = LearningPath::create(['user_id' => $user->id, 'title' => 'Ruta de Excel', 'goal' => 'Aprender Excel', 'status' => 'active']);
+        foreach (range(1, 4) as $position) {
+            $path->items()->create(['title' => 'Fase '.$position, 'area' => 'Excel', 'description' => 'Contenido', 'position' => $position, 'quiz' => ['question' => 'Pregunta', 'options' => ['Correcta', 'No', 'No'], 'answer' => 0]]);
+        }
+        $first = $path->items()->where('position', 1)->firstOrFail();
+
+        $this->actingAs($user)->post(route('adaptive.path.item.quiz', $first), ['answer' => 0])
+            ->assertRedirect(route('adaptive.path'));
+
+        $this->assertDatabaseHas('challenges', ['user_id' => $user->id, 'learning_path_id' => $path->id, 'milestone' => 25, 'generation_status' => 'queued']);
+        $this->assertDatabaseMissing('challenges', ['user_id' => $user->id, 'learning_path_id' => $path->id, 'milestone' => 50]);
+        Queue::assertPushed(GenerateMilestoneChallengeJob::class, fn ($job) => $job->learningPathId === $path->id && $job->milestone === 25);
     }
     public function test_formula_quiz_accepts_the_matching_option_sent_by_the_browser(): void
     {
