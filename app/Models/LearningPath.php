@@ -8,4 +8,5 @@ class LearningPath extends Model {
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
     public function items(): HasMany { return $this->hasMany(LearningPathItem::class)->orderBy('position'); }
     public function versions(): HasMany { return $this->hasMany(LearningPathVersion::class)->orderBy('version'); }
+    public function challenges(): HasMany { return $this->hasMany(Challenge::class); }
 }

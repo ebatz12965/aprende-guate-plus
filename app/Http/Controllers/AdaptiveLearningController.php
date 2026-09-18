@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\GenerateLearningPathJob;
 use App\Jobs\GenerateTopicContentJob;
+use App\Jobs\GenerateMilestoneChallengeJob;
 use App\Jobs\EvaluateChallengeSubmissionJob;
 use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, LearningPathItemQuizAttempt, LearningPathTopic, LearningPathLesson, LearningPathPractice, LearningPathPracticeAttempt, MentorProfile, Skill, SkillEvidence, UserSkill, MentorshipSession, PlatformSetting, StudentProfile};
 use App\Services\AiTutorService;
@@ -26,7 +27,7 @@ class AdaptiveLearningController extends Controller
             'total' => $total,
             'completed' => $completed,
             'progress' => $total ? (int) round($completed / $total * 100) : 0,
-            'nextItem' => $path?->items->firstWhere('status', 'pending'),
+            'nextItem' => $path?->items->firstWhere('status', 'in_progress') ?? $path?->items->firstWhere('status', 'pending'),
             'challengeCount' => ChallengeSubmission::where('user_id', $user->id)->count(),
             'upcomingSession' => MentorshipSession::where('student_id', $user->id)->whereIn('status', ['requested', 'scheduled'])->with('mentor')->orderBy('scheduled_at')->first(),
         ]);
@@ -238,11 +239,12 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
         }
 
         $item->update(['status' => 'completed']);
+        $this->queueEligibleMilestoneChallenges($path);
 
         if (! $path->items()->where('status', '!=', 'completed')->exists()) {
             $path->update(['status' => 'completed']);
 
-            return redirect()->route('adaptive.career')->with('success', '¡Ruta completada! Ya aparece como un logro en tu perfil profesional.');
+            return redirect()->route('adaptive.career')->with('success', '¡Ruta completada! Se desbloqueó tu reto opcional final y ya aparece como un logro en tu perfil profesional.');
         }
 
         return redirect()->route('adaptive.path')->with('success', '¡Mini-quiz aprobado! La siguiente fase ya está desbloqueada.');
@@ -269,22 +271,33 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
 
     public function challenges(Request $request)
     {
+        $user = $request->user();
+        $path = $user->learningPaths()->whereIn('status', ['active', 'completed'])->with('items')->latest()->first();
+        $total = $path?->items->count() ?? 0;
+        $completed = $path?->items->where('status', 'completed')->count() ?? 0;
+        $progress = $total ? (int) floor($completed / $total * 100) : 0;
+        $challenges = $path ? Challenge::where('user_id', $user->id)->where('learning_path_id', $path->id)->orderBy('milestone')->get() : collect();
+
         return view('adaptive.challenges', [
-            'challenges' => Challenge::latest()->get(),
-            'submissions' => ChallengeSubmission::where('user_id', $request->user()->id)->get()->keyBy('challenge_id'),
+            'path' => $path,
+            'progress' => $progress,
+            'challenges' => $challenges,
+            'challengesByMilestone' => $challenges->keyBy('milestone'),
+            'submissions' => ChallengeSubmission::where('user_id', $user->id)->whereIn('challenge_id', $challenges->pluck('id'))->get()->keyBy('challenge_id'),
         ]);
     }
 
     public function showChallenge(Request $request, Challenge $challenge)
     {
+        $this->ensurePersonalChallenge($request, $challenge);
         return view('adaptive.challenge-show', [
             'challenge' => $challenge,
             'submission' => ChallengeSubmission::where('challenge_id', $challenge->id)->where('user_id', $request->user()->id)->first(),
         ]);
     }
-
     public function submitChallenge(Request $request, Challenge $challenge)
     {
+        $this->ensurePersonalChallenge($request, $challenge);
         $data = $request->validate([
             'answer' => ['nullable', 'string', 'max:12000', 'required_without:attachment'],
             'methodology' => ['required', 'string', 'max:6000'],
@@ -309,6 +322,7 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
 
     public function downloadChallengeResource(Request $request, Challenge $challenge, int $resource)
     {
+        $this->ensurePersonalChallenge($request, $challenge);
         $item = data_get($challenge->resources ?? [], $resource);
         abort_unless(is_array($item) && filled(data_get($item, 'content')), 404);
         $mime = (string) data_get($item, 'mime', 'text/plain; charset=UTF-8');
@@ -317,6 +331,26 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
         return response($content, 200, ['Content-Type' => $mime, 'Content-Disposition' => 'attachment; filename="'.str_replace('"', '', data_get($item, 'filename', 'material.txt')).'"']);
     }
 
+    private function queueEligibleMilestoneChallenges(LearningPath $path): void
+    {
+        $total = $path->items()->count();
+        if ($total === 0) return;
+
+        $progress = (int) floor($path->items()->where('status', 'completed')->count() / $total * 100);
+        foreach ([25, 50, 75, 100] as $milestone) {
+            if ($progress < $milestone) continue;
+            $challenge = Challenge::firstOrCreate(
+                ['user_id' => $path->user_id, 'learning_path_id' => $path->id, 'milestone' => $milestone],
+                ['title' => 'Reto práctico del '.$milestone.'%', 'area' => 'Ruta personalizada', 'level' => $path->estimated_level ?: 'Inicial', 'description' => 'Estamos preparando un reto relacionado con tu ruta.', 'generation_status' => 'queued']
+            );
+            if ($challenge->wasRecentlyCreated) GenerateMilestoneChallengeJob::dispatch($path->id, $milestone)->onQueue('ai');
+        }
+    }
+
+    private function ensurePersonalChallenge(Request $request, Challenge $challenge): void
+    {
+        abort_unless($challenge->user_id === $request->user()->id && $challenge->learning_path_id && $challenge->generation_status === 'completed', 404);
+    }
     public function downloadChallengeAttachment(Request $request, ChallengeSubmission $submission)
     {
         abort_unless($submission->user_id === $request->user()->id && $submission->attachment_path && Storage::disk('local')->exists($submission->attachment_path), 404);
