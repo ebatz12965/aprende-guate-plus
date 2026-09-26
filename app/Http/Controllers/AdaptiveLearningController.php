@@ -71,7 +71,7 @@ class AdaptiveLearningController extends Controller
             return redirect()->route('adaptive.diagnostic')->with('info', 'Este cuestionario ya fue procesado. Puedes iniciar un nuevo diagnóstico cuando lo necesites.');
         }
 
-        $data = $request->validate(['answers' => ['required', 'array', 'size:4'], 'answers.*' => ['required', 'integer', 'between:0,2']]);
+        $data = $request->validate(['answers' => ['required', 'array', 'size:4'], 'answers.*' => ['required', 'integer', 'between:0,3']]);
 
         $attempt->update([
             'answers' => $data['answers'],
@@ -363,10 +363,26 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
 
     public function requestMentorship(Request $request, MentorProfile $mentor)
     {
-        $data = $request->validate(['topic' => ['required', 'string', 'max:160']]);
-        MentorshipSession::create(['student_id' => $request->user()->id, 'mentor_id' => $mentor->user_id, 'topic' => $data['topic']]);
+        $data = $request->validate([
+            'topic' => ['required', 'string', 'max:160'],
+            'preferred_at' => ['nullable', 'date', 'after:now'],
+        ]);
+        $session = MentorshipSession::create([
+            'student_id' => $request->user()->id,
+            'mentor_id' => $mentor->user_id,
+            'topic' => $data['topic'],
+            'preferred_at' => $data['preferred_at'] ?? null,
+        ]);
 
-        return back()->with('success', 'Solicitud enviada al mentor.');
+        $mentor->user->notify(new \App\Notifications\PlatformAlertNotification(
+            category: 'mentorship',
+            title: 'Nueva solicitud de mentoría',
+            body: $request->user()->name.' solicita tu orientación sobre “'.$session->topic.'”.',
+            url: route('mentor.dashboard'),
+            actionLabel: 'Revisar solicitud',
+        ));
+
+        return back()->with('success', 'Solicitud enviada al mentor. Te avisaremos cuando tenga una respuesta.');
     }
 
     public function career(Request $request)
@@ -398,6 +414,8 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
             'work_experience.*.description' => ['nullable', 'string', 'max:800'],
             'work_experience_visibility' => ['required', 'in:public,private'],
             'cv' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'remove_photo' => ['nullable', 'boolean'],
         ]);
 
         foreach (['education', 'work_experience'] as $section) {
@@ -416,7 +434,19 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
             $data['cv_path'] = $request->file('cv')->store('cvs', 'public');
         }
 
-        unset($data['cv']);
+        if ($request->boolean('remove_photo') && ! $request->hasFile('profile_photo') && $profile->photo_path) {
+            Storage::disk('public')->delete($profile->photo_path);
+            $data['photo_path'] = null;
+        }
+
+        if ($request->hasFile('profile_photo')) {
+            if ($profile->photo_path) {
+                Storage::disk('public')->delete($profile->photo_path);
+            }
+            $data['photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+        }
+
+        unset($data['cv'], $data['profile_photo'], $data['remove_photo']);
         $profile->update($data);
 
         return back()->with('success', 'Perfil profesional actualizado.');

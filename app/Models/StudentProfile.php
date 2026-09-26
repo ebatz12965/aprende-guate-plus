@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,7 @@ class StudentProfile extends Model
         'current_level',
         'linkedin_url',
         'cv_path',
+        'photo_path',
         'bio',
         'bio_visibility',
         'education',

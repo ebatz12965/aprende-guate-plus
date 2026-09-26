@@ -6,9 +6,13 @@ use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\AiUsageController;
 use App\Http\Controllers\Admin\AiOrchestratorController;
 use App\Http\Controllers\Admin\MailSettingsController;
+use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MentorController;
+use App\Http\Controllers\MentorshipConversationController;
+use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\SocialiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -63,17 +67,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/retos/evidencias/{submission}/archivo', [AdaptiveLearningController::class, 'downloadChallengeAttachment'])->name('adaptive.challenges.attachment');
     Route::get('/mentorias', [AdaptiveLearningController::class, 'mentorship'])->name('adaptive.mentorship');
     Route::post('/mentorias/{mentor}/solicitar', [AdaptiveLearningController::class, 'requestMentorship'])->name('adaptive.mentorship.request');
+    Route::get('/mentorias/sesiones/{session}', [MentorshipConversationController::class, 'show'])->name('mentorship.sessions.show');
+    Route::post('/mentorias/sesiones/{session}/mensajes', [MentorshipConversationController::class, 'send'])->name('mentorship.sessions.messages.send');
+    Route::post('/mentorias/sesiones/{session}/cancelar', [MentorController::class, 'cancel'])->name('mentor.sessions.cancel');
+    Route::get('/notificaciones', [NotificationsController::class, 'index'])->name('notifications.index');
+    Route::patch('/notificaciones/preferencias', [NotificationsController::class, 'updatePreferences'])->name('notifications.preferences.update');
+    Route::post('/notificaciones/{notification}/leer', [NotificationsController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notificaciones/leer-todas', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
     Route::get('/perfil-profesional', [AdaptiveLearningController::class, 'career'])->name('adaptive.career');
     Route::patch('/perfil-profesional', [AdaptiveLearningController::class, 'updateCareer'])->name('adaptive.career.update');
 });
 
 Route::middleware(['auth', 'verified', 'role:Instructor|Admin'])->group(function () {
-    Route::get('/mentor', function () {
-        $mentor = auth()->user();
-        $sessions = \App\Models\MentorshipSession::where('mentor_id', $mentor->id)->with('student')->latest()->get();
-
-        return view('mentor.dashboard', compact('sessions'));
-    })->name('mentor.dashboard');
+    Route::get('/mentor', [MentorController::class, 'dashboard'])->name('mentor.dashboard');
+    Route::get('/mentor/calendario', [MentorController::class, 'calendar'])->name('mentor.calendar');
+    Route::get('/mentor/sesiones', [MentorController::class, 'sessions'])->name('mentor.sessions');
+    Route::get('/mentor/configuracion', [MentorController::class, 'settings'])->name('mentor.settings');
+    Route::patch('/mentor/configuracion', [MentorController::class, 'updateSettings'])->name('mentor.settings.update');
+    Route::get('/mentor/solicitudes/{session}', [MentorshipConversationController::class, 'show'])->name('mentor.sessions.show');
+    Route::post('/mentor/solicitudes/{session}/aceptar', [MentorController::class, 'accept'])->name('mentor.sessions.accept');
+    Route::post('/mentor/solicitudes/{session}/rechazar', [MentorController::class, 'reject'])->name('mentor.sessions.reject');
 });
 
 Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
@@ -86,4 +99,9 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:Admin'])->group(
     Route::get('orquestador-ia', [AiOrchestratorController::class, 'index'])->name('ai-orchestrator.index');
     Route::get('configuracion-correo', [MailSettingsController::class, 'edit'])->name('mail-settings.edit');
     Route::put('configuracion-correo', [MailSettingsController::class, 'update'])->name('mail-settings.update');
-    Route::post('configuracion-correo/probar', [MailSettingsController::class, 'sendTest'])->name('mail-settings.test');});
+    Route::post('configuracion-correo/probar', [MailSettingsController::class, 'sendTest'])->name('mail-settings.test');
+    Route::get('avisos', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::post('avisos', [AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::post('avisos/{announcement}/publicar', [AnnouncementController::class, 'publish'])->name('announcements.publish');
+    Route::delete('avisos/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+});

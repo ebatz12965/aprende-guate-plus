@@ -15,6 +15,7 @@
     $navItemClass = fn (string $pattern) => request()->routeIs($pattern)
         ? 'admin-sidebar-link admin-sidebar-link-active'
         : 'admin-sidebar-link';
+    $twoFactorPending = auth()->check() && ! auth()->user()->hasTwoFactorEnabled();
 @endphp
 <div x-data="{
         sidebarOpen: false,
@@ -65,6 +66,8 @@
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Orquestador IA
                 </a>                <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Correo saliente
+                </a>                <a href="{{ route('admin.announcements.index') }}" class="{{ $navItemClass('admin.announcements.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>Avisos
                 </a>
             @endrole
         </nav>
@@ -100,11 +103,12 @@
                 <div class="relative">
                     <button @click="profileOpen = !profileOpen" @keydown.escape.window="profileOpen = false" :aria-expanded="profileOpen" aria-haspopup="menu" class="flex items-center gap-2 rounded-xl p-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
                         <span class="grid h-9 w-9 place-items-center rounded-lg bg-blue-100 text-blue-800">{{ Str::upper(Str::substr(auth()->user()->name, 0, 1)) }}</span>
+                        @if($twoFactorPending)<span class="h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-white" title="Verificación en dos pasos pendiente"></span>@endif
                         <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
                         <svg class="hidden h-4 w-4 text-slate-400 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                     <div x-cloak x-show="profileOpen" @click.outside="profileOpen = false" x-transition class="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10" role="menu">
-                        <a href="{{ route('profile.edit') }}" class="platform-menu-link" role="menuitem">Mi perfil</a>
+                        <a href="{{ route('notifications.index') }}" class="platform-menu-link" role="menuitem">Notificaciones @if($twoFactorPending)<span class="float-right mt-1 h-2.5 w-2.5 rounded-full bg-orange-500" title="Verificación en dos pasos pendiente"></span>@endif</a><a href="{{ route('profile.edit') }}" class="platform-menu-link" role="menuitem">Configuración</a>
                         <form method="POST" action="{{ route('logout') }}">@csrf
                             <button class="platform-menu-link w-full text-left text-rose-700 hover:bg-rose-50 hover:text-rose-800" role="menuitem">Cerrar sesión</button>
                         </form>

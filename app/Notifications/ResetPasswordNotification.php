@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Services\MailConfigurationService;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\URL;
@@ -10,6 +11,7 @@ class ResetPasswordNotification extends ResetPassword
 {
     public function toMail($notifiable): MailMessage
     {
+        app(MailConfigurationService::class)->apply();
         $url = URL::route('password.reset', [
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),

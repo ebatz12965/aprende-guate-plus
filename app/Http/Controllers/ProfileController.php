@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\NotificationPreference;
+use App\Services\TwoFactorAuthenticationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,19 +13,20 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
-    public function edit(Request $request): View
+    public function edit(Request $request, TwoFactorAuthenticationService $twoFactor): View
     {
+        $setupSecret = $request->session()->get('two_factor.setup_secret');
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'notificationPreferences' => NotificationPreference::forUser($request->user()),
+            'twoFactorSetupSecret' => $setupSecret,
+            'twoFactorQrCode' => $setupSecret ? $twoFactor->qrCodeDataUri($request->user(), $setupSecret) : null,
+            'openTwoFactorSetup' => $request->boolean('setup') && (bool) $setupSecret,
+            'twoFactorRecoveryCodes' => $request->session()->pull('two_factor.recovery_codes'),
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $request->user()->fill($request->validated());
@@ -37,21 +40,12 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    /**
-     * Delete the user's account.
-     */
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
-
+        $request->validateWithBag('userDeletion', ['password' => ['required', 'current_password']]);
         $user = $request->user();
-
         Auth::logout();
-
         $user->delete();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
