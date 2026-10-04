@@ -30,6 +30,11 @@ return [
 
         'role' => Role::class,
 
+        // Novedades de v8; null = sin equipos y el modelo del guard para attach/detachModels.
+        'team' => null,
+
+        'default_model' => null,
+
     ],
 
     'table_names' => [

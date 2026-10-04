@@ -4,7 +4,7 @@ Plataforma de aprendizaje adaptativo con IA. Cada estudiante responde un diagnó
 
 ## Stack
 
-- **Backend:** Laravel 12 (PHP 8.2+), colas en base de datos, scheduler.
+- **Backend:** Laravel 12 (PHP 8.3+), colas en base de datos, scheduler.
 - **Frontend:** Blade, Tailwind CSS 3, Alpine.js y Vite.
 - **Autenticación:** Laravel Breeze, verificación de correo, verificación en dos pasos (TOTP) e inicio de sesión con Google (Socialite).
 - **Roles:** `spatie/laravel-permission` con los roles `Admin`, `Instructor` y `Student`.
@@ -12,7 +12,7 @@ Plataforma de aprendizaje adaptativo con IA. Cada estudiante responde un diagnó
 
 ## Requisitos
 
-- PHP 8.2 o superior con las extensiones habituales de Laravel.
+- PHP 8.3 o superior con las extensiones habituales de Laravel.
 - Composer y Node.js 20 o superior.
 - MySQL (por ejemplo, con Laragon) o SQLite.
 
