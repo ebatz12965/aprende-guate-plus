@@ -26,7 +26,13 @@
                 <div class="flex flex-col gap-3 border-t border-slate-200 pt-6 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between"><p class="max-w-xl text-xs leading-5 text-slate-500 dark:text-slate-400">Al continuar, el agente solo usará tu área y especialidades para redactar preguntas. Tus respuestas serán visibles únicamente para el administrador.</p><button class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-5 py-3 text-sm font-extrabold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-800">Generar cuestionario <span class="ml-2" aria-hidden="true">→</span></button></div>
             </form>
 
-            @if(count($questionnaire))
+            @if($generating ?? false)
+                <div class="my-8 border-t border-slate-200 dark:border-slate-700"></div>
+                <div class="rounded-2xl border border-blue-100 bg-blue-50 p-6 text-center dark:border-blue-900/60 dark:bg-blue-950/30" x-data x-init="setTimeout(() => window.location.reload(), 3000)">
+                    <p class="ag-soft-pulse flex items-center justify-center gap-2 font-extrabold text-blue-800 dark:text-blue-200"><span class="ag-spinner"></span>Estamos preparando tu cuestionario de selección</p>
+                    <p class="mt-2 text-sm text-blue-700 dark:text-blue-300">Suele tardar unos segundos. Esta página se actualiza automáticamente.</p>
+                </div>
+            @elseif(count($questionnaire))
                 <div class="my-8 border-t border-slate-200 dark:border-slate-700"></div>
                 <form method="POST" action="{{ route('mentor-application.store') }}" class="space-y-6" x-data="{ step: 0, total: {{ (int) ceil(count($questionnaire) / 5) }} }">
                     @csrf

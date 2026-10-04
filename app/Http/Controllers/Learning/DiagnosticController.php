@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Learning;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Learning\StartDiagnosticRequest;
+use App\Jobs\GenerateDiagnosticQuestionsJob;
 use App\Jobs\GenerateLearningPathJob;
 use App\Models\DiagnosticAttempt;
 use App\Models\PlatformSetting;
@@ -20,15 +21,17 @@ class DiagnosticController extends Controller
         return view('adaptive.diagnostic', ['settings' => PlatformSetting::aiLimits()]);
     }
 
-    public function start(StartDiagnosticRequest $request, DiagnosticQuestionService $diagnostic): RedirectResponse
+    public function start(StartDiagnosticRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        // Las preguntas se generan en la cola: la petición responde de inmediato.
         $attempt = DiagnosticAttempt::create([
             'user_id' => $request->user()->id,
             'primary_answer' => $data['primary_answer'],
             'answers' => [],
-            'questions' => $diagnostic->generate($data['primary_answer'], $request->user()->id),
+            'status' => 'preparing',
         ]);
+        GenerateDiagnosticQuestionsJob::dispatch($attempt->id)->onQueue('ai');
 
         return redirect()->route('adaptive.diagnostic.questions', $attempt);
     }
@@ -36,6 +39,10 @@ class DiagnosticController extends Controller
     public function questions(DiagnosticAttempt $attempt): View|RedirectResponse
     {
         $this->authorize('view', $attempt);
+
+        if ($attempt->status === 'preparing') {
+            return view('adaptive.diagnostic-preparing', compact('attempt'));
+        }
 
         if ($attempt->status !== 'started') {
             return redirect()->route('adaptive.diagnostic')->with('info', self::ALREADY_PROCESSED);
