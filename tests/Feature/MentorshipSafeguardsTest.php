@@ -124,4 +124,37 @@ class MentorshipSafeguardsTest extends TestCase
                 && ($schema['properties']['questions']['items']['additionalProperties'] ?? null) === false;
         });
     }
+
+    public function test_admin_approval_adds_the_instructor_role_without_removing_existing_roles(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole(Role::findOrCreate('Admin'));
+        $applicant = User::factory()->create();
+        $applicant->assignRole(Role::findOrCreate('Student'));
+        $application = $this->application($applicant, 'pending_review');
+
+        $this->actingAs($admin)->post(route('admin.mentor-applications.approve', $application), ['admin_notes' => 'Perfil sólido.'])
+            ->assertRedirect(route('admin.mentor-applications.index'));
+
+        $applicant->refresh();
+        $this->assertTrue($applicant->hasRole('Instructor'));
+        $this->assertTrue($applicant->hasRole('Student'));
+        $this->assertDatabaseHas('mentor_profiles', ['user_id' => $applicant->id, 'headline' => 'Excel']);
+        $this->assertSame('approved', $application->fresh()->status);
+        $this->assertSame(1, $applicant->notifications()->count());
+    }
+
+    public function test_admin_rejection_requires_notes_and_reviewed_applications_cannot_change(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole(Role::findOrCreate('Admin'));
+        $application = $this->application(User::factory()->create(), 'pending_review');
+
+        $this->actingAs($admin)->post(route('admin.mentor-applications.reject', $application), ['admin_notes' => ''])->assertSessionHasErrors('admin_notes');
+        $this->actingAs($admin)->post(route('admin.mentor-applications.reject', $application), ['admin_notes' => 'Faltan ejemplos de enseñanza.'])->assertRedirect();
+        $this->assertSame('rejected', $application->fresh()->status);
+
+        $this->actingAs($admin)->post(route('admin.mentor-applications.approve', $application))->assertStatus(422);
+        $this->assertFalse($application->user->fresh()->hasRole('Instructor'));
+    }
 }

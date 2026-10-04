@@ -51,6 +51,12 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->assignRole($role);
     }
 
+    /** Agrega el rol de mentor sin retirar los roles que la persona ya tenía. */
+    public function assignMentorRole(): void
+    {
+        $this->assignRole(SpatieRole::findOrCreate('Instructor', $this->getDefaultGuardName()));
+    }
+
     public function learningPaths(): HasMany
     {
         return $this->hasMany(LearningPath::class);

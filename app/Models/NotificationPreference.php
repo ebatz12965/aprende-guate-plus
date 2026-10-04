@@ -7,6 +7,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class NotificationPreference extends Model
 {
+    // Mismos valores por defecto que la migración: sin ellos, el registro recién creado por
+    // forUser() tenía todos los canales en null y la primera notificación se descartaba.
+    protected $attributes = [
+        'in_app_messages' => true,
+        'email_messages' => true,
+        'in_app_mentorship' => true,
+        'email_mentorship' => true,
+        'in_app_platform' => true,
+        'email_platform' => true,
+    ];
+
     protected $fillable = [
         'user_id',
         'in_app_messages',
