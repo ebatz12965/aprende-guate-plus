@@ -6,7 +6,6 @@ use App\Models\PlatformSetting;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Telescope\TelescopeServiceProvider;
 
@@ -47,11 +46,8 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
-        Gate::before(function ($user, $ability) {
-            return $user->hasRole('Admin') ? true : null;
-        });
-
-        Gate::define('manage-users', fn ($user) => $user->hasRole(['Admin']));
-        Gate::define('view-analytics', fn ($user) => $user->hasRole(['Admin', 'Instructor']));
+        // Sin Gate::before para Admin: las policies protegen datos personales (diagnósticos,
+        // evidencias, conversaciones) y no deben omitirse por rol. El acceso administrativo
+        // se controla con el middleware role:Admin.
     }
 }

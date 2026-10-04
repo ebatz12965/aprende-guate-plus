@@ -17,11 +17,11 @@ use Illuminate\View\View;
 
 class TopicController extends Controller
 {
-    public function show(Request $request, int $topic): View
+    public function show(LearningPathTopic $topic): View
     {
-        $path = $request->user()->activeLearningPathOrFail();
-        $topic = LearningPathTopic::with(['module.learningPath', 'lesson', 'practice'])->findOrFail($topic);
-        abort_unless($topic->module->learning_path_id === $path->id, 404);
+        $topic->load(['module.learningPath', 'lesson', 'practice']);
+        $this->authorize('view', $topic);
+        $path = $topic->module->learningPath;
         abort_if($path->hasIncompleteItemsBefore($topic->module->position), 403);
 
         if ($topic->status === 'pending') {
@@ -31,34 +31,32 @@ class TopicController extends Controller
         return view('adaptive.topic', compact('path', 'topic'));
     }
 
-    public function generateLesson(Request $request, int $topic): RedirectResponse
+    public function generateLesson(LearningPathTopic $topic): RedirectResponse
     {
-        return $this->queueContent($request, $topic, 'lesson');
+        return $this->queueContent($topic, 'lesson');
     }
 
-    public function generatePractice(Request $request, int $topic): RedirectResponse
+    public function generatePractice(LearningPathTopic $topic): RedirectResponse
     {
-        return $this->queueContent($request, $topic, 'practice');
+        return $this->queueContent($topic, 'practice');
     }
 
-    public function generationStatus(Request $request, int $topic): JsonResponse
+    public function generationStatus(LearningPathTopic $topic): JsonResponse
     {
-        $path = $request->user()->activeLearningPathOrFail();
-        $topicModel = LearningPathTopic::with(['module', 'lesson', 'practice'])->findOrFail($topic);
-        abort_unless($topicModel->module->learning_path_id === $path->id, 404);
+        $this->authorize('view', $topic);
+        $topic->load(['lesson', 'practice']);
 
         return response()->json([
-            'title' => $topicModel->title,
-            'lesson_status' => $topicModel->lesson ? 'completed' : $topicModel->lesson_generation_status,
-            'practice_status' => $topicModel->practice ? 'completed' : $topicModel->practice_generation_status,
+            'title' => $topic->title,
+            'lesson_status' => $topic->lesson ? 'completed' : $topic->lesson_generation_status,
+            'practice_status' => $topic->practice ? 'completed' : $topic->practice_generation_status,
         ]);
     }
 
-    public function submitPractice(Request $request, int $topic): RedirectResponse
+    public function submitPractice(Request $request, LearningPathTopic $topic): RedirectResponse
     {
-        $path = $request->user()->activeLearningPathOrFail();
-        $topic = LearningPathTopic::with(['module', 'practice'])->findOrFail($topic);
-        abort_unless($topic->module->learning_path_id === $path->id && $topic->practice, 404);
+        $this->authorize('view', $topic);
+        abort_unless($topic->practice, 404);
         $data = $request->validate(['answer' => ['required', 'string', 'max:12000']]);
         $attempt = LearningPathPracticeAttempt::create(['learning_path_practice_id' => $topic->practice->id, 'user_id' => $request->user()->id, 'answer' => $data['answer'], 'submitted_at' => now()]);
         $skill = Skill::where('slug', data_get($topic->metadata, 'skill_slug'))->first();
@@ -72,22 +70,19 @@ class TopicController extends Controller
         return back()->with('success', 'Práctica registrada. Puedes continuar con el siguiente tema o repasar esta lección.');
     }
 
-    public function downloadPractice(Request $request, int $topic): Response
+    public function downloadPractice(LearningPathTopic $topic): Response
     {
-        $path = $request->user()->activeLearningPathOrFail();
-        $topic = LearningPathTopic::with(['module', 'practice'])->findOrFail($topic);
-        abort_unless($topic->module->learning_path_id === $path->id && $topic->practice?->type === 'excel_dataset', 404);
+        $this->authorize('view', $topic);
+        abort_unless($topic->practice?->type === 'excel_dataset', 404);
         $artifact = $topic->practice->artifact ?? [];
         $csv = "\xEF\xBB\xBF".(string) data_get($artifact, 'content');
 
         return response($csv, 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.data_get($artifact, 'label', 'practica.csv').'"']);
     }
 
-    private function queueContent(Request $request, int $topicId, string $type): RedirectResponse
+    private function queueContent(LearningPathTopic $topic, string $type): RedirectResponse
     {
-        $path = $request->user()->activeLearningPathOrFail();
-        $topic = LearningPathTopic::with($type)->findOrFail($topicId);
-        abort_unless($topic->module->learning_path_id === $path->id, 404);
+        $this->authorize('view', $topic);
 
         $statusColumn = "{$type}_generation_status";
 

@@ -26,11 +26,11 @@ class MentorshipController extends Controller
 
     public function store(Request $request, MentorProfile $mentor): RedirectResponse
     {
+        $this->authorize('requestSession', $mentor);
         $data = $request->validate([
             'topic' => ['required', 'string', 'max:160'],
             'preferred_at' => ['nullable', 'date', 'after:now'],
         ]);
-        abort_unless($mentor->user?->hasRole('Instructor'), 404);
 
         if ($mentor->user_id === $request->user()->id) {
             return back()->with('error', 'No puedes solicitarte una mentoría a ti mismo.');

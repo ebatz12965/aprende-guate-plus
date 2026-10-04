@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Learning;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Learning\SubmitChallengeEvidenceRequest;
 use App\Jobs\EvaluateChallengeSubmissionJob;
 use App\Models\Challenge;
 use App\Models\ChallengeSubmission;
@@ -35,7 +36,7 @@ class ChallengeController extends Controller
 
     public function show(Request $request, Challenge $challenge): View
     {
-        $this->ensurePersonalChallenge($request, $challenge);
+        $this->authorize('view', $challenge);
 
         return view('adaptive.challenge-show', [
             'challenge' => $challenge,
@@ -43,14 +44,10 @@ class ChallengeController extends Controller
         ]);
     }
 
-    public function submit(Request $request, Challenge $challenge): RedirectResponse
+    public function submit(SubmitChallengeEvidenceRequest $request, Challenge $challenge): RedirectResponse
     {
-        $this->ensurePersonalChallenge($request, $challenge);
-        $data = $request->validate([
-            'answer' => ['nullable', 'string', 'max:12000', 'required_without:attachment'],
-            'methodology' => ['required', 'string', 'max:6000'],
-            'attachment' => ['nullable', 'file', 'max:20480', 'mimes:pdf,txt,csv,xlsx,xls,doc,docx,ppt,pptx,png,jpg,jpeg,webp,zip'],
-        ]);
+        $this->authorize('view', $challenge);
+        $data = $request->validated();
 
         $existing = ChallengeSubmission::where('challenge_id', $challenge->id)->where('user_id', $request->user()->id)->first();
         $payload = ['answer' => $data['answer'] ?? null, 'methodology' => $data['methodology'], 'status' => 'queued', 'score' => null, 'feedback' => null, 'evaluation' => null, 'evaluated_at' => null];
@@ -70,9 +67,9 @@ class ChallengeController extends Controller
         return redirect()->route('adaptive.challenges.show', $challenge)->with('success', 'Evidencia guardada. El agente evaluador preparará tu resultado en segundo plano.');
     }
 
-    public function downloadResource(Request $request, Challenge $challenge, int $resource): Response
+    public function downloadResource(Challenge $challenge, int $resource): Response
     {
-        $this->ensurePersonalChallenge($request, $challenge);
+        $this->authorize('view', $challenge);
         $item = data_get($challenge->resources ?? [], $resource);
         abort_unless(is_array($item) && filled(data_get($item, 'content')), 404);
         $mime = (string) data_get($item, 'mime', 'text/plain; charset=UTF-8');
@@ -84,15 +81,11 @@ class ChallengeController extends Controller
         return response($content, 200, ['Content-Type' => $mime, 'Content-Disposition' => 'attachment; filename="'.str_replace('"', '', data_get($item, 'filename', 'material.txt')).'"']);
     }
 
-    public function downloadAttachment(Request $request, ChallengeSubmission $submission): StreamedResponse
+    public function downloadAttachment(ChallengeSubmission $submission): StreamedResponse
     {
-        abort_unless($submission->user_id === $request->user()->id && $submission->attachment_path && Storage::disk('local')->exists($submission->attachment_path), 404);
+        $this->authorize('view', $submission);
+        abort_unless($submission->attachment_path && Storage::disk('local')->exists($submission->attachment_path), 404);
 
         return Storage::disk('local')->download($submission->attachment_path, $submission->attachment_name);
-    }
-
-    private function ensurePersonalChallenge(Request $request, Challenge $challenge): void
-    {
-        abort_unless($challenge->user_id === $request->user()->id && $challenge->learning_path_id && $challenge->generation_status === 'completed', 404);
     }
 }

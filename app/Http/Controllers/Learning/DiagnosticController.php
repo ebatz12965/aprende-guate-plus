@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Learning;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Learning\StartDiagnosticRequest;
 use App\Jobs\GenerateLearningPathJob;
 use App\Models\DiagnosticAttempt;
 use App\Models\PlatformSetting;
@@ -20,10 +21,9 @@ class DiagnosticController extends Controller
         return view('adaptive.diagnostic', ['settings' => PlatformSetting::aiLimits()]);
     }
 
-    public function start(Request $request, AiTutorService $tutor): RedirectResponse
+    public function start(StartDiagnosticRequest $request, AiTutorService $tutor): RedirectResponse
     {
-        $settings = PlatformSetting::aiLimits();
-        $data = $request->validate(['primary_answer' => ['required', 'string', 'min:'.$settings['diagnostic_min_characters'], 'max:'.$settings['diagnostic_max_characters']]]);
+        $data = $request->validated();
         $attempt = DiagnosticAttempt::create([
             'user_id' => $request->user()->id,
             'primary_answer' => $data['primary_answer'],
@@ -34,9 +34,9 @@ class DiagnosticController extends Controller
         return redirect()->route('adaptive.diagnostic.questions', $attempt);
     }
 
-    public function questions(Request $request, DiagnosticAttempt $attempt): View|RedirectResponse
+    public function questions(DiagnosticAttempt $attempt): View|RedirectResponse
     {
-        abort_unless($attempt->user_id === $request->user()->id, 404);
+        $this->authorize('view', $attempt);
 
         if ($attempt->status !== 'started') {
             return redirect()->route('adaptive.diagnostic')->with('info', self::ALREADY_PROCESSED);
@@ -47,7 +47,7 @@ class DiagnosticController extends Controller
 
     public function store(Request $request, DiagnosticAttempt $attempt): RedirectResponse
     {
-        abort_unless($attempt->user_id === $request->user()->id, 404);
+        $this->authorize('view', $attempt);
 
         if ($attempt->status !== 'started') {
             return redirect()->route('adaptive.diagnostic')->with('info', self::ALREADY_PROCESSED);
@@ -62,9 +62,9 @@ class DiagnosticController extends Controller
             ->with('success', 'Estamos preparando tu ruta personalizada en segundo plano.');
     }
 
-    public function generation(Request $request, DiagnosticAttempt $attempt): View|RedirectResponse
+    public function generation(DiagnosticAttempt $attempt): View|RedirectResponse
     {
-        abort_unless($attempt->user_id === $request->user()->id, 404);
+        $this->authorize('view', $attempt);
 
         if ($attempt->status === 'completed') {
             return redirect()->route('adaptive.path')->with('success', 'Tu ruta personalizada está lista. Empieza con la primera fase.');
@@ -73,9 +73,9 @@ class DiagnosticController extends Controller
         return view('adaptive.diagnostic-generating', compact('attempt'));
     }
 
-    public function retry(Request $request, DiagnosticAttempt $attempt): RedirectResponse
+    public function retry(DiagnosticAttempt $attempt): RedirectResponse
     {
-        abort_unless($attempt->user_id === $request->user()->id, 404);
+        $this->authorize('view', $attempt);
         abort_unless($attempt->status === 'failed', 409);
 
         $this->queueGeneration($attempt);

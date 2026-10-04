@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Mentor\UpdateMentorSettingsRequest;
 use App\Models\MentorProfile;
 use App\Models\MentorshipSession;
 use App\Notifications\PlatformAlertNotification;
@@ -63,17 +64,9 @@ class MentorController extends Controller
         return view('mentor.settings', ['profile' => $this->profileFor($request->user())]);
     }
 
-    public function updateSettings(Request $request): RedirectResponse
+    public function updateSettings(UpdateMentorSettingsRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'headline' => ['nullable', 'string', 'max:160'],
-            'specialties' => ['nullable', 'string', 'max:500'],
-            'about' => ['nullable', 'string', 'max:1500'],
-            'acceptance_message' => ['required', 'string', 'max:2000'],
-            'rejection_message' => ['required', 'string', 'max:2000'],
-            'session_duration_minutes' => ['required', 'integer', 'min:5', 'max:240'],
-            'availability' => ['nullable', 'array'],
-        ]);
+        $data = $request->validated();
 
         $data['availability'] = collect($data['availability'] ?? [])->mapWithKeys(function ($slot, $day) {
             return [$day => is_array($slot) ? array_values(array_filter($slot, 'is_string')) : []];
@@ -86,7 +79,7 @@ class MentorController extends Controller
 
     public function accept(Request $request, MentorshipSession $session): RedirectResponse
     {
-        $this->ensurePendingSession($request, $session);
+        $this->ensurePendingSession($session);
         $profile = $this->profileFor($request->user());
         $data = $request->validate([
             'scheduled_at' => ['nullable', 'date', 'after:now'],
@@ -125,7 +118,7 @@ class MentorController extends Controller
 
     public function reject(Request $request, MentorshipSession $session): RedirectResponse
     {
-        $this->ensurePendingSession($request, $session);
+        $this->ensurePendingSession($session);
         $data = $request->validate(['reason' => ['nullable', 'string', 'max:800']]);
         $profile = $this->profileFor($request->user());
         $message = $this->composeMessage($profile->rejection_message, $session, $request->user()->name, $data['reason'] ?? null);
@@ -149,7 +142,7 @@ class MentorController extends Controller
 
     public function cancel(Request $request, MentorshipSession $session): RedirectResponse
     {
-        abort_unless(in_array($request->user()->id, [$session->student_id, $session->mentor_id], true), 403);
+        $this->authorize('participate', $session);
         abort_unless(in_array($session->status, ['accepted', 'scheduled'], true), 422);
         abort_unless($session->scheduled_at?->isFuture() ?? true, 422, 'La sesión ya inició y no puede cancelarse desde aquí.');
         $data = $request->validate(['message' => ['nullable', 'string', 'max:800']]);
@@ -176,9 +169,9 @@ class MentorController extends Controller
         return redirect()->route($request->user()->id === $session->mentor_id ? 'mentor.dashboard' : 'adaptive.mentorship')->with('success', 'La sesión fue cancelada y la otra persona recibió una notificación.');
     }
 
-    private function ensurePendingSession(Request $request, MentorshipSession $session): void
+    private function ensurePendingSession(MentorshipSession $session): void
     {
-        abort_unless($session->mentor_id === $request->user()->id, 403);
+        $this->authorize('respond', $session);
         abort_unless($session->status === 'requested', 422);
     }
 

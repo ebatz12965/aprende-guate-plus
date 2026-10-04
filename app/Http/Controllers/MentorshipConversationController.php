@@ -14,7 +14,7 @@ class MentorshipConversationController extends Controller
 {
     public function show(Request $request, MentorshipSession $session): View
     {
-        $this->ensureParticipant($request, $session);
+        $this->authorize('participate', $session);
         $isMentor = $session->mentor_id === $request->user()->id;
         abort_unless($isMentor || in_array($session->status, ['accepted', 'scheduled'], true), 403);
 
@@ -35,7 +35,7 @@ class MentorshipConversationController extends Controller
 
     public function send(Request $request, MentorshipSession $session): RedirectResponse|JsonResponse
     {
-        $this->ensureParticipant($request, $session);
+        $this->authorize('participate', $session);
         abort_unless(in_array($session->status, ['accepted', 'scheduled'], true), 403);
         $data = $request->validate(['body' => ['required', 'string', 'max:2000']]);
 
@@ -84,7 +84,7 @@ class MentorshipConversationController extends Controller
 
     public function messages(Request $request, MentorshipSession $session): JsonResponse
     {
-        $this->ensureParticipant($request, $session);
+        $this->authorize('participate', $session);
         abort_unless(in_array($session->status, ['accepted', 'scheduled'], true), 403);
 
         $afterId = max(0, $request->integer('after_id', 0));
@@ -159,7 +159,7 @@ class MentorshipConversationController extends Controller
 
     public function markWidgetRead(Request $request, MentorshipSession $session): JsonResponse
     {
-        $this->ensureParticipant($request, $session);
+        $this->authorize('participate', $session);
         abort_unless(in_array($session->status, ['accepted', 'scheduled'], true), 403);
 
         $session->messages()
@@ -168,10 +168,5 @@ class MentorshipConversationController extends Controller
             ->update(['read_at' => now()]);
 
         return response()->json(['ok' => true]);
-    }
-
-    private function ensureParticipant(Request $request, MentorshipSession $session): void
-    {
-        abort_unless(in_array($request->user()->id, [$session->student_id, $session->mentor_id], true), 403);
     }
 }
