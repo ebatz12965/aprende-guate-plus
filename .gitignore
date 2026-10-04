@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Reportes y artefactos de trabajo locales
+/outputs
+/.tmp_*
