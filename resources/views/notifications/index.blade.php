@@ -3,7 +3,7 @@
 @section('content')
 <div class="mx-auto w-full max-w-5xl">
     <div class="flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-end">
-        <div><p class="text-xs font-extrabold tracking-[0.16em] text-blue-700">CENTRO DE NOTIFICACIONES</p><h1 class="mt-2 text-3xl font-extrabold text-slate-900">Mantente al día</h1><p class="mt-2 text-slate-600">Mensajes, mentorías, avisos y recordatorios de Aprende Guate.</p></div>
+        <div data-tour="notificaciones"><p class="text-xs font-extrabold tracking-[0.16em] text-blue-700">CENTRO DE NOTIFICACIONES</p><h1 class="mt-2 text-3xl font-extrabold text-slate-900">Mantente al día</h1><p class="mt-2 text-slate-600">Mensajes, mentorías, avisos y recordatorios de Aprende Guate.</p></div>
         <div class="flex flex-wrap gap-3">@if($notifications->whereNull('read_at')->count())<form method="POST" action="{{ route('notifications.read-all') }}">@csrf<button class="rounded-xl border border-blue-200 px-4 py-2.5 text-sm font-bold text-blue-700 hover:bg-blue-50">Marcar todas como leídas</button></form>@endif<a href="{{ route('profile.edit', ['section' => 'notifications']) }}" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">Configurar avisos</a></div>
     </div>
 

@@ -29,10 +29,12 @@ return [
     'architecture_max_tokens' => (int) env('AI_ARCHITECTURE_MAX_TOKENS', 1200),
     'lesson_max_tokens' => (int) env('AI_LESSON_MAX_TOKENS', 800),
     'practice_max_tokens' => (int) env('AI_PRACTICE_MAX_TOKENS', 1000),
+    'content_classifier_max_tokens' => (int) env('AI_CONTENT_CLASSIFIER_MAX_TOKENS', 550),
     'agents' => [
         'career_profiler' => $agent('Perfilador profesional', 'Convierte diagnóstico y objetivo en perfil, nivel y brechas de habilidades.', 600),
         'learning_path' => $agent('Diseñador de rutas', 'Crea una arquitectura de aprendizaje progresiva y dependiente de habilidades.', 1200),
         'curriculum' => $agent('Diseñador curricular', 'Desarrolla unidades, objetivos, prerrequisitos y estimaciones.', 1000),
+        'content_classifier' => $agent('Clasificador de contenido', 'Decide el formato pedagógico, el tipo de práctica y los recursos que necesita cada tema.', 550),
         'theory_content' => $agent('Generador de teoría', 'Produce contenido estructurado, claro y pedagógico.', 900),
         'tutorial_script' => $agent('Guionista tutorial', 'Produce guiones y escenas; no genera video directamente.', 900),
         'exercise_generator' => $agent('Generador de ejercicios', 'Crea prácticas profesionales, datasets y criterios de entrega.', 1000),
@@ -42,5 +44,6 @@ return [
         'interviewer' => $agent('Entrevistador', 'Conduce entrevistas escritas por estados y preguntas adaptativas.', 700, false),
         'interview_evaluator' => $agent('Evaluador de entrevista', 'Califica entrevistas separadamente mediante rúbricas.', 900, false),
         'employability' => $agent('Agente de empleabilidad', 'Relaciona vacantes, perfil, evidencias y brechas.', 800, false),
+        'mentor_application_assessor' => $agent('Generador de cuestionarios de mentoría', 'Genera un cuestionario pedagógico según la especialidad y las áreas de apoyo declaradas, sin evaluar ni recibir respuestas personales.', 900),
     ],
 ];

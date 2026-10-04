@@ -42,7 +42,7 @@ class MentorController extends Controller
             ->orderBy('scheduled_at')
             ->get();
 
-        return view('mentor.calendar', compact('sessions'));
+        return view('mentor.calendar-interactive', compact('sessions'));
     }
 
     public function sessions(Request $request): View

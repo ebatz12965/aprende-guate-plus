@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Administración | {{ config('app.name', 'Aprende Guate') }}</title>
+    <title>Administración | Aprende Guate</title>
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/aprende-guate-app-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     <script>if (localStorage.getItem('admin-theme') === 'dark') document.documentElement.classList.add('dark');</script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -30,9 +32,7 @@
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="admin-sidebar fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-sky-100 bg-white transition-transform duration-200 lg:translate-x-0">
         <div class="flex h-20 items-center justify-between border-b border-slate-100 px-6">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 text-sky-950">
-                <span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-700 text-white shadow-lg shadow-blue-700/20">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5V5.75A1.75 1.75 0 0 1 5.75 4H20v14.5"/><path d="M4 19.5c0-1.1.9-2 2-2h14"/><path d="M8 8h8M8 12h6"/></svg>
-                </span>
+                <img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="" class="ag-brand-icon">
                 <span><span class="block text-base font-extrabold tracking-tight">Aprende Guate</span><span class="block text-xs font-medium text-blue-700">Administración</span></span>
             </a>
             <button @click="sidebarOpen = false" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden" aria-label="Cerrar menú">
@@ -50,6 +50,9 @@
                 <p class="admin-sidebar-label mt-7">GESTIÓN</p>
                 <a href="{{ route('admin.users.index') }}" class="{{ $navItemClass('admin.users.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Usuarios
+                </a>
+                <a href="{{ route('admin.mentor-applications.index') }}" class="{{ $navItemClass('admin.mentor-applications.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6m3-3h-6"/></svg>Solicitudes de mentor
                 </a>
                 <a href="{{ route('admin.roles.index') }}" class="{{ $navItemClass('admin.roles.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15.5 7.5 18l1.2-5-3.8-3.2 5-.4L12 4.7l2.1 4.7 5 .4-3.8 3.2 1.2 5z"/></svg>Roles
@@ -123,6 +126,7 @@
             @if ($errors->any())<div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"><ul class="list-inside list-disc">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
             @yield('content')
         </main>
+        @include('components.platform-footer')
     </div>
 </div>
 </body>

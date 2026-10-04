@@ -7,16 +7,23 @@ use App\Http\Controllers\Admin\AiUsageController;
 use App\Http\Controllers\Admin\AiOrchestratorController;
 use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Admin\MentorApplicationController as AdminMentorApplicationController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MentorController;
+use App\Http\Controllers\MentorApplicationController;
 use App\Http\Controllers\MentorshipConversationController;
 use App\Http\Controllers\NotificationsController;
+use App\Http\Controllers\PlatformGuideController;
 use App\Http\Controllers\SocialiteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
+Route::view('/terminos-y-condiciones', 'legal.terms')->name('legal.terms');
+Route::view('/politica-de-privacidad', 'legal.privacy')->name('legal.privacy');
+Route::view('/politica-de-cookies', 'legal.cookies')->name('legal.cookies');
+Route::view('/preguntas-frecuentes', 'legal.faq')->name('legal.faq');
 Route::get('/perfil/{user}', [AdaptiveLearningController::class, 'publicProfile'])->name('adaptive.public-profile');
 
 Route::get('/dashboard', function () {
@@ -56,6 +63,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/mi-ruta/temas/{topic}', [AdaptiveLearningController::class, 'showTopic'])->name('adaptive.topic.show');
     Route::post('/mi-ruta/temas/{topic}/leccion', [AdaptiveLearningController::class, 'generateTopicLesson'])->middleware('throttle:ai')->name('adaptive.topic.lesson');
     Route::post('/mi-ruta/temas/{topic}/practica', [AdaptiveLearningController::class, 'generateTopicPractice'])->middleware('throttle:ai')->name('adaptive.topic.practice');
+    Route::get('/mi-ruta/temas/{topic}/generacion', [AdaptiveLearningController::class, 'topicGenerationStatus'])->name('adaptive.topic.generation.status');
     Route::post('/mi-ruta/temas/{topic}/practica/entregar', [AdaptiveLearningController::class, 'submitTopicPractice'])->name('adaptive.topic.practice.submit');
     Route::get('/mi-ruta/temas/{topic}/practica/descargar', [AdaptiveLearningController::class, 'downloadTopicPractice'])->name('adaptive.topic.practice.download');
     Route::get('/tutor-ia', [AdaptiveLearningController::class, 'tutor'])->name('adaptive.tutor');
@@ -69,13 +77,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/mentorias/{mentor}/solicitar', [AdaptiveLearningController::class, 'requestMentorship'])->name('adaptive.mentorship.request');
     Route::get('/mentorias/sesiones/{session}', [MentorshipConversationController::class, 'show'])->name('mentorship.sessions.show');
     Route::post('/mentorias/sesiones/{session}/mensajes', [MentorshipConversationController::class, 'send'])->name('mentorship.sessions.messages.send');
+    Route::get('/mentorias/sesiones/{session}/mensajes', [MentorshipConversationController::class, 'messages'])->name('mentorship.sessions.messages');
+    Route::get('/mentorias/widget', [MentorshipConversationController::class, 'widget'])->name('mentorship.widget');
+    Route::post('/mentorias/widget/{session}/leer', [MentorshipConversationController::class, 'markWidgetRead'])->name('mentorship.widget.read');
     Route::post('/mentorias/sesiones/{session}/cancelar', [MentorController::class, 'cancel'])->name('mentor.sessions.cancel');
     Route::get('/notificaciones', [NotificationsController::class, 'index'])->name('notifications.index');
+    Route::post('/guia-plataforma/preguntar', [PlatformGuideController::class, 'ask'])->middleware('throttle:ai')->name('platform.guide.ask');
     Route::patch('/notificaciones/preferencias', [NotificationsController::class, 'updatePreferences'])->name('notifications.preferences.update');
     Route::post('/notificaciones/{notification}/leer', [NotificationsController::class, 'markRead'])->name('notifications.read');
     Route::post('/notificaciones/leer-todas', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
     Route::get('/perfil-profesional', [AdaptiveLearningController::class, 'career'])->name('adaptive.career');
     Route::patch('/perfil-profesional', [AdaptiveLearningController::class, 'updateCareer'])->name('adaptive.career.update');
+    Route::get('/solicitar-ser-mentor', [MentorApplicationController::class, 'create'])->name('mentor-application.create');
+    Route::post('/solicitar-ser-mentor/cuestionario', [MentorApplicationController::class, 'generateQuestionnaire'])->middleware('throttle:ai')->name('mentor-application.questionnaire');
+    Route::post('/solicitar-ser-mentor', [MentorApplicationController::class, 'store'])->name('mentor-application.store');
 });
 
 Route::middleware(['auth', 'verified', 'role:Instructor|Admin'])->group(function () {
@@ -104,4 +119,8 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:Admin'])->group(
     Route::post('avisos', [AnnouncementController::class, 'store'])->name('announcements.store');
     Route::post('avisos/{announcement}/publicar', [AnnouncementController::class, 'publish'])->name('announcements.publish');
     Route::delete('avisos/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    Route::get('solicitudes-mentor', [AdminMentorApplicationController::class, 'index'])->name('mentor-applications.index');
+    Route::get('solicitudes-mentor/{application}', [AdminMentorApplicationController::class, 'show'])->name('mentor-applications.show');
+    Route::post('solicitudes-mentor/{application}/aprobar', [AdminMentorApplicationController::class, 'approve'])->name('mentor-applications.approve');
+    Route::post('solicitudes-mentor/{application}/rechazar', [AdminMentorApplicationController::class, 'reject'])->name('mentor-applications.reject');
 });

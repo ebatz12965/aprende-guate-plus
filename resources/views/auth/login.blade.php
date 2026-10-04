@@ -16,11 +16,9 @@
         </div>
 
         <div>
-            <div class="mb-2 flex items-center justify-between gap-4">
-                <x-input-label for="password" value="Contraseña" class="text-sm font-bold text-slate-700" />
-                @if (Route::has('password.request'))<a class="shrink-0 text-sm font-bold text-blue-700 transition hover:text-blue-950" href="{{ route('password.request') }}">¿La olvidaste?</a>@endif
-            </div>
+            <x-input-label for="password" value="Contraseña" class="mb-2 text-sm font-bold text-slate-700" />
             <x-text-input id="password" class="block w-full rounded-xl border-slate-200 px-4 py-3 text-slate-900 shadow-sm focus:border-blue-600 focus:ring-blue-600" type="password" name="password" required autocomplete="current-password" />
+            @if (Route::has('password.request'))<div class="mt-2 text-right"><a class="text-sm font-bold text-blue-700 transition hover:text-blue-950" href="{{ route('password.request') }}">¿La olvidaste?</a></div>@endif
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 

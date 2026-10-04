@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class MentorshipSession extends Model
 {
@@ -49,5 +50,10 @@ class MentorshipSession extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(MentorshipMessage::class)->oldest();
+    }
+
+    public function latestMessage(): HasOne
+    {
+        return $this->hasOne(MentorshipMessage::class)->latestOfMany();
     }
 }

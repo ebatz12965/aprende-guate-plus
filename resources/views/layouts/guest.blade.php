@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Acceso | {{ config('app.name', 'Aprende Guate') }}</title>
+    <title>Acceso | Aprende Guate</title>
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/aprende-guate-app-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-100 font-sans text-slate-800 antialiased">
@@ -37,5 +39,6 @@
             </div>
         </section>
     </main>
+    @include('components.platform-footer')
 </body>
 </html>

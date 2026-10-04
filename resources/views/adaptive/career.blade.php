@@ -27,7 +27,7 @@
                             <img :src="photoPreview" alt="Vista previa de tu foto" class="h-24 w-24 rounded-2xl border-4 border-white/30 object-cover shadow-lg">
                         </template>
                         <template x-if="!photoPreview || removePhoto">
-                            <span class="grid h-24 w-24 place-items-center rounded-2xl border-4 border-white/20 bg-white/10 text-3xl font-extrabold">{{ Str::upper(Str::substr(auth()->user()->name, 0, 1)) }}</span>
+                            <img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="Perfil de {{ auth()->user()->name }}" class="h-24 w-24 rounded-2xl border-4 border-white/20 bg-white/10 object-cover shadow-lg">
                         </template>
                         <span class="absolute -bottom-2 -right-2 grid h-8 w-8 place-items-center rounded-full border-2 border-blue-900 bg-emerald-400 text-xs font-black text-emerald-950" title="Perfil editable">✓</span>
                     </div>
@@ -141,7 +141,7 @@
             </section>
         </div>
 
-        <div class="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-lg shadow-slate-900/10 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+        <div class="profile-save-bar sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-lg shadow-slate-900/10 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
             <p class="text-sm text-slate-500">Los campos marcados como públicos se mostrarán en tu perfil compartible.</p>
             <button class="rounded-xl bg-blue-700 px-5 py-3 text-sm font-bold text-white shadow-md shadow-blue-700/20 transition hover:bg-blue-800">Guardar cambios</button>
         </div>

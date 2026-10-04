@@ -17,6 +17,7 @@ class PlatformAlertNotification extends Notification
         private readonly ?string $url = null,
         private readonly ?string $actionLabel = null,
         private readonly bool $allowEmail = true,
+        private readonly bool $allowDatabase = true,
     ) {
     }
 
@@ -25,7 +26,7 @@ class PlatformAlertNotification extends Notification
         $preferences = NotificationPreference::forUser($notifiable);
         $channels = [];
 
-        if ($preferences->receives('database', $this->category)) {
+        if ($this->allowDatabase && $preferences->receives('database', $this->category)) {
             $channels[] = 'database';
         }
 

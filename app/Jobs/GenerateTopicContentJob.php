@@ -42,6 +42,9 @@ class GenerateTopicContentJob implements ShouldQueue
 
         try {
             $path = $topic->module->learningPath;
+            $contentPlan = app(AiTutorService::class)->classifyTopicContent($path, $topic);
+            $topic->update(['metadata' => array_merge($topic->metadata ?? [], ['content_plan' => $contentPlan])]);
+            $topic->refresh();
 
             if ($this->type === 'lesson') {
                 $lesson = $tutor->generateLesson($path, $topic);

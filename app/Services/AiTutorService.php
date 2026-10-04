@@ -39,6 +39,9 @@ class AiTutorService
     /** Solo diseña la estructura: nunca genera lecciones ni prácticas en esta llamada. */
     public function learningArchitecture(string $goal, array $questions, array $answers, ?int $userId = null): array
     {
+        if (Str::contains(Str::lower($goal), ['office', 'excel', 'word', 'powerpoint', 'ofimática', 'ofimatica'])) {
+            return config('office_curriculum.architecture');
+        }
         $fallback = $this->architectureFallback($goal);
         $prompt = 'Eres arquitecto curricular para empleabilidad. Diseña únicamente el roadmap para la meta "'.$goal.'". '
             .'Usa el diagnóstico: '.json_encode(['questions' => $questions, 'answers' => $answers], JSON_UNESCAPED_UNICODE).'. '
@@ -54,6 +57,28 @@ class AiTutorService
         return app(CareerProfilerService::class)->profile($goal, $questions, $answers, $userId);
     }
 
+    public function classifyTopicContent(LearningPath $path, LearningPathTopic $topic): array
+    {
+        $fallback = $this->contentClassificationFallback($path, $topic);
+        if (data_get($fallback, 'content_domain') === 'ofimatica') {
+            return $fallback;
+        }
+        $prompt = 'Clasifica pedagógicamente este tema. Responde en español latinoamericano. Meta: "'.$path->goal.'". Módulo: "'.$topic->module->title.'". Tema: "'.$topic->title.'". Objetivo: "'.$topic->learning_objective.'". Tipo actual: "'.$topic->practice_type.'". Decide el formato de la lección y de la práctica, si requiere un archivo descargable, una tabla visible, un editor de código o interacción por pasos.';
+        $result = $this->askStructured($prompt, $fallback, $this->contentClassificationSchema(), 'content_classification', config('ai.content_classifier_max_tokens', 550), $path->user_id);
+        return isset($result['lesson_format'], $result['practice_format']) ? array_merge($fallback, $result) : $fallback;
+    }
+
+    private function contentClassificationFallback(LearningPath $path, LearningPathTopic $topic): array
+    {
+        $office = Str::contains(Str::lower($path->goal), ['office', 'excel', 'word', 'powerpoint', 'ofimática', 'ofimatica']);
+        return ['content_domain' => $office ? 'ofimatica' : 'general', 'lesson_format' => $office ? 'demostracion_guiada' : 'guia_aplicada', 'practice_format' => $topic->practice_type, 'requires_downloadable_file' => $topic->practice_type === 'excel_dataset', 'display_mode' => in_array($topic->practice_type, ['code_bug', 'code_complete'], true) ? 'code_editor' : ($topic->practice_type === 'excel_dataset' ? 'data_table' : 'rich_instructions'), 'interaction' => $office ? 'paso_a_paso_con_verificacion' : 'preguntas_de_comprobacion'];
+    }
+
+    private function contentClassificationSchema(): array
+    {
+        return ['type' => 'object', 'additionalProperties' => false, 'required' => ['content_domain', 'lesson_format', 'practice_format', 'requires_downloadable_file', 'display_mode', 'interaction'], 'properties' => ['content_domain' => ['type' => 'string'], 'lesson_format' => ['type' => 'string', 'enum' => ['teoria', 'guia_aplicada', 'demostracion_guiada', 'simulacion', 'tutorial']], 'practice_format' => ['type' => 'string', 'enum' => ['excel_dataset', 'code_bug', 'code_complete', 'case_study', 'language_activity', 'theory_quiz']], 'requires_downloadable_file' => ['type' => 'boolean'], 'display_mode' => ['type' => 'string', 'enum' => ['data_table', 'code_editor', 'rich_instructions', 'quiz', 'file_submission']], 'interaction' => ['type' => 'string']]];
+    }
+
     // Compatibilidad para integraciones previas.
     public function learningPlan(string $goal, array $questions, array $answers): array
     {
@@ -62,6 +87,9 @@ class AiTutorService
 
     public function generateLesson(LearningPath $path, LearningPathTopic $topic): array
     {
+        if (data_get($topic->metadata, 'content_plan.content_domain') === 'ofimatica') {
+            return $this->officeLesson($topic);
+        }
         $fallback = [
             'summary' => 'Este tema desarrolla una habilidad concreta de '.$path->goal.'.',
             'key_concepts' => [$topic->title, 'Aplicación laboral', 'Revisión de resultados'],
@@ -69,21 +97,41 @@ class AiTutorService
             'youtube_queries' => [$path->goal.' '.$topic->title.' tutorial español'],
             'quiz' => ['question' => '¿Qué debes hacer al aplicar este tema?', 'options' => ['Seguir el objetivo y revisar el resultado', 'Omitir el proceso', 'Memorizar sin contexto'], 'answer' => 0],
         ];
-        $prompt = 'Genera una lección breve y aplicada para la meta "'.$path->goal.'", módulo "'.$topic->module->title.'" y tema "'.$topic->title.'". Objetivo: "'.$topic->learning_objective.'". No generes práctica.';
+        $plan = data_get($topic->metadata, 'content_plan', []);
+        $prompt = 'Genera una lección detallada, pedagógica y aplicada para la meta "'.$path->goal.'", módulo "'.$topic->module->title.'" y tema "'.$topic->title.'". Objetivo: "'.$topic->learning_objective.'". Plan clasificado: '.json_encode($plan, JSON_UNESCAPED_UNICODE).'. Incluye contexto, conceptos con explicación, pasos verificables, errores frecuentes y una microactividad si aplica. No generes una práctica separada.';
         $result = $this->askStructured($prompt, $fallback, $this->lessonSchema(), 'topic_lesson', config('ai.lesson_max_tokens'), $path->user_id);
         return $this->validLesson($result) ? $result : $fallback;
     }
 
     public function generatePractice(LearningPath $path, LearningPathTopic $topic): array
     {
+        if (data_get($topic->metadata, 'content_plan.content_domain') === 'ofimatica') {
+            return $this->officePractice($topic);
+        }
         $fallback = $this->practiceFallback($path, $topic);
-        $prompt = 'Eres evaluador práctico. Genera una práctica laboral para la meta "'.$path->goal.'" y tema "'.$topic->title.'". '
+        $plan = data_get($topic->metadata, 'content_plan', []);
+        $prompt = 'Eres diseñador de experiencias prácticas. Genera una práctica laboral completa para la meta "'.$path->goal.'" y tema "'.$topic->title.'". Plan clasificado: '.json_encode($plan, JSON_UNESCAPED_UNICODE).'. '
             .'Tipo obligatorio: '.$topic->practice_type.'. Objetivo: "'.$topic->learning_objective.'". '
+            .'No uses un bloque negro para datos que no sean código; el frontend decidirá si muestra una tabla, instrucciones, archivo o código. '
             .'Si el tipo es excel_dataset, artifact_content debe ser CSV con encabezados y al menos 8 filas ficticias. '
             .'Si es code_bug o code_complete, artifact_content debe ser código ejecutable o corregible con TODO/comentario y artifact_language debe indicar lenguaje. '
             .'Para los demás tipos incluye un caso o escenario realista. No inventes datos sensibles. Todo contenido, nombres, instrucciones y datos deben estar en español latinoamericano claro, con acentos UTF-8 correctos. Los CSV deben usar encabezados en español y texto UTF-8 compatible con Excel.';
         $result = $this->askStructured($prompt, $fallback, $this->practiceSchema(), 'topic_practice', config('ai.practice_max_tokens'), $path->user_id);
         return $this->validPractice($result, $topic->practice_type) ? $result : $fallback;
+    }
+
+    private function officeLesson(LearningPathTopic $topic): array
+    {
+        return ['summary' => 'En esta lección aprenderás '.$topic->title.' con un flujo de trabajo profesional: preparar, ejecutar, revisar y entregar un resultado claro.', 'key_concepts' => ['Objetivo y contexto de uso', 'Interfaz y herramientas principales', 'Buenas prácticas de organización', 'Validación del resultado', 'Errores frecuentes y cómo evitarlos'], 'steps' => ['Define qué resultado debe recibir la persona o equipo que solicita el trabajo.', 'Prepara los datos, el documento o la presentación usando nombres y formatos consistentes.', 'Aplica la herramienta indicada y revisa fórmulas, estilos, referencias o alineación.', 'Comprueba el resultado con una segunda revisión y corrige inconsistencias.', 'Guarda una versión editable y una versión final lista para compartir.'], 'youtube_queries' => ['Microsoft Office '.$topic->title.' español latinoamericano', 'Excel Word PowerPoint '.$topic->title.' tutorial'], 'quiz' => ['question' => '¿Cuál es una buena práctica antes de entregar un archivo de Office?', 'options' => ['Revisar el resultado y conservar una versión editable', 'Eliminar las fórmulas para que nadie las vea', 'Usar nombres aleatorios en los archivos'], 'answer' => 0]];
+    }
+
+    private function officePractice(LearningPathTopic $topic): array
+    {
+        if ($topic->practice_type === 'excel_dataset') {
+            return ['title' => 'Caso práctico de '.$topic->title, 'context' => 'Trabajas como auxiliar de operaciones en una empresa guatemalteca. La coordinación necesita un reporte confiable para tomar una decisión en la reunión semanal.', 'instructions' => ['Importa la tabla en Excel y conviértela en una tabla con encabezados claros.', 'Aplica las funciones o herramientas de la lección para responder las preguntas del caso.', 'Comprueba dos resultados con una fórmula alternativa o una tabla dinámica.', 'Entrega el archivo editable y una breve explicación de tus hallazgos.'], 'artifact_label' => 'datos_practica_office.csv', 'artifact_language' => 'csv', 'artifact_content' => "id_registro,fecha,area,responsable,categoria,cantidad,monto,estado\nOF-001,2026-02-03,Ventas,Ana López,Licencias,12,5400,Completado\nOF-002,2026-02-04,Soporte,Carlos Méndez,Equipos,5,7250,En revisión\nOF-003,2026-02-05,Ventas,Sofía Estrada,Accesorios,18,2160,Completado\nOF-004,2026-02-06,Administración,Valeria Ruiz,Capacitación,3,1800,Programado\nOF-005,2026-02-07,Soporte,Carlos Méndez,Equipos,7,9800,Completado\nOF-006,2026-02-08,Ventas,Ana López,Licencias,9,4050,En revisión\nOF-007,2026-02-09,Administración,Valeria Ruiz,Capacitación,4,2400,Completado\nOF-008,2026-02-10,Ventas,Sofía Estrada,Accesorios,21,2520,Completado", 'expected_solution' => ['criteria' => 'La evidencia debe incluir fórmulas, filtros o tablas dinámicas pertinentes y conclusiones que coincidan con los datos.', 'hint' => 'Empieza calculando totales por responsable y categoría; después valida el resultado con un segundo método.']];
+        }
+
+        return ['title' => 'Entrega profesional: '.$topic->title, 'context' => 'La gerencia solicita un material listo para utilizar en una reunión. Debe ser claro para una persona que no participó en su elaboración y debe permitir editarlo después.', 'instructions' => ['Define el destinatario y el propósito del archivo.', 'Construye el documento o presentación siguiendo una jerarquía visual consistente.', 'Incluye una tabla, evidencia o ejemplo que respalde la información.', 'Revisa ortografía, alineación, nombres de archivo y formato de entrega.', 'Entrega el archivo editable y describe en qué parte aplicaste cada herramienta.'], 'artifact_label' => 'Guía de entrega', 'artifact_language' => 'text', 'artifact_content' => 'La evidencia debe demostrar un resultado completo, editable y listo para compartir. No se requiere pegar código: adjunta el archivo de Office y explica brevemente tu proceso.', 'expected_solution' => ['criteria' => 'Se evalúa la claridad del resultado, el uso correcto de las herramientas, la consistencia visual y la explicación del proceso.', 'hint' => 'Antes de entregar, abre el archivo como si fueras otra persona y verifica que pueda entenderlo sin ayuda.']];
     }
 
     public function generateMilestoneChallenge(LearningPath $path, int $milestone): array
@@ -237,6 +285,7 @@ class AiTutorService
         return match ($operation) {
             'diagnostic_questions' => 'career_profiler',
             'learning_architecture' => 'learning_path',
+            'content_classification' => 'content_classifier',
             'topic_lesson' => 'theory_content',
             'topic_practice', 'milestone_challenge' => 'exercise_generator',
             default => 'tutor',

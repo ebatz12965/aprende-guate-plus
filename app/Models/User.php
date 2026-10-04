@@ -77,4 +77,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(MentorProfile::class);
     }
+
+    public function mentorApplications(): HasMany
+    {
+        return $this->hasMany(MentorApplication::class);
+    }
 }

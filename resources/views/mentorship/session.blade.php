@@ -18,7 +18,7 @@
                 @endif
 
                 @if(in_array($session->status, ['accepted', 'scheduled'], true))
-                    <section class="mt-6"><p class="text-xs font-extrabold tracking-[0.14em] text-blue-700">CONVERSACIÓN PRIVADA</p><h2 class="mt-1 text-xl font-extrabold text-slate-900">Mensajes de la mentoría</h2><div class="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">@forelse($session->messages as $message)<div class="flex {{ $message->sender_id === auth()->id() ? 'justify-end' : 'justify-start' }}"><article class="max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 {{ $message->sender_id === auth()->id() ? 'rounded-br-sm bg-blue-700 text-white' : 'rounded-bl-sm bg-white text-slate-700 shadow-sm' }}"><p>{{ $message->body }}</p><p class="mt-2 text-xs {{ $message->sender_id === auth()->id() ? 'text-blue-100' : 'text-slate-400' }}">{{ $message->is_automatic ? 'Mensaje automático · ' : '' }}{{ $message->created_at->format('d/m H:i') }}</p></article></div>@empty<p class="py-6 text-center text-sm text-slate-500">La conversación comenzará con el mensaje de bienvenida.</p>@endforelse</div><form method="POST" action="{{ route('mentorship.sessions.messages.send', $session) }}" class="mt-4">@csrf<textarea name="body" required maxlength="2000" rows="3" class="w-full rounded-xl border-slate-200 text-sm" placeholder="Escribe un mensaje claro y respetuoso..."></textarea><div class="mt-3 flex justify-end"><button class="rounded-xl bg-blue-700 px-4 py-3 text-sm font-bold text-white hover:bg-blue-800">Enviar mensaje</button></div></form></section>
+                    <section x-data="mentorshipChat()" x-init="startPolling()" class="mt-6"><p class="text-xs font-extrabold tracking-[0.14em] text-blue-700">CONVERSACIÓN PRIVADA</p><h2 class="mt-1 text-xl font-extrabold text-slate-900">Mensajes de la mentoría</h2><div id="mentorship-messages" class="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">@forelse($session->messages as $message)<div data-message-id="{{ $message->id }}" class="flex {{ $message->sender_id === auth()->id() ? 'justify-end' : 'justify-start' }}"><article class="max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 {{ $message->sender_id === auth()->id() ? 'rounded-br-sm bg-blue-700 text-white' : 'rounded-bl-sm bg-white text-slate-700 shadow-sm' }}"><p>{{ $message->body }}</p><p class="mt-2 text-xs {{ $message->sender_id === auth()->id() ? 'text-blue-100' : 'text-slate-400' }}">{{ $message->is_automatic ? 'Mensaje automático · ' : '' }}{{ $message->created_at->format('d/m H:i') }}</p></article></div>@empty<p class="py-6 text-center text-sm text-slate-500">La conversación comenzará con el mensaje de bienvenida.</p>@endforelse</div><form method="POST" action="{{ route('mentorship.sessions.messages.send', $session) }}" @submit.prevent="send" class="mt-4">@csrf<textarea x-model="body" name="body" required maxlength="2000" rows="3" class="w-full rounded-xl border-slate-200 text-sm" placeholder="Escribe un mensaje claro y respetuoso..."></textarea><div class="mt-3 flex items-center justify-between gap-3"><p x-show="error" x-text="error" class="text-sm text-rose-600"></p><button :disabled="sending" class="rounded-xl bg-blue-700 px-4 py-3 text-sm font-bold text-white hover:bg-blue-800 disabled:cursor-wait disabled:opacity-60" x-text="sending ? 'Enviando…' : 'Enviar mensaje'"></button></div></form></section>
                 @elseif(! $isMentor && $session->decision_message)
                     <section class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-5"><h2 class="font-extrabold text-rose-900">Respuesta del mentor</h2><p class="mt-3 whitespace-pre-line text-sm leading-6 text-rose-800">{{ $session->decision_message }}</p></section>
                 @endif
@@ -27,4 +27,72 @@
         </div>
     </section>
 </div>
+<script>
+function mentorshipChat() {
+    return {
+        body: '', sending: false, error: '', polling: null, lastMessageId: 0,
+        startPolling() {
+            const ids = [...document.querySelectorAll('[data-message-id]')].map((element) => Number(element.dataset.messageId));
+            this.lastMessageId = ids.length ? Math.max(...ids) : 0;
+            this.polling = window.setInterval(() => this.fetchNewMessages(), 2500);
+        },
+        async fetchNewMessages() {
+            try {
+                const response = await fetch('{{ route('mentorship.sessions.messages', $session) }}?after_id=' + this.lastMessageId, {headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}});
+                if (!response.ok) return;
+                const data = await response.json();
+                data.messages.forEach((message) => this.appendMessage(message));
+            } catch (error) {
+                // La conversación continuará funcionando aunque una consulta de actualización falle.
+            }
+        },
+        appendMessage(message) {
+            if (message.id <= this.lastMessageId || document.querySelector(`[data-message-id="${message.id}"]`)) return;
+            const row = document.createElement('div');
+            row.dataset.messageId = message.id;
+            row.className = `ag-animate-in flex ${message.mine ? 'justify-end' : 'justify-start'}`;
+            row.innerHTML = `<article class="max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6"><p></p><p class="mt-2 text-xs"></p></article>`;
+            const article = row.querySelector('article');
+            article.className += message.mine ? ' rounded-br-sm bg-blue-700 text-white' : ' rounded-bl-sm bg-white text-slate-700 shadow-sm';
+            row.querySelector('p').textContent = message.body;
+            row.querySelectorAll('p')[1].textContent = (message.is_automatic ? 'Mensaje automático · ' : '') + message.created_at;
+            document.querySelector('#mentorship-messages')?.appendChild(row);
+            if (!message.mine) window.agToast?.('Nuevo mensaje en tu mentoría', {type: 'info'});
+            this.lastMessageId = Math.max(this.lastMessageId, message.id);
+            const box = document.querySelector('#mentorship-messages');
+            if (box) box.scrollTop = box.scrollHeight;
+        },
+        async send(event) {
+            const form = event.currentTarget;
+            const text = this.body.trim();
+            if (!text || this.sending) return;
+            this.sending = true;
+            this.error = '';
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'X-Requested-With': 'XMLHttpRequest'},
+                    body: JSON.stringify({body: text}),
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'No se pudo enviar el mensaje.');
+                const row = document.createElement('div');
+                row.dataset.messageId = data.id;
+                row.className = 'ag-animate-in flex justify-end';
+                row.innerHTML = `<article class="max-w-[88%] rounded-2xl rounded-br-sm bg-blue-700 px-4 py-3 text-sm leading-6 text-white"><p></p><p class="mt-2 text-xs text-blue-100"></p></article>`;
+                row.querySelector('p').textContent = data.message;
+                row.querySelectorAll('p')[1].textContent = data.created_at;
+                document.querySelector('#mentorship-messages').appendChild(row);
+                this.lastMessageId = Math.max(this.lastMessageId, data.id);
+                this.body = '';
+                document.querySelector('#mentorship-messages').scrollTop = document.querySelector('#mentorship-messages').scrollHeight;
+            } catch (error) {
+                this.error = error.message || 'No se pudo enviar el mensaje.';
+            } finally {
+                this.sending = false;
+            }
+        },
+    };
+}
+</script>
 @endsection

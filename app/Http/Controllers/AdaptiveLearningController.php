@@ -8,6 +8,7 @@ use App\Jobs\GenerateMilestoneChallengeJob;
 use App\Jobs\EvaluateChallengeSubmissionJob;
 use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, LearningPathItemQuizAttempt, LearningPathTopic, LearningPathLesson, LearningPathPractice, LearningPathPracticeAttempt, MentorProfile, Skill, SkillEvidence, UserSkill, MentorshipSession, PlatformSetting, StudentProfile};
 use App\Services\AiTutorService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -151,6 +152,19 @@ class AdaptiveLearningController extends Controller
     public function generateTopicPractice(Request $request, int $topic)
     {
         return $this->queueTopicContent($request, $topic, 'practice');
+    }
+
+    public function topicGenerationStatus(Request $request, int $topic): JsonResponse
+    {
+        $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
+        $topicModel = LearningPathTopic::with(['module', 'lesson', 'practice'])->findOrFail($topic);
+        abort_unless($topicModel->module->learning_path_id === $path->id, 404);
+
+        return response()->json([
+            'title' => $topicModel->title,
+            'lesson_status' => $topicModel->lesson ? 'completed' : $topicModel->lesson_generation_status,
+            'practice_status' => $topicModel->practice ? 'completed' : $topicModel->practice_generation_status,
+        ]);
     }
 
     private function queueTopicContent(Request $request, int $topicId, string $type)

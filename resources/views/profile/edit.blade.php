@@ -11,7 +11,7 @@
     <div class="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
         <nav class="h-fit rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" aria-label="Secciones de configuración">
             <button @click="section = 'account'" :class="section === 'account' ? 'bg-blue-50 text-blue-800' : 'text-slate-600 hover:bg-slate-50'" class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-extrabold transition">Cuenta</button>
-            <button @click="section = 'security'" :class="section === 'security' ? 'bg-blue-50 text-blue-800' : 'text-slate-600 hover:bg-slate-50'" class="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-extrabold transition">Seguridad y privacidad @if(! $user->hasTwoFactorEnabled())<span class="ml-auto h-2.5 w-2.5 rounded-full bg-orange-500" title="Verificación en dos pasos pendiente"></span>@endif</button>
+            <button data-tour="seguridad" @click="section = 'security'" :class="section === 'security' ? 'bg-blue-50 text-blue-800' : 'text-slate-600 hover:bg-slate-50'" class="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-extrabold transition">Seguridad y privacidad @if(! $user->hasTwoFactorEnabled())<span class="ml-auto h-2.5 w-2.5 rounded-full bg-orange-500" title="Verificación en dos pasos pendiente"></span>@endif</button>
             <button @click="section = 'notifications'" :class="section === 'notifications' ? 'bg-blue-50 text-blue-800' : 'text-slate-600 hover:bg-slate-50'" class="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-extrabold transition">Notificaciones</button>
         </nav>
 
