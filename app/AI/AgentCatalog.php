@@ -4,7 +4,7 @@ namespace App\AI;
 
 class AgentCatalog
 {
-    public const AGENTS = ['career_profiler', 'learning_path', 'curriculum', 'theory_content', 'tutorial_script', 'exercise_generator', 'file_generator', 'evaluator', 'tutor', 'interviewer', 'interview_evaluator', 'employability'];
+    public const AGENTS = ['career_profiler', 'learning_path', 'curriculum', 'content_classifier', 'theory_content', 'tutorial_script', 'exercise_generator', 'file_generator', 'evaluator', 'tutor', 'interviewer', 'interview_evaluator', 'employability', 'mentor_application_assessor'];
 
     public function configuration(string $slug): array
     {

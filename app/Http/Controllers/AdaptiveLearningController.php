@@ -8,6 +8,7 @@ use App\Jobs\GenerateMilestoneChallengeJob;
 use App\Jobs\EvaluateChallengeSubmissionJob;
 use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, LearningPathItemQuizAttempt, LearningPathTopic, LearningPathLesson, LearningPathPractice, LearningPathPracticeAttempt, MentorProfile, Skill, SkillEvidence, UserSkill, MentorshipSession, PlatformSetting, StudentProfile};
 use App\Services\AiTutorService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -71,7 +72,7 @@ class AdaptiveLearningController extends Controller
             return redirect()->route('adaptive.diagnostic')->with('info', 'Este cuestionario ya fue procesado. Puedes iniciar un nuevo diagnóstico cuando lo necesites.');
         }
 
-        $data = $request->validate(['answers' => ['required', 'array', 'size:4'], 'answers.*' => ['required', 'integer', 'between:0,2']]);
+        $data = $request->validate(['answers' => ['required', 'array', 'size:4'], 'answers.*' => ['required', 'integer', 'between:0,3']]);
 
         $attempt->update([
             'answers' => $data['answers'],
@@ -151,6 +152,19 @@ class AdaptiveLearningController extends Controller
     public function generateTopicPractice(Request $request, int $topic)
     {
         return $this->queueTopicContent($request, $topic, 'practice');
+    }
+
+    public function topicGenerationStatus(Request $request, int $topic): JsonResponse
+    {
+        $path = $request->user()->learningPaths()->where('status', 'active')->latest()->firstOrFail();
+        $topicModel = LearningPathTopic::with(['module', 'lesson', 'practice'])->findOrFail($topic);
+        abort_unless($topicModel->module->learning_path_id === $path->id, 404);
+
+        return response()->json([
+            'title' => $topicModel->title,
+            'lesson_status' => $topicModel->lesson ? 'completed' : $topicModel->lesson_generation_status,
+            'practice_status' => $topicModel->practice ? 'completed' : $topicModel->practice_generation_status,
+        ]);
     }
 
     private function queueTopicContent(Request $request, int $topicId, string $type)
@@ -358,15 +372,51 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
     }
     public function mentorship(Request $request)
     {
-        return view('adaptive.mentorship', ['mentors' => MentorProfile::with('user')->get(), 'sessions' => MentorshipSession::where('student_id', $request->user()->id)->with('mentor')->latest()->get()]);
+        // Solo se ofrecen mentores con rol Instructor vigente; nunca el propio usuario.
+        $mentors = MentorProfile::with('user')
+            ->whereHas('user', fn ($query) => $query->role('Instructor'))
+            ->where('user_id', '!=', $request->user()->id)
+            ->get();
+
+        return view('adaptive.mentorship', ['mentors' => $mentors, 'sessions' => MentorshipSession::where('student_id', $request->user()->id)->with('mentor')->latest()->get()]);
     }
 
     public function requestMentorship(Request $request, MentorProfile $mentor)
     {
-        $data = $request->validate(['topic' => ['required', 'string', 'max:160']]);
-        MentorshipSession::create(['student_id' => $request->user()->id, 'mentor_id' => $mentor->user_id, 'topic' => $data['topic']]);
+        $data = $request->validate([
+            'topic' => ['required', 'string', 'max:160'],
+            'preferred_at' => ['nullable', 'date', 'after:now'],
+        ]);
+        abort_unless($mentor->user?->hasRole('Instructor'), 404);
 
-        return back()->with('success', 'Solicitud enviada al mentor.');
+        if ($mentor->user_id === $request->user()->id) {
+            return back()->with('error', 'No puedes solicitarte una mentoría a ti mismo.');
+        }
+
+        $hasOpenRequest = MentorshipSession::where('student_id', $request->user()->id)
+            ->where('mentor_id', $mentor->user_id)
+            ->whereIn('status', ['requested', 'accepted', 'scheduled'])
+            ->exists();
+        if ($hasOpenRequest) {
+            return back()->with('error', 'Ya tienes una solicitud o sesión activa con este mentor. Revisa su estado en “Mis solicitudes”.');
+        }
+
+        $session = MentorshipSession::create([
+            'student_id' => $request->user()->id,
+            'mentor_id' => $mentor->user_id,
+            'topic' => $data['topic'],
+            'preferred_at' => $data['preferred_at'] ?? null,
+        ]);
+
+        $mentor->user->notify(new \App\Notifications\PlatformAlertNotification(
+            category: 'mentorship',
+            title: 'Nueva solicitud de mentoría',
+            body: $request->user()->name.' solicita tu orientación sobre “'.$session->topic.'”.',
+            url: route('mentor.dashboard'),
+            actionLabel: 'Revisar solicitud',
+        ));
+
+        return back()->with('success', 'Solicitud enviada al mentor. Te avisaremos cuando tenga una respuesta.');
     }
 
     public function career(Request $request)
@@ -398,6 +448,8 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
             'work_experience.*.description' => ['nullable', 'string', 'max:800'],
             'work_experience_visibility' => ['required', 'in:public,private'],
             'cv' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'remove_photo' => ['nullable', 'boolean'],
         ]);
 
         foreach (['education', 'work_experience'] as $section) {
@@ -416,7 +468,19 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
             $data['cv_path'] = $request->file('cv')->store('cvs', 'public');
         }
 
-        unset($data['cv']);
+        if ($request->boolean('remove_photo') && ! $request->hasFile('profile_photo') && $profile->photo_path) {
+            Storage::disk('public')->delete($profile->photo_path);
+            $data['photo_path'] = null;
+        }
+
+        if ($request->hasFile('profile_photo')) {
+            if ($profile->photo_path) {
+                Storage::disk('public')->delete($profile->photo_path);
+            }
+            $data['photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+        }
+
+        unset($data['cv'], $data['profile_photo'], $data['remove_photo']);
         $profile->update($data);
 
         return back()->with('success', 'Perfil profesional actualizado.');

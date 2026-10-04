@@ -1,7 +1,6 @@
 @extends('layouts.platform')
 @section('content')
 <div class="mx-auto max-w-4xl">
-    <p class="text-sm font-bold text-blue-600">PASO 3 · TUTOR IA</p>
     <h1 class="mt-2 text-3xl font-extrabold">Tu apoyo para aprender, 24/7</h1>
     <p class="mt-2 text-slate-500">Haz una pregunta concreta. El Tutor responde de forma breve para ayudarte a avanzar.</p>
 

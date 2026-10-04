@@ -23,13 +23,13 @@
         <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             @foreach($milestones as $milestone)
                 @php($challenge = $challengesByMilestone->get($milestone))
-                <article class="rounded-2xl border p-5 {{ $progress >= $milestone ? 'border-blue-200 bg-white shadow-sm' : 'border-slate-200 bg-slate-50' }}">
-                    <div class="flex items-center justify-between"><span class="rounded-full px-2.5 py-1 text-xs font-extrabold {{ $progress >= $milestone ? 'bg-blue-50 text-blue-700' : 'bg-slate-200 text-slate-600' }}">{{ $milestone }} %</span><span class="text-xs font-bold {{ $progress >= $milestone ? 'text-emerald-600' : 'text-slate-400' }}">{{ $progress >= $milestone ? 'Desbloqueado' : 'Bloqueado' }}</span></div>
+                <article class="challenge-milestone-card rounded-2xl border p-5 {{ $progress >= $milestone ? 'border-blue-200 bg-white shadow-sm' : 'border-slate-200 bg-slate-50' }}">
+                    <div class="flex items-center justify-between"><span class="challenge-milestone-badge rounded-full px-2.5 py-1 text-xs font-extrabold {{ $progress >= $milestone ? 'bg-blue-50 text-blue-700' : 'bg-slate-200 text-slate-600' }}">{{ $milestone }} %</span><span class="text-xs font-bold {{ $progress >= $milestone ? 'text-emerald-600' : 'text-slate-400' }}">{{ $progress >= $milestone ? 'Desbloqueado' : 'Bloqueado' }}</span></div>
                     <h2 class="mt-4 font-extrabold text-slate-900">Reto {{ $loop->iteration }}</h2>
                     @if($progress < $milestone)
                         <p class="mt-2 text-sm leading-6 text-slate-500">Completa el {{ $milestone }} % de tu ruta para recibir un reto acorde a ese nivel.</p>
                     @elseif(! $challenge || in_array($challenge->generation_status, ['queued', 'processing']))
-                        <p class="mt-2 text-sm leading-6 text-slate-600">Estamos preparando tu reto con los temas que ya completaste.</p>
+                        <p class="ag-soft-pulse mt-2 flex items-center gap-2 text-sm leading-6 text-slate-600"><span class="ag-spinner text-blue-600"></span>Estamos preparando tu reto con los temas que ya completaste.</p>
                     @elseif($challenge->generation_status === 'failed')
                         <p class="mt-2 text-sm leading-6 text-rose-600">No se pudo preparar este reto todavía. Podrás reintentarlo desde soporte administrativo.</p>
                     @else

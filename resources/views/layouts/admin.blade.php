@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Administración | {{ config('app.name', 'Aprende Guate') }}</title>
+    <title>Administración | Aprende Guate</title>
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/aprende-guate-app-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     <script>if (localStorage.getItem('admin-theme') === 'dark') document.documentElement.classList.add('dark');</script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -15,6 +17,7 @@
     $navItemClass = fn (string $pattern) => request()->routeIs($pattern)
         ? 'admin-sidebar-link admin-sidebar-link-active'
         : 'admin-sidebar-link';
+    $twoFactorPending = auth()->check() && ! auth()->user()->hasTwoFactorEnabled();
 @endphp
 <div x-data="{
         sidebarOpen: false,
@@ -29,9 +32,7 @@
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="admin-sidebar fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-sky-100 bg-white transition-transform duration-200 lg:translate-x-0">
         <div class="flex h-20 items-center justify-between border-b border-slate-100 px-6">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 text-sky-950">
-                <span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-700 text-white shadow-lg shadow-blue-700/20">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5V5.75A1.75 1.75 0 0 1 5.75 4H20v14.5"/><path d="M4 19.5c0-1.1.9-2 2-2h14"/><path d="M8 8h8M8 12h6"/></svg>
-                </span>
+                <img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="" class="ag-brand-icon">
                 <span><span class="block text-base font-extrabold tracking-tight">Aprende Guate</span><span class="block text-xs font-medium text-blue-700">Administración</span></span>
             </a>
             <button @click="sidebarOpen = false" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden" aria-label="Cerrar menú">
@@ -50,6 +51,9 @@
                 <a href="{{ route('admin.users.index') }}" class="{{ $navItemClass('admin.users.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Usuarios
                 </a>
+                <a href="{{ route('admin.mentor-applications.index') }}" class="{{ $navItemClass('admin.mentor-applications.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6m3-3h-6"/></svg>Solicitudes de mentor
+                </a>
                 <a href="{{ route('admin.roles.index') }}" class="{{ $navItemClass('admin.roles.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15.5 7.5 18l1.2-5-3.8-3.2 5-.4L12 4.7l2.1 4.7 5 .4-3.8 3.2 1.2 5z"/></svg>Roles
                 </a>
@@ -65,6 +69,8 @@
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Orquestador IA
                 </a>                <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Correo saliente
+                </a>                <a href="{{ route('admin.announcements.index') }}" class="{{ $navItemClass('admin.announcements.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>Avisos
                 </a>
             @endrole
         </nav>
@@ -100,11 +106,16 @@
                 <div class="relative">
                     <button @click="profileOpen = !profileOpen" @keydown.escape.window="profileOpen = false" :aria-expanded="profileOpen" aria-haspopup="menu" class="flex items-center gap-2 rounded-xl p-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
                         <span class="grid h-9 w-9 place-items-center rounded-lg bg-blue-100 text-blue-800">{{ Str::upper(Str::substr(auth()->user()->name, 0, 1)) }}</span>
+                        @if($twoFactorPending)<span class="h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-white" title="Verificación en dos pasos pendiente"></span>@endif
                         <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
                         <svg class="hidden h-4 w-4 text-slate-400 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
-                    <div x-cloak x-show="profileOpen" @click.outside="profileOpen = false" x-transition class="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10" role="menu">
-                        <a href="{{ route('profile.edit') }}" class="platform-menu-link" role="menuitem">Mi perfil</a>
+                    <div x-cloak x-show="profileOpen" @click.outside="profileOpen = false" x-transition class="absolute right-0 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10" role="menu">
+                        <p class="px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Cambiar espacio</p>
+                        <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="learning"><button class="platform-menu-link w-full text-left" role="menuitem">Mi aprendizaje</button></form>
+                        @if(auth()->user()->hasRole('Instructor'))<form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="mentor"><button class="platform-menu-link w-full text-left" role="menuitem">Espacio mentor</button></form>@endif
+                        <div class="my-1 border-t border-slate-100"></div>
+                        <a href="{{ route('notifications.index') }}" class="platform-menu-link" role="menuitem">Notificaciones @if($twoFactorPending)<span class="float-right mt-1 h-2.5 w-2.5 rounded-full bg-orange-500" title="Verificación en dos pasos pendiente"></span>@endif</a><a href="{{ route('profile.edit') }}" class="platform-menu-link" role="menuitem">Configuración</a>
                         <form method="POST" action="{{ route('logout') }}">@csrf
                             <button class="platform-menu-link w-full text-left text-rose-700 hover:bg-rose-50 hover:text-rose-800" role="menuitem">Cerrar sesión</button>
                         </form>
@@ -119,6 +130,7 @@
             @if ($errors->any())<div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"><ul class="list-inside list-disc">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
             @yield('content')
         </main>
+        @include('components.platform-footer')
     </div>
 </div>
 </body>

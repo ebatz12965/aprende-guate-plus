@@ -30,5 +30,9 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="AI_BASE_URL" value="https://ai.test/v1"/>
+        <env name="OPENAI_BASE_URL" value="https://ai.test/v1"/>
+        <env name="AI_API_KEY" value="test-key"/>
+        <env name="OPENAI_API_KEY" value="test-key"/>
     </php>
 </phpunit>

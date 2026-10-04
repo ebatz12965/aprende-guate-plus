@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\AI\AiGateway;
 use App\Models\LearningPathTopic;
 use App\Models\AiContentVersion;
 use App\Services\AiTutorService;
@@ -15,10 +16,12 @@ class GenerateTopicContentJob implements ShouldQueue
 
     public int $tries = 1;
 
-    public int $timeout = 75;
+    public int $timeout;
 
     public function __construct(public int $topicId, public string $type)
     {
+        // Clasificación del tema + lección o práctica.
+        $this->timeout = AiGateway::jobTimeout(2);
     }
 
     public function handle(AiTutorService $tutor): void
@@ -42,6 +45,9 @@ class GenerateTopicContentJob implements ShouldQueue
 
         try {
             $path = $topic->module->learningPath;
+            $contentPlan = app(AiTutorService::class)->classifyTopicContent($path, $topic);
+            $topic->update(['metadata' => array_merge($topic->metadata ?? [], ['content_plan' => $contentPlan])]);
+            $topic->refresh();
 
             if ($this->type === 'lesson') {
                 $lesson = $tutor->generateLesson($path, $topic);

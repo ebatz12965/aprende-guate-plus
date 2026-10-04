@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\AI\AiGateway;
 use App\Models\DiagnosticAttempt;
 use App\Models\LearningPath;
 use App\Models\LearningPathVersion;
@@ -22,10 +23,12 @@ class GenerateLearningPathJob implements ShouldQueue
 
     public int $tries = 1;
 
-    public int $timeout = 75;
+    public int $timeout;
 
     public function __construct(public int $attemptId)
     {
+        // Perfil profesional + arquitectura de la ruta.
+        $this->timeout = AiGateway::jobTimeout(2);
     }
 
     public function handle(AiTutorService $tutor): void

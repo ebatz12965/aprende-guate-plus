@@ -2,7 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --ag-blue-base: #2196F3;
+    --ag-blue-text: #81D4FA;
+    --ag-white-text: #8DFFFF;
+}
+
 @layer base { [x-cloak] { display: none !important; } }
+
+@layer utilities {
+    .ag-brand-icon {
+        display: block;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: .75rem;
+        object-fit: cover;
+        box-shadow: 0 10px 20px rgb(33 150 243 / .22);
+    }
+    .ag-brand-primary { color: var(--ag-blue-base); }
+    .ag-brand-text { color: var(--ag-blue-text); }
+    .ag-brand-loading {
+        background: linear-gradient(135deg, var(--ag-blue-base), #42a5f5 55%, var(--ag-blue-text));
+        box-shadow: 0 16px 32px rgb(33 150 243 / .2);
+    }
+    @keyframes ag-fade-up {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes ag-scale-in {
+        from { opacity: 0; transform: scale(.97) translateY(4px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes ag-shimmer {
+        0% { background-position: 120% 0; }
+        100% { background-position: -120% 0; }
+    }
+
+    @keyframes ag-spin { to { transform: rotate(360deg); } }
+
+    @keyframes ag-soft-pulse {
+        0%, 100% { opacity: .55; }
+        50% { opacity: 1; }
+    }
+
+    @keyframes ag-toast-in {
+        from { opacity: 0; transform: translateX(18px) scale(.98); }
+        to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    .ag-animate-in { animation: ag-fade-up .45s cubic-bezier(.22,1,.36,1) both; }
+    .ag-modal-enter { animation: ag-scale-in .22s cubic-bezier(.22,1,.36,1) both; }
+    .ag-loading {
+        color: transparent !important;
+        background: linear-gradient(100deg, rgb(226 232 240 / .7) 20%, rgb(241 245 249) 38%, rgb(226 232 240 / .7) 56%);
+        background-size: 220% 100%;
+        animation: ag-shimmer 1.45s linear infinite;
+        border-radius: .5rem;
+    }
+    .ag-spinner {
+        width: 1.1rem;
+        height: 1.1rem;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 9999px;
+        animation: ag-spin .7s linear infinite;
+    }
+    .ag-soft-pulse { animation: ag-soft-pulse 1.8s ease-in-out infinite; }
+    .ag-toast { animation: ag-toast-in .25s cubic-bezier(.22,1,.36,1) both; transition: opacity .18s ease, transform .18s ease; }
+    .ag-toast-leaving { opacity: 0; transform: translateX(18px) scale(.98); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .student-content > *, .admin-content > * { animation: ag-fade-up .45s cubic-bezier(.22,1,.36,1) both; }
+    .student-content > *:nth-child(2), .admin-content > *:nth-child(2) { animation-delay: .05s; }
+    .student-content > *:nth-child(3), .admin-content > *:nth-child(3) { animation-delay: .1s; }
+    .student-content > *:nth-child(4), .admin-content > *:nth-child(4) { animation-delay: .15s; }
+    .platform-feature, .learning-panel, .learning-stat, .admin-stat-card {
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .platform-feature:hover, .learning-panel:hover, .learning-stat:hover, .admin-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgb(15 23 42 / .08);
+    }
+    button, a { transition-duration: .2s; transition-timing-function: ease; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+
 @layer components {
     .platform-nav-link { @apply rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-sky-50 hover:text-sky-800; }
     .platform-menu-link { @apply block px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-sky-50 hover:text-sky-800; }
@@ -17,9 +107,6 @@
     .learning-stat > p { @apply text-sm font-bold text-slate-500; }
     .learning-stat strong { @apply text-3xl font-extrabold text-slate-900; }
     .learning-stat span { @apply text-xs font-semibold text-slate-400; }
-    .video-progress-bubble { @apply fixed right-5 top-24 z-50 w-80 rounded-2xl border border-sky-200 bg-white p-4 shadow-xl shadow-sky-950/15; }
-    .video-progress-track { @apply mt-3 h-2 overflow-hidden rounded-full bg-slate-100; }
-    .video-progress-fill { @apply h-full rounded-full bg-sky-600 transition-all duration-300; }
 }
 
 
@@ -68,6 +155,41 @@
     .student-sidebar-link-active { @apply bg-blue-700 text-white shadow-md shadow-blue-700/20 hover:bg-blue-700 hover:text-white; }
     .student-sidebar-label { @apply px-3 text-[11px] font-extrabold tracking-[0.12em] text-slate-400; }
     .student-layout-switch { @apply mb-2 block w-full rounded-xl bg-blue-50 px-3 py-2.5 text-left text-sm font-bold text-blue-800 transition hover:bg-blue-100; }
+}
+
+@layer base {
+    .dark body { background-color: #020617; color: #e2e8f0; }
+    .dark .student-top-shell, .dark .student-side-topbar { border-color: #1e293b; background-color: rgb(15 23 42 / .96); }
+    .dark .student-side-shell { border-color: #1e293b; background-color: #0f172a; }
+    .dark .student-side-shell .text-blue-950, .dark .student-top-shell .text-blue-950 { color: #f8fafc; }
+    .dark .student-content .bg-white, .dark .student-content .learning-panel, .dark .student-content .learning-stat, .dark .student-content .platform-feature { border-color: #334155; background-color: #0f172a; }
+    .dark .student-content .bg-white { background-color: #0f172a !important; }
+    .dark .student-content .learning-panel, .dark .student-content .learning-stat, .dark .student-content .platform-feature, .dark .student-content [class*="bg-gradient"] { background-image: none !important; }
+    .dark .student-content .bg-slate-50 { background-color: #1e293b; }
+    .dark .student-content .border-slate-200, .dark .student-content .border-slate-100 { border-color: #334155; }
+    .dark .student-content .text-slate-900, .dark .student-content .text-slate-800 { color: #f8fafc; }
+    .dark .student-content .text-slate-700, .dark .student-content .text-slate-600 { color: #cbd5e1; }
+    .dark .student-content .text-slate-500, .dark .student-content .text-slate-400 { color: #94a3b8; }
+    .dark .student-content input, .dark .student-content select, .dark .student-content textarea { border-color: #475569; background-color: #1e293b; color: #f8fafc; }
+    .dark .student-content input::placeholder, .dark .student-content textarea::placeholder { color: #94a3b8; }
+    .dark .student-sidebar-link, .dark .platform-nav-link, .dark .platform-mobile-link { color: #cbd5e1; }
+    .dark .student-sidebar-link:hover, .dark .platform-nav-link:hover, .dark .platform-mobile-link:hover { background-color: #1e293b; color: #fff; }
+    .dark .student-sidebar-link-active { background-color: #1976d2; color: #fff; }
+    .dark .student-layout-switch { background-color: rgb(25 118 210 / .2); color: #81d4fa; }
+    .dark .student-layout-switch:hover { background-color: rgb(25 118 210 / .35); }
+    .dark .platform-menu-link { color: #cbd5e1; }
+    .dark .platform-menu-link:hover { background-color: #1e293b; color: #fff; }
+    .dark .student-content .bg-blue-50 { background-color: rgb(25 118 210 / .18); }
+    .dark .student-content .bg-blue-100 { background-color: rgb(25 118 210 / .3); }
+    .dark .student-content .text-blue-800, .dark .student-content .text-blue-700 { color: #81d4fa; }
+    .dark .student-content .ring-white { --tw-ring-color: #0f172a; }
+    .dark .student-content .profile-save-bar { border-color: #334155; background-color: rgb(15 23 42 / .96) !important; }
+    .dark .student-content .profile-save-bar .text-slate-500 { color: #cbd5e1; }
+    .dark .student-content .challenge-milestone-card { border-color: #334155; background-color: #0f172a !important; }
+    .dark .student-content .challenge-milestone-badge { background-color: rgb(30 41 59 / .95) !important; color: #cbd5e1 !important; }
+    .dark .student-content .topic-header { border-color: #334155; background-color: #0f172a !important; background-image: none !important; }
+    .dark .student-content .topic-type-label { color: #81d4fa !important; }
+    .dark .student-content .bg-slate-100 { background-color: #1e293b; }
 }
 
 /* En pantallas de escritorio, las vistas del estudiante aprovechan toda el área

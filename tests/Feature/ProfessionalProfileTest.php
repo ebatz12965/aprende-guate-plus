@@ -6,6 +6,8 @@ use App\Models\LearningPath;
 use App\Models\StudentProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfessionalProfileTest extends TestCase
@@ -43,6 +45,36 @@ class ProfessionalProfileTest extends TestCase
         $this->assertSame('private', $profile->education_visibility);
         $this->assertSame('Ingeniería en Sistemas', $profile->education[0]['program']);
         $this->assertSame('Asistente de datos', $profile->work_experience[0]['role']);
+    }
+
+    public function test_student_can_upload_and_remove_a_professional_profile_photo(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $upload = $this->actingAs($user)->patch(route('adaptive.career.update'), [
+            'bio_visibility' => 'private',
+            'education_visibility' => 'private',
+            'work_experience_visibility' => 'private',
+            'profile_photo' => UploadedFile::fake()->image('perfil.png', 500, 500),
+        ]);
+
+        $upload->assertSessionHasNoErrors()->assertRedirect();
+
+        $profile = StudentProfile::where('user_id', $user->id)->firstOrFail();
+        $this->assertNotNull($profile->photo_path);
+        Storage::disk('public')->assertExists($profile->photo_path);
+
+        $remove = $this->actingAs($user)->patch(route('adaptive.career.update'), [
+            'bio_visibility' => 'private',
+            'education_visibility' => 'private',
+            'work_experience_visibility' => 'private',
+            'remove_photo' => true,
+        ]);
+
+        $remove->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertNull($profile->fresh()->photo_path);
+        Storage::disk('public')->assertMissing($profile->photo_path);
     }
 
     public function test_public_profile_hides_private_sections_and_shows_completed_paths(): void

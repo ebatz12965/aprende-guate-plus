@@ -1,19 +1,19 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "ebatz12965/aprende-guate-plus",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "Plataforma de aprendizaje adaptativo con IA, retos prácticos y mentorías.",
+    "keywords": ["laravel", "educacion", "ia", "aprendizaje-adaptativo"],
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "endroid/qr-code": "^6.0",
         "intervention/image": "^3.11",
         "laravel-lang/common": "^6.7",
         "laravel/framework": "^12.0",
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1",
-        "spatie/laravel-medialibrary": "^11.15",
-        "spatie/laravel-permission": "*"
+        "spatie/laravel-permission": "^6.21"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",

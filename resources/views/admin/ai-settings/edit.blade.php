@@ -25,6 +25,17 @@
 
         <section class="platform-feature">
             <div class="flex items-start gap-3">
+                <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-100 font-bold text-violet-700">⚙</div>
+                <div><h2 class="font-bold text-slate-900">Generación de contenido con IA</h2><p class="mt-1 text-sm text-slate-500">Diagnósticos, lecciones, prácticas, evaluación de retos y cuestionarios de mentor. Es independiente de las consultas al Tutor IA.</p></div>
+            </div>
+            <div class="mt-5 grid gap-5 sm:grid-cols-2">
+                <label class="block text-sm font-bold text-slate-700">Generaciones por minuto<input required min="1" max="60" type="number" name="generation_minute_limit" value="{{ old('generation_minute_limit', $settings['generation_minute_limit']) }}" class="mt-2 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500"><span class="mt-1 block text-xs font-normal text-slate-500">Entre 1 y 60. Valor recomendado: 10.</span></label>
+                <label class="block text-sm font-bold text-slate-700">Generaciones por día<input required min="1" max="5000" type="number" name="generation_daily_limit" value="{{ old('generation_daily_limit', $settings['generation_daily_limit']) }}" class="mt-2 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500"><span class="mt-1 block text-xs font-normal text-slate-500">Entre 1 y 5,000 por usuario. Valor recomendado: 100.</span></label>
+            </div>
+        </section>
+
+        <section class="platform-feature">
+            <div class="flex items-start gap-3">
                 <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-100 font-bold text-blue-700">#</div>
                 <div><h2 class="font-bold text-slate-900">Cuota de tokens</h2><p class="mt-1 text-sm text-slate-500">Registra el total de tokens adquiridos o asignados. El panel de consumo calculará el saldo estimado con las solicitudes registradas.</p></div>
             </div>
