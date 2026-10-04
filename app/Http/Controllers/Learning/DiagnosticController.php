@@ -7,7 +7,6 @@ use App\Http\Requests\Learning\StartDiagnosticRequest;
 use App\Jobs\GenerateLearningPathJob;
 use App\Models\DiagnosticAttempt;
 use App\Models\PlatformSetting;
-use App\Services\AiTutorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -21,14 +20,14 @@ class DiagnosticController extends Controller
         return view('adaptive.diagnostic', ['settings' => PlatformSetting::aiLimits()]);
     }
 
-    public function start(StartDiagnosticRequest $request, AiTutorService $tutor): RedirectResponse
+    public function start(StartDiagnosticRequest $request, DiagnosticQuestionService $diagnostic): RedirectResponse
     {
         $data = $request->validated();
         $attempt = DiagnosticAttempt::create([
             'user_id' => $request->user()->id,
             'primary_answer' => $data['primary_answer'],
             'answers' => [],
-            'questions' => $tutor->diagnosticQuestions($data['primary_answer'], $request->user()->id),
+            'questions' => $diagnostic->generate($data['primary_answer'], $request->user()->id),
         ]);
 
         return redirect()->route('adaptive.diagnostic.questions', $attempt);

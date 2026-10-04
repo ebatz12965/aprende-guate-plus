@@ -10,7 +10,8 @@ use App\Models\Skill;
 use App\Models\SkillCategory;
 use App\Models\StudentProfile;
 use App\Models\UserSkill;
-use App\Services\AiTutorService;
+use App\Services\CareerProfilerService;
+use App\Services\Learning\LearningPathArchitect;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +32,7 @@ class GenerateLearningPathJob implements ShouldQueue
         $this->timeout = AiGateway::jobTimeout(2);
     }
 
-    public function handle(AiTutorService $tutor): void
+    public function handle(CareerProfilerService $profiler, LearningPathArchitect $architect): void
     {
         $attempt = DiagnosticAttempt::find($this->attemptId);
 
@@ -40,8 +41,8 @@ class GenerateLearningPathJob implements ShouldQueue
         }
 
         try {
-            $careerProfile = $tutor->careerProfile($attempt->primary_answer, $attempt->questions ?? [], $attempt->answers ?? [], $attempt->user_id);
-            $architecture = $tutor->learningArchitecture($attempt->primary_answer, $attempt->questions ?? [], $attempt->answers ?? [], $attempt->user_id);
+            $careerProfile = $profiler->profile($attempt->primary_answer, $attempt->questions ?? [], $attempt->answers ?? [], $attempt->user_id);
+            $architecture = $architect->design($attempt->primary_answer, $attempt->questions ?? [], $attempt->answers ?? [], $attempt->user_id);
             $level = data_get($careerProfile, 'current_level', data_get($architecture, 'level', 'Inicial'));
 
             DB::transaction(function () use ($attempt, $architecture, $careerProfile, $level) {

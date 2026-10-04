@@ -69,9 +69,12 @@ Desde **Administración → Configuración IA** se ajustan, sin tocar `.env`:
 
 ```
 app/AI/                  Gateway, catálogo de agentes, guardas de salida y proveedores
-app/Services/            Lógica de dominio (tutor, perfilador, guía, 2FA, correo)
+app/Services/Learning/   Servicios de IA por responsabilidad: diagnóstico, arquitectura
+                         de rutas, contenido por tema y retos (generación y evaluación)
+app/Services/            Tutor IA, perfilador profesional, guía, 2FA y correo
 app/Jobs/                Generación y evaluación con IA en segundo plano (cola "ai")
-app/Http/Controllers/    Espacios de aprendizaje, mentor y administración
+app/Http/Controllers/    Learning/ (estudiante), mentor y Admin/
+app/Policies/            Autorización por propiedad de cada recurso
 config/ai.php            Proveedores, agentes y límites de tokens
 config/office_curriculum.php  Ruta predefinida para metas de ofimática
 ```

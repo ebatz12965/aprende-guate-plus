@@ -5,7 +5,7 @@ namespace App\Jobs;
 use App\AI\AiGateway;
 use App\Models\Challenge;
 use App\Models\LearningPath;
-use App\Services\AiTutorService;
+use App\Services\Learning\ChallengeService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
@@ -23,7 +23,7 @@ class GenerateMilestoneChallengeJob implements ShouldQueue
         $this->timeout = AiGateway::jobTimeout(1);
     }
 
-    public function handle(AiTutorService $tutor): void
+    public function handle(ChallengeService $challenges): void
     {
         $path = LearningPath::with(['items.topics', 'user'])->find($this->learningPathId);
         if (! $path || ! in_array($this->milestone, [25, 50, 75, 100], true)) {
@@ -42,7 +42,7 @@ class GenerateMilestoneChallengeJob implements ShouldQueue
         $challenge->update(['generation_status' => 'processing']);
 
         try {
-            $content = $tutor->generateMilestoneChallenge($path, $this->milestone);
+            $content = $challenges->generateForMilestone($path, $this->milestone);
             $challenge->update(array_merge($content, [
                 'generation_status' => 'completed',
                 'generated_at' => now(),

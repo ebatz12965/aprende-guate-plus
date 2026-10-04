@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Jobs\EvaluateChallengeSubmissionJob;
 use App\Models\Challenge;
+use App\Models\ChallengeSubmission;
 use App\Models\LearningPath;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -39,6 +41,51 @@ class ChallengeEvidenceTest extends TestCase
         $user = User::factory()->create();
         $challenge = $this->challengeFor($user, ['title' => 'Prueba con material', 'resources' => [['label' => 'Datos', 'filename' => 'datos.csv', 'mime' => 'text/csv; charset=UTF-8', 'content' => "campo,valor\na,1"]]]);
         $this->actingAs($user)->get(route('adaptive.challenges.resource', [$challenge, 0]))->assertOk()->assertSee('campo,valor');
+    }
+
+    private function queuedSubmission(User $user): ChallengeSubmission
+    {
+        return ChallengeSubmission::create(['challenge_id' => $this->challengeFor($user)->id, 'user_id' => $user->id, 'answer' => 'Total por vendedor y recomendación.', 'methodology' => 'Usé SUMAR.SI y validé con una tabla dinámica.', 'status' => 'queued']);
+    }
+
+    private function evaluationResponse(array $evaluation): void
+    {
+        Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => json_encode($evaluation)]]]])]);
+    }
+
+    public function test_ai_evaluation_is_stored_when_the_evaluator_answers_with_a_valid_rubric(): void
+    {
+        $user = User::factory()->create();
+        $submission = $this->queuedSubmission($user);
+        $this->evaluationResponse([
+            'score' => 82, 'summary' => 'Buen análisis con una validación clara.',
+            'criteria' => [['name' => 'Criterio', 'score' => 82, 'max_score' => 100, 'feedback' => 'Aplica bien la función.']],
+            'strengths' => ['Validación cruzada'], 'improvements' => ['Explica la recomendación final'], 'integrity_note' => 'Evaluación basada solo en el texto entregado.',
+        ]);
+
+        app()->call([new EvaluateChallengeSubmissionJob($submission->id), 'handle']);
+
+        $submission->refresh();
+        $this->assertSame('evaluated', $submission->status);
+        $this->assertSame(82, (int) $submission->score);
+        $this->assertTrue($submission->evaluation['generated_by_ai']);
+        Http::assertSent(fn ($request) => ($request['response_format']['json_schema']['schema']['additionalProperties'] ?? null) === false);
+    }
+
+    public function test_inconsistent_ai_evaluation_is_discarded(): void
+    {
+        $user = User::factory()->create();
+        $submission = $this->queuedSubmission($user);
+        $this->evaluationResponse([
+            'score' => 90, 'summary' => 'Resumen',
+            'criteria' => [['name' => 'Criterio', 'score' => 120, 'max_score' => 100, 'feedback' => 'Puntaje imposible.']],
+            'strengths' => [], 'improvements' => [], 'integrity_note' => 'Nota',
+        ]);
+
+        app()->call([new EvaluateChallengeSubmissionJob($submission->id), 'handle']);
+
+        $this->assertSame('requires_ai', $submission->fresh()->status);
+        $this->assertNull($submission->fresh()->score);
     }
 
     public function test_student_cannot_access_a_challenge_belonging_to_another_route_or_user(): void

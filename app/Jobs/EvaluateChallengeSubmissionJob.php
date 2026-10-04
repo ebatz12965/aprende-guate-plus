@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use App\AI\AiGateway;
 use App\Models\ChallengeSubmission;
-use App\Services\AiTutorService;
+use App\Services\Learning\ChallengeService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
@@ -23,7 +23,7 @@ class EvaluateChallengeSubmissionJob implements ShouldQueue
         $this->timeout = AiGateway::jobTimeout(1);
     }
 
-    public function handle(AiTutorService $tutor): void
+    public function handle(ChallengeService $challenges): void
     {
         $submission = ChallengeSubmission::with('challenge')->find($this->submissionId);
         if (! $submission || ! in_array($submission->status, ['queued', 'requires_ai'], true)) {
@@ -32,7 +32,7 @@ class EvaluateChallengeSubmissionJob implements ShouldQueue
         $submission->update(['status' => 'evaluating']);
         try {
             $excerpt = $this->readInspectableExcerpt($submission);
-            $evaluation = $tutor->evaluateChallengeSubmission($submission->challenge, $submission, $excerpt);
+            $evaluation = $challenges->evaluate($submission->challenge, $submission, $excerpt);
             if (! data_get($evaluation, 'generated_by_ai')) {
                 $submission->update(['status' => 'requires_ai', 'attachment_analysis' => $excerpt ? 'Se preparó una vista previa de texto para evaluación.' : $this->attachmentNote($submission), 'feedback' => 'La evidencia se guardó correctamente. La evaluación automática se realizará cuando el agente IA esté disponible.']);
 
