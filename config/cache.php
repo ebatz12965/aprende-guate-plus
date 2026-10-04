@@ -17,6 +17,10 @@ return [
 
     'default' => env('CACHE_STORE', 'database'),
 
+    // Laravel 13: no deserializar objetos PHP desde la caché (mitiga ataques si se filtra APP_KEY).
+    // La aplicación solo guarda arreglos y escalares.
+    'serializable_classes' => false,
+
     /*
     |--------------------------------------------------------------------------
     | Cache Stores
