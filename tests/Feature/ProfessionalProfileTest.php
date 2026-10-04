@@ -80,8 +80,9 @@ class ProfessionalProfileTest extends TestCase
     public function test_public_profile_hides_private_sections_and_shows_completed_paths(): void
     {
         $user = User::factory()->create(['name' => 'Perfil Público']);
-        StudentProfile::create([
+        $profile = StudentProfile::create([
             'user_id' => $user->id,
+            'is_public' => true,
             'bio' => 'Información privada',
             'bio_visibility' => 'private',
             'education' => [['institution' => 'Universidad pública', 'program' => 'Carrera visible', 'period' => '2026']],
@@ -95,11 +96,44 @@ class ProfessionalProfileTest extends TestCase
             'status' => 'completed',
         ]);
 
-        $response = $this->get(route('adaptive.public-profile', $user));
+        $response = $this->get(route('adaptive.public-profile', $profile->public_slug));
 
         $response->assertOk()
             ->assertSee('Carrera visible')
             ->assertSee('Excel aplicado')
             ->assertDontSee('Información privada');
+    }
+
+    public function test_private_profiles_and_old_numeric_urls_are_not_reachable(): void
+    {
+        $user = User::factory()->create(['name' => 'Persona Reservada']);
+        $profile = StudentProfile::create(['user_id' => $user->id]);
+
+        $this->assertFalse($profile->is_public);
+        $this->assertSame(24, strlen($profile->public_slug));
+        $this->get(route('adaptive.public-profile', $profile->public_slug))->assertNotFound();
+        $this->get('/perfil/'.$user->id)->assertNotFound();
+    }
+
+    public function test_student_can_publish_the_profile_and_regenerate_its_link(): void
+    {
+        $user = User::factory()->create(['name' => 'Persona Visible']);
+        $profile = StudentProfile::create(['user_id' => $user->id]);
+
+        $this->actingAs($user)->patch(route('adaptive.career.update'), ['is_public' => '1', 'bio_visibility' => 'private', 'education_visibility' => 'private', 'work_experience_visibility' => 'private'])
+            ->assertSessionHasNoErrors();
+        $oldSlug = $profile->fresh()->public_slug;
+        $this->get(route('adaptive.public-profile', $oldSlug))->assertOk()->assertSee('Persona Visible');
+        $this->actingAs($user)->get(route('adaptive.career'))->assertSee(route('adaptive.public-profile', $oldSlug), false);
+
+        $this->actingAs($user)->post(route('adaptive.career.public-link'))->assertSessionHas('success');
+
+        $newSlug = $profile->fresh()->public_slug;
+        $this->assertNotSame($oldSlug, $newSlug);
+        $this->get(route('adaptive.public-profile', $oldSlug))->assertNotFound();
+        $this->get(route('adaptive.public-profile', $newSlug))->assertOk();
+
+        $this->actingAs($user)->patch(route('adaptive.career.update'), ['bio_visibility' => 'private', 'education_visibility' => 'private', 'work_experience_visibility' => 'private']);
+        $this->get(route('adaptive.public-profile', $newSlug))->assertNotFound();
     }
 }
