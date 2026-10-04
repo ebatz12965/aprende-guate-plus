@@ -72,6 +72,31 @@ class ChallengeEvidenceTest extends TestCase
         Http::assertSent(fn ($request) => ($request['response_format']['json_schema']['schema']['additionalProperties'] ?? null) === false);
     }
 
+    public function test_evaluator_receives_the_text_of_a_docx_attachment(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $submission = $this->queuedSubmission($user);
+        $zipPath = tempnam(sys_get_temp_dir(), 'docx');
+        $zip = new \ZipArchive;
+        $zip->open($zipPath, \ZipArchive::OVERWRITE);
+        $zip->addFromString('word/document.xml', '<w:document xmlns:w="w"><w:body><w:p><w:r><w:t>Conclusión: la categoría Licencias lidera las ventas.</w:t></w:r></w:p></w:body></w:document>');
+        $zip->close();
+        Storage::disk('local')->put('challenge-evidence/'.$user->id.'/informe.docx', file_get_contents($zipPath));
+        unlink($zipPath);
+        $submission->update(['attachment_path' => 'challenge-evidence/'.$user->id.'/informe.docx', 'attachment_name' => 'informe.docx', 'attachment_mime' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
+        $this->evaluationResponse([
+            'score' => 75, 'summary' => 'Conclusión respaldada.',
+            'criteria' => [['name' => 'Criterio', 'score' => 75, 'max_score' => 100, 'feedback' => 'Bien.']],
+            'strengths' => [], 'improvements' => [], 'integrity_note' => 'Nota',
+        ]);
+
+        app()->call([new EvaluateChallengeSubmissionJob($submission->id), 'handle']);
+
+        Http::assertSent(fn ($request) => str_contains($request['messages'][1]['content'], 'la categoría Licencias lidera las ventas'));
+        $this->assertSame('El agente revisó una vista previa de texto del archivo adjunto.', $submission->fresh()->attachment_analysis);
+    }
+
     public function test_inconsistent_ai_evaluation_is_discarded(): void
     {
         $user = User::factory()->create();
