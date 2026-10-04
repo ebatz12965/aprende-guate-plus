@@ -9,7 +9,6 @@ use App\Models\LearningPath;
 use App\Models\LearningPathItemQuizAttempt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class LearningPathController extends Controller
@@ -40,15 +39,7 @@ class LearningPathController extends Controller
         $item = $path->items()->findOrFail($item);
         $data = $request->validate(['answer' => ['required', 'integer', 'between:0,2']]);
         $selectedAnswer = (int) $data['answer'];
-
-        $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
-        $correctAnswer = $this->knownFormulaAnswer($item->quiz) ?? $storedAnswer;
-
-        if ($correctAnswer !== $storedAnswer) {
-            $item->update(['quiz' => array_replace($item->quiz ?? [], ['answer' => $correctAnswer])]);
-        }
-
-        $isCorrect = $selectedAnswer === $correctAnswer;
+        $isCorrect = $selectedAnswer === (int) data_get($item->quiz, 'answer', -1);
 
         LearningPathItemQuizAttempt::create([
             'learning_path_item_id' => $item->id,
@@ -94,30 +85,5 @@ class LearningPathController extends Controller
                 GenerateMilestoneChallengeJob::dispatch($path->id, $milestone)->onQueue('ai');
             }
         }
-    }
-
-    private function knownFormulaAnswer(array $quiz): ?int
-    {
-        $question = Str::lower((string) data_get($quiz, 'question'));
-        $formulas = [
-            '=a1+b1' => ['suma', 'sumar'],
-            '=a1-b1' => ['resta', 'restar'],
-            '=a1*b1' => ['multiplica', 'multiplicación', 'producto'],
-            '=a1/b1' => ['divide', 'división', 'reparte'],
-        ];
-
-        foreach ($formulas as $formula => $keywords) {
-            if (! str_contains($question, $formula)) {
-                continue;
-            }
-
-            foreach (data_get($quiz, 'options', []) as $index => $option) {
-                if (Str::contains(Str::lower((string) $option), $keywords)) {
-                    return $index;
-                }
-            }
-        }
-
-        return null;
     }
 }

@@ -93,7 +93,7 @@ class LearningPhaseContentTest extends TestCase
         Queue::assertPushed(GenerateMilestoneChallengeJob::class, fn ($job) => $job->learningPathId === $path->id && $job->milestone === 25);
     }
 
-    public function test_formula_quiz_accepts_the_matching_option_sent_by_the_browser(): void
+    public function test_legacy_formula_quiz_answers_are_fixed_by_the_data_migration(): void
     {
         $user = User::factory()->create();
         $path = LearningPath::create(['user_id' => $user->id, 'title' => 'Excel', 'goal' => 'Aprender Excel', 'status' => 'active']);
@@ -105,15 +105,36 @@ class LearningPhaseContentTest extends TestCase
             'quiz' => ['question' => '¿Qué hace la fórmula =A1+B1?', 'options' => ['Resta A1 de B1', 'Suma A1 y B1', 'Multiplica A1 por B1'], 'answer' => 0],
             'position' => 1,
         ]);
+        $untouched = $path->items()->create(['title' => 'Otra fase', 'quiz' => ['question' => '¿Qué conviene hacer?', 'options' => ['Revisar', 'Saltar', 'Ignorar'], 'answer' => 0], 'position' => 2]);
 
-        $this->actingAs($user)->post(route('adaptive.path.item.quiz', $item), ['answer' => '1'])
-            ->assertRedirect(route('adaptive.career'));
+        (require database_path('migrations/2026_10_04_000000_fix_legacy_formula_quiz_answers.php'))->up();
 
         $this->assertSame(1, $item->fresh()->quiz['answer']);
+        $this->assertSame(0, $untouched->fresh()->quiz['answer']);
+
+        $this->actingAs($user)->post(route('adaptive.path.item.quiz', $item), ['answer' => '1'])
+            ->assertRedirect(route('adaptive.path'));
         $this->assertDatabaseHas('learning_path_item_quiz_attempts', [
             'learning_path_item_id' => $item->id,
             'selected_answer' => 1,
             'is_correct' => true,
         ]);
+    }
+
+    public function test_quiz_is_graded_only_against_the_stored_answer(): void
+    {
+        $user = User::factory()->create();
+        $path = LearningPath::create(['user_id' => $user->id, 'title' => 'Excel', 'goal' => 'Aprender Excel', 'status' => 'active']);
+        $item = $path->items()->create([
+            'title' => 'Fórmulas',
+            'quiz' => ['question' => '¿Qué hace la fórmula =A1+B1?', 'options' => ['Resta A1 de B1', 'Suma A1 y B1', 'Multiplica A1 por B1'], 'answer' => 0],
+            'position' => 1,
+        ]);
+
+        $this->actingAs($user)->post(route('adaptive.path.item.quiz', $item), ['answer' => '1'])
+            ->assertSessionHas('quiz_error');
+
+        $this->assertSame(0, $item->fresh()->quiz['answer']);
+        $this->assertSame('pending', $item->fresh()->status);
     }
 }
