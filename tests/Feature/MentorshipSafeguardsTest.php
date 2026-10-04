@@ -7,6 +7,7 @@ use App\Models\MentorProfile;
 use App\Models\MentorshipSession;
 use App\Models\NotificationPreference;
 use App\Models\User;
+use App\Services\MentorQuestionnaireDraft;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Spatie\Permission\Models\Role;
@@ -114,7 +115,12 @@ class MentorshipSafeguardsTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)->post(route('mentor-application.questionnaire'), ['professional_title' => 'Excel', 'specialties' => 'Fórmulas'])
-            ->assertSessionHas('mentor_questionnaire', fn ($stored) => $stored[0]['prompt'] === 'Pregunta generada 1' && count($stored) === 20);
+            ->assertRedirect(route('mentor-application.create'));
+
+        $stored = MentorQuestionnaireDraft::get($user->id);
+        $this->assertSame('ready', $stored['status']);
+        $this->assertCount(20, $stored['questions']);
+        $this->assertSame('Pregunta generada 1', $stored['questions'][0]['prompt']);
 
         Http::assertSent(function ($request) {
             $schema = $request['response_format']['json_schema']['schema'] ?? [];

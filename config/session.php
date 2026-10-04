@@ -20,6 +20,9 @@ return [
 
     'driver' => env('SESSION_DRIVER', 'database'),
 
+    // Laravel 13: JSON en lugar de serialize() de PHP para no reconstruir objetos desde la sesión.
+    'serialization' => env('SESSION_SERIALIZATION', 'json'),
+
     /*
     |--------------------------------------------------------------------------
     | Session Lifetime

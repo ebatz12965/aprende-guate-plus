@@ -9,15 +9,32 @@
             <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Presenta tu trayectoria con claridad</h1>
             <p class="mt-3 text-sm leading-6 text-slate-600 sm:text-base">Organiza la información que ayuda a identificar tu objetivo, experiencia y preparación para nuevas oportunidades.</p>
         </div>
-        <a href="{{ route('adaptive.public-profile', auth()->user()) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50">
-            Ver perfil público
-            <span aria-hidden="true">↗</span>
-        </a>
+        <div class="flex flex-col items-start gap-2 lg:items-end">
+            @if($profile->is_public)
+                <a href="{{ route('adaptive.public-profile', $profile->public_slug) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50">
+                    Ver perfil público
+                    <span aria-hidden="true">↗</span>
+                </a>
+                <form method="POST" action="{{ route('adaptive.career.public-link') }}">@csrf<button class="text-xs font-semibold text-slate-500 underline hover:text-slate-800">Crear un enlace nuevo (el actual dejará de funcionar)</button></form>
+            @else
+                <p class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">Tu perfil público está desactivado.</p>
+            @endif
+        </div>
     </div>
 
     <form method="POST" action="{{ route('adaptive.career.update') }}" enctype="multipart/form-data" class="mt-7 space-y-6" x-data="profileEditor(@js(old('education', $profile->education ?? [])), @js(old('work_experience', $profile->work_experience ?? [])), @js($photoUrl))">
         @csrf
         @method('PATCH')
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <label class="flex items-start gap-3">
+                <input type="hidden" name="is_public" value="0">
+                <input type="checkbox" name="is_public" value="1" class="mt-1 rounded border-slate-300 text-blue-600" @checked(old('is_public', $profile->is_public))>
+                <span>
+                    <span class="block font-bold text-slate-900">Activar mi perfil público</span>
+                    <span class="mt-1 block text-sm leading-6 text-slate-500">Quien tenga tu enlace podrá ver tu nombre, foto, LinkedIn, rutas completadas y las secciones que marques como visibles. El enlace es privado: no aparece en buscadores ni se puede adivinar.</span>
+                </span>
+            </label>
+        </section>
 
         <section class="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-sm">
             <div class="border-b border-blue-100 bg-gradient-to-r from-slate-950 via-blue-950 to-blue-800 px-6 py-7 text-white sm:px-8">

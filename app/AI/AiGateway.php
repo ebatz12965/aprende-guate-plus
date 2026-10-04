@@ -29,7 +29,8 @@ class AiGateway
 
     public function text(string $agent, string $system, array $messages, string $operation, ?int $userId = null, int $maxTokens = 180, float $temperature = 0.35): ?string
     {
-        $result = $this->complete($agent, array_merge([['role' => 'system', 'content' => $system]], $messages), null, $operation, $userId, $maxTokens, $temperature);
+        // Conversación en vivo: la persona espera la respuesta, así que usa el timeout más corto del tutor.
+        $result = $this->complete($agent, array_merge([['role' => 'system', 'content' => $system]], $messages), null, $operation, $userId, $maxTokens, $temperature, (int) config('ai.tutor_timeout'));
 
         return $result['successful'] ? $this->guard->sanitizeText($result['content']) : null;
     }
@@ -44,7 +45,7 @@ class AiGateway
         return $result['successful'] ? $this->guard->decodeStructured($result['content']) : null;
     }
 
-    private function complete(string $agent, array $messages, ?array $schema, string $operation, ?int $userId, int $maxTokens, float $temperature): array
+    private function complete(string $agent, array $messages, ?array $schema, string $operation, ?int $userId, int $maxTokens, float $temperature, ?int $timeout = null): array
     {
         $agentConfig = $this->catalog->configuration($agent);
         if (! ($agentConfig['enabled'] ?? false)) {
@@ -70,7 +71,7 @@ class AiGateway
             return ['successful' => false, 'content' => null];
         }
         $startedAt = hrtime(true);
-        $response = $this->provider($provider)->complete($model, $messages, $schema, $maxTokens, $temperature);
+        $response = $this->provider($provider)->complete($model, $messages, $schema, $maxTokens, $temperature, $timeout ?? (int) config('ai.generation_timeout'));
         $duration = (int) ((hrtime(true) - $startedAt) / 1_000_000);
         $this->recordUsage((array) $response['usage'], $operation, $agent, $provider, $model, $userId, $duration, (bool) $response['successful']);
         $this->finishRequest($request, (array) $response['usage'], (bool) $response['successful'], $duration, $response['error'] ?? null, $response['content'] ?? null);

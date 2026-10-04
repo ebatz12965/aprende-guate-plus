@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Learning;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Learning\UpdateCareerProfileRequest;
 use App\Models\StudentProfile;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -53,11 +52,18 @@ class CareerProfileController extends Controller
         return back()->with('success', 'Perfil profesional actualizado.');
     }
 
-    public function show(User $user): View
+    public function regeneratePublicLink(Request $request): RedirectResponse
     {
-        $user->load('studentProfile');
-        $profile = $user->studentProfile;
-        abort_unless($profile, 404);
+        StudentProfile::firstOrCreate(['user_id' => $request->user()->id])->regeneratePublicSlug();
+
+        return back()->with('success', 'Se creó un nuevo enlace para tu perfil público. El enlace anterior ya no funciona.');
+    }
+
+    /** Perfil público por enlace no adivinable; 404 si no existe o la persona no lo ha activado. */
+    public function show(string $slug): View
+    {
+        $profile = StudentProfile::with('user')->where('public_slug', $slug)->where('is_public', true)->firstOrFail();
+        $user = $profile->user;
 
         return view('adaptive.public-profile', [
             'user' => $user,

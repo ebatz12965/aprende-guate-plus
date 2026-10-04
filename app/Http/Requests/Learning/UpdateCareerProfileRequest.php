@@ -27,6 +27,7 @@ class UpdateCareerProfileRequest extends FormRequest
             'cv' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'remove_photo' => ['nullable', 'boolean'],
+            'is_public' => ['nullable', 'boolean'],
         ];
     }
 
@@ -34,6 +35,7 @@ class UpdateCareerProfileRequest extends FormRequest
     public function profileData(): array
     {
         $data = $this->safe()->except(['cv', 'profile_photo', 'remove_photo']);
+        $data['is_public'] = $this->boolean('is_public');
 
         foreach (['education', 'work_experience'] as $section) {
             $data[$section] = collect($data[$section] ?? [])

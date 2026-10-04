@@ -32,7 +32,7 @@ Route::view('/terminos-y-condiciones', 'legal.terms')->name('legal.terms');
 Route::view('/politica-de-privacidad', 'legal.privacy')->name('legal.privacy');
 Route::view('/politica-de-cookies', 'legal.cookies')->name('legal.cookies');
 Route::view('/preguntas-frecuentes', 'legal.faq')->name('legal.faq');
-Route::get('/perfil/{user}', [CareerProfileController::class, 'show'])->name('adaptive.public-profile');
+Route::get('/perfil/{slug}', [CareerProfileController::class, 'show'])->where('slug', '[A-Za-z0-9]{24}')->name('adaptive.public-profile');
 
 Route::get('/dashboard', function () {
     $space = session('active_space');
@@ -105,6 +105,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notificaciones/leer-todas', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
     Route::get('/perfil-profesional', [CareerProfileController::class, 'edit'])->name('adaptive.career');
     Route::patch('/perfil-profesional', [CareerProfileController::class, 'update'])->name('adaptive.career.update');
+    Route::post('/perfil-profesional/enlace', [CareerProfileController::class, 'regeneratePublicLink'])->middleware('throttle:10,1')->name('adaptive.career.public-link');
     Route::get('/solicitar-ser-mentor', [MentorApplicationController::class, 'create'])->name('mentor-application.create');
     Route::post('/solicitar-ser-mentor/cuestionario', [MentorApplicationController::class, 'generateQuestionnaire'])->middleware('throttle:ai-generation')->name('mentor-application.questionnaire');
     Route::post('/solicitar-ser-mentor', [MentorApplicationController::class, 'store'])->name('mentor-application.store');
@@ -121,7 +122,7 @@ Route::middleware(['auth', 'verified', 'role:Instructor|Admin'])->group(function
     Route::post('/mentor/solicitudes/{session}/rechazar', [MentorController::class, 'reject'])->name('mentor.sessions.reject');
 });
 
-Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
+Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'role:Admin'])->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::resource('users', AdminUserController::class);
     Route::get('roles', [AdminRoleController::class, 'index'])->name('roles.index');

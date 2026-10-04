@@ -8,7 +8,7 @@ use Throwable;
 
 class OpenAiCompatibleProvider implements AiProvider
 {
-    public function complete(string $model, array $messages, ?array $schema, int $maxTokens, float $temperature): array
+    public function complete(string $model, array $messages, ?array $schema, int $maxTokens, float $temperature, int $timeout): array
     {
         try {
             $payload = ['model' => $model, 'messages' => $messages, 'temperature' => $temperature, 'max_tokens' => $maxTokens];
@@ -17,7 +17,7 @@ class OpenAiCompatibleProvider implements AiProvider
             }
             $response = Http::baseUrl((config('ai.providers.openai.base_url') ?: config('ai.base_url')))
                 ->withToken((config('ai.providers.openai.key') ?: config('ai.key')))->acceptJson()
-                ->connectTimeout(config('ai.connect_timeout'))->timeout(config('ai.generation_timeout'))
+                ->connectTimeout(config('ai.connect_timeout'))->timeout($timeout)
                 ->retry(config('ai.retry_times'), 300, null, false)->post('/chat/completions', $payload);
 
             return ['successful' => $response->successful(), 'content' => data_get($response->json(), 'choices.0.message.content'), 'usage' => (array) $response->json('usage', []), 'status' => $response->status(), 'error' => $response->successful() ? null : (string) data_get($response->json(), 'error.message', 'Proveedor no disponible')];
