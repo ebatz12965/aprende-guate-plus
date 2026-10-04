@@ -56,6 +56,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(LearningPath::class);
     }
 
+    /** Ruta activa más reciente del usuario; responde 404 si no tiene una. */
+    public function activeLearningPathOrFail(): LearningPath
+    {
+        return $this->learningPaths()->active()->latest()->firstOrFail();
+    }
+
     public function userSkills(): HasMany
     {
         return $this->hasMany(UserSkill::class);
