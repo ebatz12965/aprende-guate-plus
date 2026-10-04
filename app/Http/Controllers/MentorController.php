@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Mentor\UpdateMentorSettingsRequest;
 use App\Models\MentorProfile;
 use App\Models\MentorshipSession;
 use App\Notifications\PlatformAlertNotification;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class MentorController extends Controller
 {
@@ -62,17 +64,9 @@ class MentorController extends Controller
         return view('mentor.settings', ['profile' => $this->profileFor($request->user())]);
     }
 
-    public function updateSettings(Request $request): RedirectResponse
+    public function updateSettings(UpdateMentorSettingsRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'headline' => ['nullable', 'string', 'max:160'],
-            'specialties' => ['nullable', 'string', 'max:500'],
-            'about' => ['nullable', 'string', 'max:1500'],
-            'acceptance_message' => ['required', 'string', 'max:2000'],
-            'rejection_message' => ['required', 'string', 'max:2000'],
-            'session_duration_minutes' => ['required', 'integer', 'min:5', 'max:240'],
-            'availability' => ['nullable', 'array'],
-        ]);
+        $data = $request->validated();
 
         $data['availability'] = collect($data['availability'] ?? [])->mapWithKeys(function ($slot, $day) {
             return [$day => is_array($slot) ? array_values(array_filter($slot, 'is_string')) : []];
@@ -85,7 +79,7 @@ class MentorController extends Controller
 
     public function accept(Request $request, MentorshipSession $session): RedirectResponse
     {
-        $this->ensurePendingSession($request, $session);
+        $this->ensurePendingSession($session);
         $profile = $this->profileFor($request->user());
         $data = $request->validate([
             'scheduled_at' => ['nullable', 'date', 'after:now'],
@@ -124,7 +118,7 @@ class MentorController extends Controller
 
     public function reject(Request $request, MentorshipSession $session): RedirectResponse
     {
-        $this->ensurePendingSession($request, $session);
+        $this->ensurePendingSession($session);
         $data = $request->validate(['reason' => ['nullable', 'string', 'max:800']]);
         $profile = $this->profileFor($request->user());
         $message = $this->composeMessage($profile->rejection_message, $session, $request->user()->name, $data['reason'] ?? null);
@@ -148,7 +142,7 @@ class MentorController extends Controller
 
     public function cancel(Request $request, MentorshipSession $session): RedirectResponse
     {
-        abort_unless(in_array($request->user()->id, [$session->student_id, $session->mentor_id], true), 403);
+        $this->authorize('participate', $session);
         abort_unless(in_array($session->status, ['accepted', 'scheduled'], true), 422);
         abort_unless($session->scheduled_at?->isFuture() ?? true, 422, 'La sesión ya inició y no puede cancelarse desde aquí.');
         $data = $request->validate(['message' => ['nullable', 'string', 'max:800']]);
@@ -175,12 +169,11 @@ class MentorController extends Controller
         return redirect()->route($request->user()->id === $session->mentor_id ? 'mentor.dashboard' : 'adaptive.mentorship')->with('success', 'La sesión fue cancelada y la otra persona recibió una notificación.');
     }
 
-    private function ensurePendingSession(Request $request, MentorshipSession $session): void
+    private function ensurePendingSession(MentorshipSession $session): void
     {
-        abort_unless($session->mentor_id === $request->user()->id, 403);
+        $this->authorize('respond', $session);
         abort_unless($session->status === 'requested', 422);
     }
-
 
     private function profileFor($mentor): MentorProfile
     {
@@ -188,7 +181,10 @@ class MentorController extends Controller
         // el perfil solo se persiste automáticamente para usuarios con rol Instructor.
         $profile = MentorProfile::firstOrNew(['user_id' => $mentor->id], $this->defaultProfileSettings());
         if (! $profile->exists) {
-            if ($mentor->hasRole('Instructor')) $profile->save();
+            if ($mentor->hasRole('Instructor')) {
+                $profile->save();
+            }
+
             return $profile;
         }
         $defaults = $this->defaultProfileSettings();
@@ -207,6 +203,7 @@ class MentorController extends Controller
 
         return $profile;
     }
+
     private function defaultProfileSettings(): array
     {
         return [
@@ -229,7 +226,7 @@ class MentorController extends Controller
         return trim($message);
     }
 
-    private function assertSlotAvailable(MentorshipSession $session, MentorProfile $profile, \Carbon\Carbon $scheduled): void
+    private function assertSlotAvailable(MentorshipSession $session, MentorProfile $profile, Carbon $scheduled): void
     {
         $duration = (int) ($profile->session_duration_minutes ?: 30);
         $dayNames = [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado', 7 => 'domingo'];
@@ -238,9 +235,12 @@ class MentorController extends Controller
         if ($slots) {
             $fits = collect($slots)->contains(function (string $slot) use ($scheduled, $duration): bool {
                 [$from, $to] = array_pad(explode('-', $slot, 2), 2, null);
-                if (! $from || ! $to) return false;
+                if (! $from || ! $to) {
+                    return false;
+                }
                 $start = $scheduled->copy()->setTimeFromTimeString($from);
                 $end = $scheduled->copy()->setTimeFromTimeString($to);
+
                 return $scheduled->greaterThanOrEqualTo($start) && $scheduled->copy()->addMinutes($duration)->lessThanOrEqualTo($end);
             });
             if (! $fits) {

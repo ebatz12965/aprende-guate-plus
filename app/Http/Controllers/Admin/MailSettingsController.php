@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UpdateMailSettingsRequest;
 use App\Models\PlatformSetting;
 use App\Services\MailConfigurationService;
 use Illuminate\Http\RedirectResponse;
@@ -50,18 +51,9 @@ class MailSettingsController extends Controller
         return back()->with('success', 'Correo de prueba enviado a '.$data['test_recipient'].'. Revisa también la carpeta de spam.');
     }
 
-    public function update(Request $request, MailConfigurationService $mailConfiguration): RedirectResponse
+    public function update(UpdateMailSettingsRequest $request, MailConfigurationService $mailConfiguration): RedirectResponse
     {
-        $data = $request->validate([
-            'enabled' => ['nullable', 'boolean'],
-            'host' => ['required_if:enabled,1', 'nullable', 'string', 'max:255'],
-            'port' => ['required_if:enabled,1', 'nullable', 'integer', 'between:1,65535'],
-            'encryption' => ['required', 'in:none,tls,ssl'],
-            'username' => ['nullable', 'string', 'max:255'],
-            'password' => ['nullable', 'string', 'max:500'],
-            'from_address' => ['required_if:enabled,1', 'nullable', 'email:rfc', 'max:255'],
-            'from_name' => ['nullable', 'string', 'max:120'],
-        ]);
+        $data = $request->validated();
 
         PlatformSetting::setString('mail_enabled', $request->boolean('enabled') ? '1' : '0');
         foreach (['host', 'port', 'encryption', 'username', 'from_address', 'from_name'] as $key) {

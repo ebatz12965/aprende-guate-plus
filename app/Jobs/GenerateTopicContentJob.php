@@ -3,9 +3,9 @@
 namespace App\Jobs;
 
 use App\AI\AiGateway;
-use App\Models\LearningPathTopic;
 use App\Models\AiContentVersion;
-use App\Services\AiTutorService;
+use App\Models\LearningPathTopic;
+use App\Services\Learning\TopicContentService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
@@ -24,7 +24,7 @@ class GenerateTopicContentJob implements ShouldQueue
         $this->timeout = AiGateway::jobTimeout(2);
     }
 
-    public function handle(AiTutorService $tutor): void
+    public function handle(TopicContentService $content): void
     {
         $topic = LearningPathTopic::with('module.learningPath')->find($this->topicId);
 
@@ -45,12 +45,12 @@ class GenerateTopicContentJob implements ShouldQueue
 
         try {
             $path = $topic->module->learningPath;
-            $contentPlan = app(AiTutorService::class)->classifyTopicContent($path, $topic);
+            $contentPlan = $content->classify($path, $topic);
             $topic->update(['metadata' => array_merge($topic->metadata ?? [], ['content_plan' => $contentPlan])]);
             $topic->refresh();
 
             if ($this->type === 'lesson') {
-                $lesson = $tutor->generateLesson($path, $topic);
+                $lesson = $content->generateLesson($path, $topic);
                 $generatedLesson = $topic->lesson()->firstOrCreate([], [
                     'content' => ['summary' => $lesson['summary'], 'key_concepts' => $lesson['key_concepts'], 'steps' => $lesson['steps']],
                     'resources' => ['youtube_queries' => $lesson['youtube_queries']],
@@ -59,7 +59,7 @@ class GenerateTopicContentJob implements ShouldQueue
                 ]);
                 AiContentVersion::firstOrCreate(['content_type' => 'lesson', 'content_id' => $generatedLesson->id, 'version' => 1], ['payload' => ['content' => $generatedLesson->content, 'resources' => $generatedLesson->resources, 'quiz' => $generatedLesson->quiz]]);
             } else {
-                $practice = $tutor->generatePractice($path, $topic);
+                $practice = $content->generatePractice($path, $topic);
                 $generatedPractice = $topic->practice()->firstOrCreate([], [
                     'type' => $topic->practice_type,
                     'title' => $practice['title'],

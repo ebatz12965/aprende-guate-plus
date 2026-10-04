@@ -65,7 +65,8 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // Guatemala no tiene horario de verano: el desfase con UTC es fijo (−6 h).
+    'timezone' => env('APP_TIMEZONE', 'America/Guatemala'),
 
     /*
     |--------------------------------------------------------------------------

@@ -34,7 +34,6 @@ class AdminMailSettingsTest extends TestCase
         $this->assertSame('no-reply@example.com', config('mail.from.address'));
     }
 
-
     public function test_administrator_can_send_a_test_email_with_the_saved_configuration(): void
     {
         Mail::fake();

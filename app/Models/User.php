@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -12,7 +15,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     protected $fillable = ['name', 'email', 'password'];
 
@@ -37,7 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return filled($this->two_factor_secret) && $this->two_factor_confirmed_at !== null;
     }
 
-    public function studentProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function studentProfile(): HasOne
     {
         return $this->hasOne(StudentProfile::class);
     }
@@ -48,9 +51,21 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->assignRole($role);
     }
 
+    /** Agrega el rol de mentor sin retirar los roles que la persona ya tenía. */
+    public function assignMentorRole(): void
+    {
+        $this->assignRole(SpatieRole::findOrCreate('Instructor', $this->getDefaultGuardName()));
+    }
+
     public function learningPaths(): HasMany
     {
         return $this->hasMany(LearningPath::class);
+    }
+
+    /** Ruta activa más reciente del usuario; responde 404 si no tiene una. */
+    public function activeLearningPathOrFail(): LearningPath
+    {
+        return $this->learningPaths()->active()->latest()->firstOrFail();
     }
 
     public function userSkills(): HasMany
@@ -65,15 +80,15 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new \App\Notifications\VerifyEmailNotification());
+        $this->notify(new VerifyEmailNotification);
     }
 
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+        $this->notify(new ResetPasswordNotification($token));
     }
 
-    public function mentorProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function mentorProfile(): HasOne
     {
         return $this->hasOne(MentorProfile::class);
     }

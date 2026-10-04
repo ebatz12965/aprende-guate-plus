@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('diagnostic_attempts', function (Blueprint $table) {
@@ -20,7 +21,11 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::table('learning_path_items', function (Blueprint $table) { $table->dropColumn(['content', 'quiz']); });
-        Schema::table('diagnostic_attempts', function (Blueprint $table) { $table->dropColumn(['primary_answer', 'questions', 'status']); });
+        Schema::table('learning_path_items', function (Blueprint $table) {
+            $table->dropColumn(['content', 'quiz']);
+        });
+        Schema::table('diagnostic_attempts', function (Blueprint $table) {
+            $table->dropColumn(['primary_answer', 'questions', 'status']);
+        });
     }
 };

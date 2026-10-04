@@ -32,7 +32,7 @@ php artisan migrate --seed
 php artisan storage:link
 ```
 
-El seeder crea los roles, los agentes de IA y tres usuarios de prueba con la contraseña `password`: `admin@example.com`, `instructor@example.com` y `student@example.com`. **No ejecutes los seeders en producción.**
+El seeder crea los roles y tres usuarios de prueba con la contraseña `password`: `admin@example.com`, `instructor@example.com` y `student@example.com`. **No ejecutes los seeders en producción.**
 
 ## Ejecución
 
@@ -65,13 +65,18 @@ Desde **Administración → Configuración IA** se ajustan, sin tocar `.env`:
 - el presupuesto total de tokens: al alcanzarlo, el gateway deja de llamar al proveedor;
 - la longitud del diagnóstico.
 
+En **Administración → Orquestador IA** se activa o desactiva cada agente y se ajusta su modelo o límite de tokens.
+
 ## Estructura
 
 ```
 app/AI/                  Gateway, catálogo de agentes, guardas de salida y proveedores
-app/Services/            Lógica de dominio (tutor, perfilador, guía, 2FA, correo)
+app/Services/Learning/   Servicios de IA por responsabilidad: diagnóstico, arquitectura
+                         de rutas, contenido por tema y retos (generación y evaluación)
+app/Services/            Tutor IA, perfilador profesional, guía, 2FA y correo
 app/Jobs/                Generación y evaluación con IA en segundo plano (cola "ai")
-app/Http/Controllers/    Espacios de aprendizaje, mentor y administración
+app/Http/Controllers/    Learning/ (estudiante), mentor y Admin/
+app/Policies/            Autorización por propiedad de cada recurso
 config/ai.php            Proveedores, agentes y límites de tokens
 config/office_curriculum.php  Ruta predefinida para metas de ofimática
 ```

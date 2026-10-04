@@ -92,7 +92,7 @@
         return {
             sessions,
             view: ['day', 'week', 'month'].includes(initialView) ? initialView : 'month',
-            date: initialDate || new Date().toISOString().slice(0, 10),
+            date: initialDate || ((d) => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-'))(new Date()),
             viewOptions: [{ value: 'day', label: 'Día' }, { value: 'week', label: 'Semana' }, { value: 'month', label: 'Mes' }],
             weekDayLabels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
             init() { this.syncUrl(); },
