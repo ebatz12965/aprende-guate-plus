@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Jobs\GenerateMilestoneChallengeJob;
-use App\Models\Challenge;
 use App\Models\LearningPath;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,6 +39,7 @@ class LearningPhaseContentTest extends TestCase
             ->assertSee('Procesador')->assertSee('Reconocer la función de la CPU.')
             ->assertSee('genera una lección y una práctica solo cuando la solicitas');
     }
+
     public function test_quiz_attempts_are_recorded_and_only_correct_answers_complete_the_phase(): void
     {
         $user = User::factory()->create();
@@ -74,6 +74,7 @@ class LearningPhaseContentTest extends TestCase
         $this->assertDatabaseHas('learning_path_items', ['id' => $item->id, 'status' => 'completed']);
         $this->assertDatabaseHas('learning_paths', ['id' => $path->id, 'status' => 'completed']);
     }
+
     public function test_completing_a_quarter_of_the_route_queues_only_the_matching_optional_challenge(): void
     {
         Queue::fake();
@@ -91,6 +92,7 @@ class LearningPhaseContentTest extends TestCase
         $this->assertDatabaseMissing('challenges', ['user_id' => $user->id, 'learning_path_id' => $path->id, 'milestone' => 50]);
         Queue::assertPushed(GenerateMilestoneChallengeJob::class, fn ($job) => $job->learningPathId === $path->id && $job->milestone === 25);
     }
+
     public function test_formula_quiz_accepts_the_matching_option_sent_by_the_browser(): void
     {
         $user = User::factory()->create();

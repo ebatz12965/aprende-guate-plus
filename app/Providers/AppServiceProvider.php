@@ -8,6 +8,7 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Laravel\Telescope\TelescopeServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
     {
         if ($this->app->environment('local')
             && config('telescope.enabled')
-            && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
+            && class_exists(TelescopeServiceProvider::class)) {
             $this->app->register(\App\Providers\TelescopeServiceProvider::class);
         }
     }

@@ -2,16 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\GenerateLearningPathJob;
-use App\Jobs\GenerateTopicContentJob;
-use App\Jobs\GenerateMilestoneChallengeJob;
 use App\Jobs\EvaluateChallengeSubmissionJob;
-use App\Models\{AiConversation, Challenge, ChallengeSubmission, DiagnosticAttempt, LearningPath, LearningPathItemQuizAttempt, LearningPathTopic, LearningPathLesson, LearningPathPractice, LearningPathPracticeAttempt, MentorProfile, Skill, SkillEvidence, UserSkill, MentorshipSession, PlatformSetting, StudentProfile};
+use App\Jobs\GenerateLearningPathJob;
+use App\Jobs\GenerateMilestoneChallengeJob;
+use App\Jobs\GenerateTopicContentJob;
+use App\Models\AiConversation;
+use App\Models\Challenge;
+use App\Models\ChallengeSubmission;
+use App\Models\DiagnosticAttempt;
+use App\Models\LearningPath;
+use App\Models\LearningPathItemQuizAttempt;
+use App\Models\LearningPathPracticeAttempt;
+use App\Models\LearningPathTopic;
+use App\Models\MentorProfile;
+use App\Models\MentorshipSession;
+use App\Models\PlatformSetting;
+use App\Models\Skill;
+use App\Models\SkillEvidence;
+use App\Models\StudentProfile;
+use App\Models\User;
+use App\Models\UserSkill;
+use App\Notifications\PlatformAlertNotification;
 use App\Services\AiTutorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class AdaptiveLearningController extends Controller
 {
@@ -140,7 +156,10 @@ class AdaptiveLearningController extends Controller
         $topic = LearningPathTopic::with(['module.learningPath', 'lesson', 'practice'])->findOrFail($topic);
         abort_unless($topic->module->learning_path_id === $path->id, 404);
         abort_if($path->items()->where('position', '<', $topic->module->position)->where('status', '!=', 'completed')->exists(), 403);
-        if ($topic->status === 'pending') $topic->update(['status' => 'in_progress']);
+        if ($topic->status === 'pending') {
+            $topic->update(['status' => 'in_progress']);
+        }
+
         return view('adaptive.topic', compact('path', 'topic'));
     }
 
@@ -210,6 +229,7 @@ class AdaptiveLearningController extends Controller
             SkillEvidence::create(['user_skill_id' => $userSkill->id, 'source_type' => 'learning_path_practice_attempt', 'source_id' => $attempt->id, 'summary' => 'Práctica entregada: '.$topic->title, 'metadata' => ['topic_id' => $topic->id, 'practice_type' => $topic->practice_type]]);
         }
         $topic->update(['status' => 'completed']);
+
         return back()->with('success', 'Práctica registrada. Puedes continuar con el siguiente tema o repasar esta lección.');
     }
 
@@ -220,6 +240,7 @@ class AdaptiveLearningController extends Controller
         abort_unless($topic->module->learning_path_id === $path->id && $topic->practice?->type === 'excel_dataset', 404);
         $artifact = $topic->practice->artifact ?? [];
         $csv = "\xEF\xBB\xBF".(string) data_get($artifact, 'content');
+
         return response($csv, 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.data_get($artifact, 'label', 'practica.csv').'"']);
     }
 
@@ -231,7 +252,7 @@ class AdaptiveLearningController extends Controller
         $data = $request->validate(['answer' => ['required', 'integer', 'between:0,2']]);
         $selectedAnswer = (int) $data['answer'];
 
-$storedAnswer = (int) data_get($item->quiz, 'answer', -1);
+        $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
         $correctAnswer = $this->knownFormulaAnswer($item->quiz) ?? $storedAnswer;
 
         if ($correctAnswer !== $storedAnswer) {
@@ -304,11 +325,13 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
     public function showChallenge(Request $request, Challenge $challenge)
     {
         $this->ensurePersonalChallenge($request, $challenge);
+
         return view('adaptive.challenge-show', [
             'challenge' => $challenge,
             'submission' => ChallengeSubmission::where('challenge_id', $challenge->id)->where('user_id', $request->user()->id)->first(),
         ]);
     }
+
     public function submitChallenge(Request $request, Challenge $challenge)
     {
         $this->ensurePersonalChallenge($request, $challenge);
@@ -322,7 +345,9 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
         $payload = ['answer' => $data['answer'] ?? null, 'methodology' => $data['methodology'], 'status' => 'queued', 'score' => null, 'feedback' => null, 'evaluation' => null, 'evaluated_at' => null];
 
         if ($request->hasFile('attachment')) {
-            if ($existing?->attachment_path) Storage::disk('local')->delete($existing->attachment_path);
+            if ($existing?->attachment_path) {
+                Storage::disk('local')->delete($existing->attachment_path);
+            }
             $file = $request->file('attachment');
             $path = $file->store('challenge-evidence/'.$request->user()->id, 'local');
             $payload = array_merge($payload, ['attachment_path' => $path, 'attachment_name' => $file->getClientOriginalName(), 'attachment_mime' => $file->getMimeType(), 'attachment_size' => $file->getSize(), 'attachment_analysis' => null]);
@@ -341,23 +366,32 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
         abort_unless(is_array($item) && filled(data_get($item, 'content')), 404);
         $mime = (string) data_get($item, 'mime', 'text/plain; charset=UTF-8');
         $content = (string) data_get($item, 'content');
-        if (str_starts_with(strtolower($mime), 'text/csv')) { $content = "\xEF\xBB\xBF".$content; }
+        if (str_starts_with(strtolower($mime), 'text/csv')) {
+            $content = "\xEF\xBB\xBF".$content;
+        }
+
         return response($content, 200, ['Content-Type' => $mime, 'Content-Disposition' => 'attachment; filename="'.str_replace('"', '', data_get($item, 'filename', 'material.txt')).'"']);
     }
 
     private function queueEligibleMilestoneChallenges(LearningPath $path): void
     {
         $total = $path->items()->count();
-        if ($total === 0) return;
+        if ($total === 0) {
+            return;
+        }
 
         $progress = (int) floor($path->items()->where('status', 'completed')->count() / $total * 100);
         foreach ([25, 50, 75, 100] as $milestone) {
-            if ($progress < $milestone) continue;
+            if ($progress < $milestone) {
+                continue;
+            }
             $challenge = Challenge::firstOrCreate(
                 ['user_id' => $path->user_id, 'learning_path_id' => $path->id, 'milestone' => $milestone],
                 ['title' => 'Reto práctico del '.$milestone.'%', 'area' => 'Ruta personalizada', 'level' => $path->estimated_level ?: 'Inicial', 'description' => 'Estamos preparando un reto relacionado con tu ruta.', 'generation_status' => 'queued']
             );
-            if ($challenge->wasRecentlyCreated) GenerateMilestoneChallengeJob::dispatch($path->id, $milestone)->onQueue('ai');
+            if ($challenge->wasRecentlyCreated) {
+                GenerateMilestoneChallengeJob::dispatch($path->id, $milestone)->onQueue('ai');
+            }
         }
     }
 
@@ -365,11 +399,14 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
     {
         abort_unless($challenge->user_id === $request->user()->id && $challenge->learning_path_id && $challenge->generation_status === 'completed', 404);
     }
+
     public function downloadChallengeAttachment(Request $request, ChallengeSubmission $submission)
     {
         abort_unless($submission->user_id === $request->user()->id && $submission->attachment_path && Storage::disk('local')->exists($submission->attachment_path), 404);
+
         return Storage::disk('local')->download($submission->attachment_path, $submission->attachment_name);
     }
+
     public function mentorship(Request $request)
     {
         // Solo se ofrecen mentores con rol Instructor vigente; nunca el propio usuario.
@@ -408,7 +445,7 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
             'preferred_at' => $data['preferred_at'] ?? null,
         ]);
 
-        $mentor->user->notify(new \App\Notifications\PlatformAlertNotification(
+        $mentor->user->notify(new PlatformAlertNotification(
             category: 'mentorship',
             title: 'Nueva solicitud de mentoría',
             body: $request->user()->name.' solicita tu orientación sobre “'.$session->topic.'”.',
@@ -486,7 +523,7 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
         return back()->with('success', 'Perfil profesional actualizado.');
     }
 
-    public function publicProfile(\App\Models\User $user)
+    public function publicProfile(User $user)
     {
         $user->load('studentProfile');
         $profile = $user->studentProfile;
@@ -498,9 +535,10 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
             'completedPaths' => $user->learningPaths()->where('status', 'completed')->latest()->get(),
         ]);
     }
+
     private function knownFormulaAnswer(array $quiz): ?int
     {
-        $question = \Illuminate\Support\Str::lower((string) data_get($quiz, 'question'));
+        $question = Str::lower((string) data_get($quiz, 'question'));
         $formulas = [
             '=a1+b1' => ['suma', 'sumar'],
             '=a1-b1' => ['resta', 'restar'],
@@ -514,7 +552,7 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
             }
 
             foreach (data_get($quiz, 'options', []) as $index => $option) {
-                if (\Illuminate\Support\Str::contains(\Illuminate\Support\Str::lower((string) $option), $keywords)) {
+                if (Str::contains(Str::lower((string) $option), $keywords)) {
                     return $index;
                 }
             }

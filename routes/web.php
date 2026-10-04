@@ -2,22 +2,22 @@
 
 use App\Http\Controllers\AdaptiveLearningController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AiOrchestratorController;
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\AiUsageController;
-use App\Http\Controllers\Admin\AiOrchestratorController;
-use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\Admin\MentorApplicationController as AdminMentorApplicationController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\MentorController;
 use App\Http\Controllers\MentorApplicationController;
-use App\Http\Controllers\WorkspaceController;
+use App\Http\Controllers\MentorController;
 use App\Http\Controllers\MentorshipConversationController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PlatformGuideController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SocialiteController;
+use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
@@ -37,8 +37,12 @@ Route::get('/dashboard', function () {
         return redirect()->route('mentor.dashboard');
     }
 
-    if (! $space && auth()->user()->hasRole('Admin')) return redirect()->route('admin.dashboard');
-    if (! $space && auth()->user()->hasRole('Instructor')) return redirect()->route('mentor.dashboard');
+    if (! $space && auth()->user()->hasRole('Admin')) {
+        return redirect()->route('admin.dashboard');
+    }
+    if (! $space && auth()->user()->hasRole('Instructor')) {
+        return redirect()->route('mentor.dashboard');
+    }
 
     return redirect()->route('adaptive.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

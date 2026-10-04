@@ -1,8 +1,24 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
+
 use App\AI\AgentCatalog;
 use App\Http\Controllers\Controller;
 use App\Models\AiRequest;
 use App\Models\AiTokenUsage;
 use Illuminate\View\View;
-class AiOrchestratorController extends Controller { public function index(AgentCatalog $catalog): View { $configured = (bool) (config('ai.providers.openai.key') ?: config('ai.key')); $agents = collect($catalog->all())->map(function (array $agent, string $slug) { $metrics = AiRequest::query()->where('agent_slug', $slug)->selectRaw('COUNT(*) as requests, SUM(total_tokens) as tokens, SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed', ['completed'])->first(); return ['slug'=>$slug,'name'=>$agent['name'],'description'=>$agent['description'],'provider'=>$agent['provider'],'model'=>$agent['model'] ?? config('ai.model'),'max_tokens'=>$agent['max_tokens'],'enabled'=>(bool) $agent['enabled'],'requests'=>(int) ($metrics?->requests ?? 0),'tokens'=>(int) ($metrics?->tokens ?? 0),'completed'=>(int) ($metrics?->completed ?? 0)]; })->values(); return view('admin.ai-orchestrator.index', ['providerConfigured'=>$configured,'providerEnabled'=>(bool) config('ai.providers.openai.enabled'),'agents'=>$agents,'totalRequests'=>AiRequest::count(),'totalTokens'=>(int) AiTokenUsage::sum('total_tokens'),'failedRequests'=>AiRequest::where('status', 'failed')->count(),'recentRequests'=>AiRequest::with('user:id,name,email')->latest()->limit(12)->get()]); } }
+
+class AiOrchestratorController extends Controller
+{
+    public function index(AgentCatalog $catalog): View
+    {
+        $configured = (bool) (config('ai.providers.openai.key') ?: config('ai.key'));
+        $agents = collect($catalog->all())->map(function (array $agent, string $slug) {
+            $metrics = AiRequest::query()->where('agent_slug', $slug)->selectRaw('COUNT(*) as requests, SUM(total_tokens) as tokens, SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed', ['completed'])->first();
+
+            return ['slug' => $slug, 'name' => $agent['name'], 'description' => $agent['description'], 'provider' => $agent['provider'], 'model' => $agent['model'] ?? config('ai.model'), 'max_tokens' => $agent['max_tokens'], 'enabled' => (bool) $agent['enabled'], 'requests' => (int) ($metrics?->requests ?? 0), 'tokens' => (int) ($metrics?->tokens ?? 0), 'completed' => (int) ($metrics?->completed ?? 0)];
+        })->values();
+
+        return view('admin.ai-orchestrator.index', ['providerConfigured' => $configured, 'providerEnabled' => (bool) config('ai.providers.openai.enabled'), 'agents' => $agents, 'totalRequests' => AiRequest::count(), 'totalTokens' => (int) AiTokenUsage::sum('total_tokens'), 'failedRequests' => AiRequest::where('status', 'failed')->count(), 'recentRequests' => AiRequest::with('user:id,name,email')->latest()->limit(12)->get()]);
+    }
+}

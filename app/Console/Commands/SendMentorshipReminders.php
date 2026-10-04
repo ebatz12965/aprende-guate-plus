@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class SendMentorshipReminders extends Command
 {
     protected $signature = 'mentorship:send-reminders';
+
     protected $description = 'Envía recordatorios de sesiones de mentoría programadas';
 
     public function handle(): int
@@ -51,6 +52,7 @@ class SendMentorshipReminders extends Command
             });
 
         $this->info("Recordatorios enviados: {$sent}");
+
         return self::SUCCESS;
     }
 }

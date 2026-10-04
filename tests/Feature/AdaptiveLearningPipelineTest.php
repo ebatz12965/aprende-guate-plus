@@ -4,9 +4,10 @@ namespace Tests\Feature;
 
 use App\Jobs\GenerateLearningPathJob;
 use App\Jobs\GenerateTopicContentJob;
+use App\Models\DiagnosticAttempt;
 use App\Models\LearningPath;
-use App\Services\AiTutorService;
 use App\Models\User;
+use App\Services\AiTutorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -21,7 +22,7 @@ class AdaptiveLearningPipelineTest extends TestCase
         Http::fake();
         Queue::fake();
         $user = User::factory()->create();
-        $attempt = \App\Models\DiagnosticAttempt::create([
+        $attempt = DiagnosticAttempt::create([
             'user_id' => $user->id,
             'primary_answer' => 'Quiero conseguir trabajo como desarrollador web',
             'questions' => [['question' => 'Experiencia', 'options' => ['Nada', 'Algo', 'Mucho']], ['question' => 'Preferencia', 'options' => ['Base', 'Práctica', 'Proyecto']], ['question' => 'Tiempo', 'options' => ['1h', '3h', '5h']], ['question' => 'Estilo', 'options' => ['Guía', 'Reto', 'Caso']]],
@@ -79,6 +80,7 @@ class AdaptiveLearningPipelineTest extends TestCase
         $path = LearningPath::create(['user_id' => $user->id, 'title' => 'Ruta', 'goal' => $goal, 'status' => 'active']);
         $module = $path->items()->create(['title' => 'Módulo inicial', 'area' => 'Base', 'description' => 'Descripción', 'position' => 1, 'quiz' => ['question' => 'Pregunta', 'options' => ['A', 'B', 'C'], 'answer' => 0]]);
         $topic = $module->topics()->create(['title' => 'Tema práctico', 'learning_objective' => 'Aplicar una habilidad.', 'practice_type' => $practiceType, 'position' => 1]);
+
         return [$user, $topic];
     }
 }

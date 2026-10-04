@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\AiTokenUsage;
 use App\Models\User;
 use App\Services\AiTutorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,6 +11,7 @@ use Tests\TestCase;
 class AiTutorSecurityTest extends TestCase
 {
     use RefreshDatabase;
+
     public function test_tutor_redacts_api_key_like_content_from_a_model_response(): void
     {
         config()->set('ai.key', 'test-key');
@@ -34,7 +34,6 @@ class AiTutorSecurityTest extends TestCase
         $this->assertStringNotContainsString('sk-abcdefghijklmnopqrstuvwxyz1234567890', $reply);
         $this->assertStringContainsString('[dato sensible oculto]', $reply);
     }
-
 
     public function test_tutor_records_provider_token_usage_for_the_student(): void
     {

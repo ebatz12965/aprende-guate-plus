@@ -27,6 +27,13 @@ class MentorApplication extends Model
         ];
     }
 
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function reviewer(): BelongsTo { return $this->belongsTo(User::class, 'reviewed_by'); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
 }

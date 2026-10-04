@@ -101,7 +101,9 @@ class PlatformGuideService
 
     private function isOutOfScope(string $question): bool
     {
-        if ($question === '' || Str::length($question) > 500) return true;
+        if ($question === '' || Str::length($question) > 500) {
+            return true;
+        }
 
         $platformTerms = ['plataforma', 'aprende guate', 'menu', 'configur', 'perfil', 'cuenta', 'seguridad', 'contrasena', 'correo', 'notificacion', 'diagnostico', 'ruta', 'leccion', 'practica', 'reto', 'tutor', 'mentori', 'sesion', 'calendario', 'chat', 'laboratorio', 'iniciar sesion', 'registr', 'cerrar sesion'];
         $sensitiveOrGeneralTerms = ['ignora', 'prompt', 'sistema', 'instrucciones internas', 'clave api', 'token', 'codigo fuente', 'programa', 'programar', 'python', 'javascript', 'php', 'sql', 'receta', 'politica', 'noticia', 'quien es', 'matematic', 'ingles'];

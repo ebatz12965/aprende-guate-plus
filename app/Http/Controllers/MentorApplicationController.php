@@ -12,7 +12,10 @@ class MentorApplicationController extends Controller
 {
     public function create(Request $request): View|RedirectResponse
     {
-        if ($request->user()->hasRole('Instructor')) return redirect()->route('mentor.dashboard');
+        if ($request->user()->hasRole('Instructor')) {
+            return redirect()->route('mentor.dashboard');
+        }
+
         return view('mentor-applications.create', [
             'application' => $request->user()->mentorApplications()->latest()->first(),
             'questionnaire' => session('mentor_questionnaire', []),
@@ -23,7 +26,9 @@ class MentorApplicationController extends Controller
     public function generateQuestionnaire(Request $request, AiGateway $gateway): RedirectResponse
     {
         abort_if($request->user()->hasRole('Instructor'), 403);
-        if ($this->hasPendingApplication($request)) return $this->pendingApplicationResponse();
+        if ($this->hasPendingApplication($request)) {
+            return $this->pendingApplicationResponse();
+        }
         $data = $request->validate([
             'professional_title' => ['required', 'string', 'max:160'],
             'specialties' => ['required', 'string', 'max:500'],
@@ -49,7 +54,9 @@ class MentorApplicationController extends Controller
     public function store(Request $request): RedirectResponse
     {
         abort_if($request->user()->hasRole('Instructor'), 403);
-        if ($this->hasPendingApplication($request)) return $this->pendingApplicationResponse();
+        if ($this->hasPendingApplication($request)) {
+            return $this->pendingApplicationResponse();
+        }
         $questions = session('mentor_questionnaire', []);
         abort_if(count($questions) < 6, 422, 'Primero genera el cuestionario de mentoría.');
         $data = $request->validate([
@@ -57,7 +64,11 @@ class MentorApplicationController extends Controller
             'answers' => ['required', 'array'],
         ]);
         $answers = collect($questions)->mapWithKeys(fn (array $question) => [$question['key'] => ['question' => $question['prompt'], 'answer' => (string) ($data['answers'][$question['key']] ?? '')]])->all();
-        foreach ($answers as $answer) if (mb_strlen(trim($answer['answer'])) < 50) return back()->withInput()->withErrors(['answers' => 'Responde cada pregunta con al menos 50 caracteres y suficiente detalle.']);
+        foreach ($answers as $answer) {
+            if (mb_strlen(trim($answer['answer'])) < 50) {
+                return back()->withInput()->withErrors(['answers' => 'Responde cada pregunta con al menos 50 caracteres y suficiente detalle.']);
+            }
+        }
 
         $answerValues = collect($answers)->pluck('answer')->values();
         MentorApplication::create([
@@ -74,6 +85,7 @@ class MentorApplicationController extends Controller
             'test_completed_at' => now(),
         ]);
         $request->session()->forget(['mentor_questionnaire', 'mentor_application_draft']);
+
         return redirect()->route('mentor-application.create')->with('success', 'El cuestionario fue completado y tu solicitud quedó pendiente de revisión administrativa.');
     }
 

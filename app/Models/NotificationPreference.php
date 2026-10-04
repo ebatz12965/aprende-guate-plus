@@ -41,6 +41,6 @@ class NotificationPreference extends Model
 
     public function receives(string $channel, string $category): bool
     {
-        return (bool) $this->{($channel === 'mail' ? 'email' : 'in_app').'_'. $category};
+        return (bool) $this->{($channel === 'mail' ? 'email' : 'in_app').'_'.$category};
     }
 }

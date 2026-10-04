@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\MentorProfile;
 use App\Models\MentorshipSession;
 use App\Notifications\PlatformAlertNotification;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class MentorController extends Controller
 {
@@ -181,14 +182,16 @@ class MentorController extends Controller
         abort_unless($session->status === 'requested', 422);
     }
 
-
     private function profileFor($mentor): MentorProfile
     {
         // Un administrador puede consultar el panel mentor sin convertirse en mentor:
         // el perfil solo se persiste automáticamente para usuarios con rol Instructor.
         $profile = MentorProfile::firstOrNew(['user_id' => $mentor->id], $this->defaultProfileSettings());
         if (! $profile->exists) {
-            if ($mentor->hasRole('Instructor')) $profile->save();
+            if ($mentor->hasRole('Instructor')) {
+                $profile->save();
+            }
+
             return $profile;
         }
         $defaults = $this->defaultProfileSettings();
@@ -207,6 +210,7 @@ class MentorController extends Controller
 
         return $profile;
     }
+
     private function defaultProfileSettings(): array
     {
         return [
@@ -229,7 +233,7 @@ class MentorController extends Controller
         return trim($message);
     }
 
-    private function assertSlotAvailable(MentorshipSession $session, MentorProfile $profile, \Carbon\Carbon $scheduled): void
+    private function assertSlotAvailable(MentorshipSession $session, MentorProfile $profile, Carbon $scheduled): void
     {
         $duration = (int) ($profile->session_duration_minutes ?: 30);
         $dayNames = [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado', 7 => 'domingo'];
@@ -238,9 +242,12 @@ class MentorController extends Controller
         if ($slots) {
             $fits = collect($slots)->contains(function (string $slot) use ($scheduled, $duration): bool {
                 [$from, $to] = array_pad(explode('-', $slot, 2), 2, null);
-                if (! $from || ! $to) return false;
+                if (! $from || ! $to) {
+                    return false;
+                }
                 $start = $scheduled->copy()->setTimeFromTimeString($from);
                 $end = $scheduled->copy()->setTimeFromTimeString($to);
+
                 return $scheduled->greaterThanOrEqualTo($start) && $scheduled->copy()->addMinutes($duration)->lessThanOrEqualTo($end);
             });
             if (! $fits) {

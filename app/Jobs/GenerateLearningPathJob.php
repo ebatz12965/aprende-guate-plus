@@ -8,8 +8,8 @@ use App\Models\LearningPath;
 use App\Models\LearningPathVersion;
 use App\Models\Skill;
 use App\Models\SkillCategory;
-use App\Models\UserSkill;
 use App\Models\StudentProfile;
+use App\Models\UserSkill;
 use App\Services\AiTutorService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -77,7 +77,9 @@ class GenerateLearningPathJob implements ShouldQueue
                         'position' => $position + 1,
                     ]);
 
-                    if ($previousItemId) { DB::table('learning_path_dependencies')->insert(['learning_path_id' => $path->id, 'learning_path_item_id' => $item->id, 'depends_on_item_id' => $previousItemId, 'created_at' => now(), 'updated_at' => now()]); }
+                    if ($previousItemId) {
+                        DB::table('learning_path_dependencies')->insert(['learning_path_id' => $path->id, 'learning_path_item_id' => $item->id, 'depends_on_item_id' => $previousItemId, 'created_at' => now(), 'updated_at' => now()]);
+                    }
                     $previousItemId = $item->id;
 
                     foreach (data_get($module, 'topics', []) as $topicPosition => $topic) {

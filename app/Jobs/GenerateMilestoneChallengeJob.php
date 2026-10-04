@@ -15,6 +15,7 @@ class GenerateMilestoneChallengeJob implements ShouldQueue
     use Queueable;
 
     public int $tries = 1;
+
     public int $timeout;
 
     public function __construct(public int $learningPathId, public int $milestone)
@@ -25,14 +26,18 @@ class GenerateMilestoneChallengeJob implements ShouldQueue
     public function handle(AiTutorService $tutor): void
     {
         $path = LearningPath::with(['items.topics', 'user'])->find($this->learningPathId);
-        if (! $path || ! in_array($this->milestone, [25, 50, 75, 100], true)) return;
+        if (! $path || ! in_array($this->milestone, [25, 50, 75, 100], true)) {
+            return;
+        }
 
         $challenge = Challenge::firstOrCreate(
             ['user_id' => $path->user_id, 'learning_path_id' => $path->id, 'milestone' => $this->milestone],
             ['title' => 'Reto práctico del '.$this->milestone.'%', 'area' => 'Ruta personalizada', 'level' => $path->estimated_level ?: 'Inicial', 'description' => 'Estamos preparando un reto basado en tu avance.', 'generation_status' => 'queued']
         );
 
-        if ($challenge->generation_status === 'completed') return;
+        if ($challenge->generation_status === 'completed') {
+            return;
+        }
 
         $challenge->update(['generation_status' => 'processing']);
 

@@ -30,6 +30,7 @@ class AiGateway
     public function text(string $agent, string $system, array $messages, string $operation, ?int $userId = null, int $maxTokens = 180, float $temperature = 0.35): ?string
     {
         $result = $this->complete($agent, array_merge([['role' => 'system', 'content' => $system]], $messages), null, $operation, $userId, $maxTokens, $temperature);
+
         return $result['successful'] ? $this->guard->sanitizeText($result['content']) : null;
     }
 
@@ -39,6 +40,7 @@ class AiGateway
             ['role' => 'system', 'content' => 'Responde únicamente con datos que cumplan el esquema. No incluyas Markdown, instrucciones internas ni información sensible.'],
             ['role' => 'user', 'content' => $prompt],
         ], ['name' => $operation, 'schema' => $schema], $operation, $userId, $maxTokens, 0.2);
+
         return $result['successful'] ? $this->guard->decodeStructured($result['content']) : null;
     }
 
@@ -47,6 +49,7 @@ class AiGateway
         $agentConfig = $this->catalog->configuration($agent);
         if (! ($agentConfig['enabled'] ?? false)) {
             Log::warning('ai.gateway.agent_disabled', ['agent' => $agent, 'operation' => $operation]);
+
             return ['successful' => false, 'content' => null];
         }
 
@@ -55,11 +58,13 @@ class AiGateway
         $request = $this->startRequest($agent, $provider, $model, $operation, $userId, $messages);
         if (! (config("ai.providers.{$provider}.key") ?: config('ai.key'))) {
             $this->finishRequest($request, [], false, 0, 'No hay credencial configurada para el proveedor.');
+
             return ['successful' => false, 'content' => null];
         }
         if ($this->budgetExhausted()) {
             Log::warning('ai.gateway.budget_exhausted', ['agent' => $agent, 'operation' => $operation]);
             $this->finishRequest($request, [], false, 0, 'Se alcanzó el presupuesto de tokens configurado.');
+
             return ['successful' => false, 'content' => null];
         }
         $startedAt = hrtime(true);
@@ -68,6 +73,7 @@ class AiGateway
         $this->recordUsage((array) $response['usage'], $operation, $agent, $provider, $model, $userId, $duration, (bool) $response['successful']);
         $this->finishRequest($request, (array) $response['usage'], (bool) $response['successful'], $duration, $response['error'] ?? null, $response['content'] ?? null);
         Log::info('ai.gateway.request', ['agent' => $agent, 'operation' => $operation, 'provider' => $provider, 'model' => $model, 'duration_ms' => $duration, 'successful' => $response['successful']]);
+
         return $response;
     }
 
@@ -75,6 +81,7 @@ class AiGateway
     private function budgetExhausted(): bool
     {
         $budget = PlatformSetting::aiTokenBudget();
+
         return $budget > 0 && (int) AiTokenUsage::sum('total_tokens') >= $budget;
     }
 
@@ -90,12 +97,16 @@ class AiGateway
     {
         try {
             return AiRequest::create(['request_uuid' => (string) Str::uuid(), 'user_id' => $userId, 'agent_slug' => $agent, 'provider' => $provider, 'model' => $model, 'operation' => $operation, 'input_hash' => hash('sha256', json_encode($messages, JSON_UNESCAPED_UNICODE)), 'status' => 'processing']);
-        } catch (Throwable) { return null; }
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     private function finishRequest(?AiRequest $request, array $usage, bool $successful, int $duration, ?string $error = null, ?string $content = null): void
     {
-        if (! $request) return;
+        if (! $request) {
+            return;
+        }
         $input = max(0, (int) ($usage['prompt_tokens'] ?? $usage['input_tokens'] ?? 0));
         $output = max(0, (int) ($usage['completion_tokens'] ?? $usage['output_tokens'] ?? 0));
         $request->update(['status' => $successful ? 'completed' : 'failed', 'input_tokens' => $input, 'output_tokens' => $output, 'total_tokens' => max(0, (int) ($usage['total_tokens'] ?? ($input + $output))), 'duration_ms' => $duration, 'output_hash' => $content ? hash('sha256', $content) : null, 'failure_reason' => $successful ? null : Str::limit((string) $error, 500), 'completed_at' => now()]);
@@ -107,6 +118,8 @@ class AiGateway
         $output = max(0, (int) ($usage['completion_tokens'] ?? $usage['output_tokens'] ?? 0));
         try {
             AiTokenUsage::create(['user_id' => $userId, 'operation' => $operation, 'agent_slug' => $agent, 'provider' => $provider, 'model' => $model, 'prompt_tokens' => $input, 'completion_tokens' => $output, 'total_tokens' => max(0, (int) ($usage['total_tokens'] ?? ($input + $output))), 'successful' => $successful, 'duration_ms' => $duration]);
-        } catch (Throwable $exception) { Log::warning('ai.gateway.usage_not_recorded', ['reason' => $exception->getMessage()]); }
+        } catch (Throwable $exception) {
+            Log::warning('ai.gateway.usage_not_recorded', ['reason' => $exception->getMessage()]);
+        }
     }
 }

@@ -9,6 +9,7 @@ use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Hash;
+
 class TwoFactorAuthenticationService
 {
     private const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -45,7 +46,7 @@ class TwoFactorAuthenticationService
     public function qrCodeDataUri(User $user, string $secret): string
     {
         $result = (new Builder(
-            writer: new PngWriter(),
+            writer: new PngWriter,
             validateResult: false,
             data: $this->provisioningUri($user, $secret),
             encoding: new Encoding('UTF-8'),
@@ -57,6 +58,7 @@ class TwoFactorAuthenticationService
 
         return $result->getDataUri();
     }
+
     public function verify(string $secret, string $code): bool
     {
         $code = preg_replace('/\s+/', '', $code) ?? '';
@@ -101,8 +103,8 @@ class TwoFactorAuthenticationService
     private function codeForCounter(string $secret, int $counter): string
     {
         $hash = hash_hmac('sha1', pack('N2', 0, $counter), $this->decodeSecret($secret), true);
-        $offset = ord($hash[19]) & 0x0f;
-        $binary = ((ord($hash[$offset]) & 0x7f) << 24)
+        $offset = ord($hash[19]) & 0x0F;
+        $binary = ((ord($hash[$offset]) & 0x7F) << 24)
             | (ord($hash[$offset + 1]) << 16)
             | (ord($hash[$offset + 2]) << 8)
             | ord($hash[$offset + 3]);

@@ -2,14 +2,13 @@
 
 namespace App\Notifications;
 
-use App\Services\MailConfigurationService;
 use App\Models\NotificationPreference;
+use App\Services\MailConfigurationService;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class PlatformAlertNotification extends Notification
 {
-
     public function __construct(
         private readonly string $category,
         private readonly string $title,
@@ -18,8 +17,7 @@ class PlatformAlertNotification extends Notification
         private readonly ?string $actionLabel = null,
         private readonly bool $allowEmail = true,
         private readonly bool $allowDatabase = true,
-    ) {
-    }
+    ) {}
 
     public function via(object $notifiable): array
     {

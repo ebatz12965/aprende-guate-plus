@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\AI\AiGateway;
-use App\Models\LearningPathTopic;
 use App\Models\AiContentVersion;
+use App\Models\LearningPathTopic;
 use App\Services\AiTutorService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
