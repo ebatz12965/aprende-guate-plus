@@ -372,7 +372,13 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
     }
     public function mentorship(Request $request)
     {
-        return view('adaptive.mentorship', ['mentors' => MentorProfile::with('user')->get(), 'sessions' => MentorshipSession::where('student_id', $request->user()->id)->with('mentor')->latest()->get()]);
+        // Solo se ofrecen mentores con rol Instructor vigente; nunca el propio usuario.
+        $mentors = MentorProfile::with('user')
+            ->whereHas('user', fn ($query) => $query->role('Instructor'))
+            ->where('user_id', '!=', $request->user()->id)
+            ->get();
+
+        return view('adaptive.mentorship', ['mentors' => $mentors, 'sessions' => MentorshipSession::where('student_id', $request->user()->id)->with('mentor')->latest()->get()]);
     }
 
     public function requestMentorship(Request $request, MentorProfile $mentor)
@@ -381,6 +387,20 @@ $storedAnswer = (int) data_get($item->quiz, 'answer', -1);
             'topic' => ['required', 'string', 'max:160'],
             'preferred_at' => ['nullable', 'date', 'after:now'],
         ]);
+        abort_unless($mentor->user?->hasRole('Instructor'), 404);
+
+        if ($mentor->user_id === $request->user()->id) {
+            return back()->with('error', 'No puedes solicitarte una mentoría a ti mismo.');
+        }
+
+        $hasOpenRequest = MentorshipSession::where('student_id', $request->user()->id)
+            ->where('mentor_id', $mentor->user_id)
+            ->whereIn('status', ['requested', 'accepted', 'scheduled'])
+            ->exists();
+        if ($hasOpenRequest) {
+            return back()->with('error', 'Ya tienes una solicitud o sesión activa con este mentor. Revisa su estado en “Mis solicitudes”.');
+        }
+
         $session = MentorshipSession::create([
             'student_id' => $request->user()->id,
             'mentor_id' => $mentor->user_id,

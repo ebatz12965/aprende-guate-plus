@@ -3,9 +3,12 @@
 @section('content')
 <div class="mx-auto w-full max-w-5xl">
     <div class="max-w-3xl"><p class="text-sm font-extrabold uppercase tracking-[0.16em] text-blue-700">CRECER COMO MENTOR</p><h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">Solicita ser mentor en Aprende Guate</h1><p class="mt-3 leading-7 text-slate-600 dark:text-slate-300">Completa tus datos profesionales y responde un cuestionario construido para tu especialidad. El administrador revisará la información antes de autorizar tu perfil.</p></div>
-    @if($application)
-        <div class="mt-7 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100"><p class="font-extrabold">Ya tienes una solicitud {{ $application->status === 'pending_review' ? 'en revisión' : ($application->status === 'approved' ? 'aprobada' : 'revisada') }}.</p><p class="mt-1 text-sm">Puedes volver a solicitar cuando el administrador haya cerrado este proceso.</p></div>
+    @if($application?->status === 'pending_review')
+        <div class="mt-7 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100"><p class="font-extrabold">Ya tienes una solicitud en revisión.</p><p class="mt-1 text-sm">Puedes volver a solicitar cuando el administrador haya cerrado este proceso.</p></div>
     @else
+        @if($application?->status === 'rejected')
+            <div class="mt-7 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-900 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-100"><p class="font-extrabold">Tu solicitud anterior fue revisada y no se aprobó.</p>@if($application->admin_notes)<p class="mt-1 text-sm">Observaciones del administrador: {{ $application->admin_notes }}</p>@endif<p class="mt-1 text-sm">Puedes enviar una nueva solicitud considerando estas observaciones.</p></div>
+        @endif
         <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-8">
             <form method="POST" action="{{ route('mentor-application.questionnaire') }}" class="space-y-7" x-data="{ area: @js(old('professional_title', $draft['professional_title'] ?? '')), manual: false, presetAreas: ['Ofimática', 'Redes', 'Soporte técnico', 'Programación', 'Análisis de datos', 'Diseño', 'Marketing', 'Logística'] }">
                 @csrf

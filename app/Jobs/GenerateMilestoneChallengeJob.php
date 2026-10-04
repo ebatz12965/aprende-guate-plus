@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\AI\AiGateway;
 use App\Models\Challenge;
 use App\Models\LearningPath;
 use App\Services\AiTutorService;
@@ -14,9 +15,12 @@ class GenerateMilestoneChallengeJob implements ShouldQueue
     use Queueable;
 
     public int $tries = 1;
-    public int $timeout = 90;
+    public int $timeout;
 
-    public function __construct(public int $learningPathId, public int $milestone) {}
+    public function __construct(public int $learningPathId, public int $milestone)
+    {
+        $this->timeout = AiGateway::jobTimeout(1);
+    }
 
     public function handle(AiTutorService $tutor): void
     {

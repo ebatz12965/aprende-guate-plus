@@ -1,5 +1,6 @@
 <?php
 namespace App\Jobs;
+use App\AI\AiGateway;
 use App\Models\ChallengeSubmission;
 use App\Services\AiTutorService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -9,8 +10,8 @@ use Throwable;
 class EvaluateChallengeSubmissionJob implements ShouldQueue {
     use Queueable;
     public int $tries = 1;
-    public int $timeout = 90;
-    public function __construct(public int $submissionId) {}
+    public int $timeout;
+    public function __construct(public int $submissionId) { $this->timeout = AiGateway::jobTimeout(1); }
     public function handle(AiTutorService $tutor): void {
         $submission = ChallengeSubmission::with('challenge')->find($this->submissionId);
         if (! $submission || ! in_array($submission->status, ['queued', 'requires_ai'], true)) return;

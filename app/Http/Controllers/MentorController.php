@@ -184,7 +184,13 @@ class MentorController extends Controller
 
     private function profileFor($mentor): MentorProfile
     {
-        $profile = MentorProfile::firstOrCreate(['user_id' => $mentor->id], $this->defaultProfileSettings());
+        // Un administrador puede consultar el panel mentor sin convertirse en mentor:
+        // el perfil solo se persiste automáticamente para usuarios con rol Instructor.
+        $profile = MentorProfile::firstOrNew(['user_id' => $mentor->id], $this->defaultProfileSettings());
+        if (! $profile->exists) {
+            if ($mentor->hasRole('Instructor')) $profile->save();
+            return $profile;
+        }
         $defaults = $this->defaultProfileSettings();
         $changed = false;
 

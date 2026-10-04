@@ -6,6 +6,7 @@ use App\AI\Contracts\AiProvider;
 use App\AI\Providers\OpenAiCompatibleProvider;
 use App\Models\AiRequest;
 use App\Models\AiTokenUsage;
+use App\Models\PlatformSetting;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -13,6 +14,18 @@ use Throwable;
 class AiGateway
 {
     public function __construct(private readonly AgentCatalog $catalog, private readonly OutputGuard $guard) {}
+
+    /**
+     * Tiempo máximo (segundos) que necesita un job que hace $calls llamadas secuenciales al proveedor,
+     * considerando conexión, generación, reintentos HTTP y un margen para el trabajo en base de datos.
+     * Debe mantenerse por debajo de queue.connections.*.retry_after.
+     */
+    public static function jobTimeout(int $calls): int
+    {
+        $perCall = ((int) config('ai.connect_timeout') + (int) config('ai.generation_timeout')) * max(1, (int) config('ai.retry_times')) + 1;
+
+        return max(1, $calls) * $perCall + 20;
+    }
 
     public function text(string $agent, string $system, array $messages, string $operation, ?int $userId = null, int $maxTokens = 180, float $temperature = 0.35): ?string
     {
@@ -44,6 +57,11 @@ class AiGateway
             $this->finishRequest($request, [], false, 0, 'No hay credencial configurada para el proveedor.');
             return ['successful' => false, 'content' => null];
         }
+        if ($this->budgetExhausted()) {
+            Log::warning('ai.gateway.budget_exhausted', ['agent' => $agent, 'operation' => $operation]);
+            $this->finishRequest($request, [], false, 0, 'Se alcanzó el presupuesto de tokens configurado.');
+            return ['successful' => false, 'content' => null];
+        }
         $startedAt = hrtime(true);
         $response = $this->provider($provider)->complete($model, $messages, $schema, $maxTokens, $temperature);
         $duration = (int) ((hrtime(true) - $startedAt) / 1_000_000);
@@ -51,6 +69,13 @@ class AiGateway
         $this->finishRequest($request, (array) $response['usage'], (bool) $response['successful'], $duration, $response['error'] ?? null, $response['content'] ?? null);
         Log::info('ai.gateway.request', ['agent' => $agent, 'operation' => $operation, 'provider' => $provider, 'model' => $model, 'duration_ms' => $duration, 'successful' => $response['successful']]);
         return $response;
+    }
+
+    /** Un presupuesto de 0 significa sin límite. */
+    private function budgetExhausted(): bool
+    {
+        $budget = PlatformSetting::aiTokenBudget();
+        return $budget > 0 && (int) AiTokenUsage::sum('total_tokens') >= $budget;
     }
 
     private function provider(string $provider): AiProvider

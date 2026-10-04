@@ -23,6 +23,7 @@ class MentorApplicationController extends Controller
     public function generateQuestionnaire(Request $request, AiGateway $gateway): RedirectResponse
     {
         abort_if($request->user()->hasRole('Instructor'), 403);
+        if ($this->hasPendingApplication($request)) return $this->pendingApplicationResponse();
         $data = $request->validate([
             'professional_title' => ['required', 'string', 'max:160'],
             'specialties' => ['required', 'string', 'max:500'],
@@ -30,7 +31,9 @@ class MentorApplicationController extends Controller
 
         // El agente recibe únicamente la especialidad y el alcance temático, nunca respuestas ni datos personales.
         $generated = $gateway->structured('mentor_application_assessor', 'Genera exactamente 20 preguntas abiertas, específicas y distintas entre sí, en español latinoamericano, para un examen de selección de mentor en Aprende Guate. Especialidad declarada: '.json_encode($data['specialties'], JSON_UNESCAPED_UNICODE).'. Título del área: '.json_encode($data['professional_title'], JSON_UNESCAPED_UNICODE).'. Organízalas en cuatro bloques de cinco preguntas: dominio técnico aplicado, metodología de enseñanza, evaluación y retroalimentación, y ética/inclusión/logística con resolución de casos. Las preguntas deben pedir ejemplos y evidencias concretas, no respuestas de sí/no. No pidas nombres, correos ni información sensible.', [
-            'type' => 'object', 'properties' => ['questions' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['key' => ['type' => 'string'], 'title' => ['type' => 'string'], 'prompt' => ['type' => 'string']], 'required' => ['key', 'title', 'prompt']]]], 'required' => ['questions'],
+            // El modo estricto del proveedor exige additionalProperties: false en cada objeto; sin él se rechaza el esquema.
+            'type' => 'object', 'additionalProperties' => false, 'required' => ['questions'],
+            'properties' => ['questions' => ['type' => 'array', 'items' => ['type' => 'object', 'additionalProperties' => false, 'required' => ['key', 'title', 'prompt'], 'properties' => ['key' => ['type' => 'string'], 'title' => ['type' => 'string'], 'prompt' => ['type' => 'string']]]]],
         ], 'mentor_questionnaire_generation', $request->user()->id, 900);
 
         $questions = collect($generated['questions'] ?? [])->values()->map(function (array $question, int $index) {
@@ -46,6 +49,7 @@ class MentorApplicationController extends Controller
     public function store(Request $request): RedirectResponse
     {
         abort_if($request->user()->hasRole('Instructor'), 403);
+        if ($this->hasPendingApplication($request)) return $this->pendingApplicationResponse();
         $questions = session('mentor_questionnaire', []);
         abort_if(count($questions) < 6, 422, 'Primero genera el cuestionario de mentoría.');
         $data = $request->validate([
@@ -71,6 +75,16 @@ class MentorApplicationController extends Controller
         ]);
         $request->session()->forget(['mentor_questionnaire', 'mentor_application_draft']);
         return redirect()->route('mentor-application.create')->with('success', 'El cuestionario fue completado y tu solicitud quedó pendiente de revisión administrativa.');
+    }
+
+    private function hasPendingApplication(Request $request): bool
+    {
+        return $request->user()->mentorApplications()->where('status', 'pending_review')->exists();
+    }
+
+    private function pendingApplicationResponse(): RedirectResponse
+    {
+        return redirect()->route('mentor-application.create')->with('error', 'Ya tienes una solicitud en revisión. Espera la respuesta del administrador antes de enviar otra.');
     }
 
     private function fallbackQuestions(): array

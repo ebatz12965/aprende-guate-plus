@@ -24,13 +24,25 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        RateLimiter::for('ai', function (Request $request) {
+        // Conversación (tutor y guía) y generación de contenido tienen cuotas separadas
+        // para que generar lecciones o retos no agote las consultas al tutor.
+        RateLimiter::for('ai-tutor', function (Request $request) {
             $identity = $request->user()?->id ?? $request->ip();
             $settings = PlatformSetting::aiLimits();
 
             return [
-                Limit::perMinute($settings['tutor_minute_limit'])->by('ai-minute:'.$identity),
-                Limit::perDay($settings['tutor_daily_limit'])->by('ai-day:'.$identity),
+                Limit::perMinute($settings['tutor_minute_limit'])->by('ai-tutor-minute:'.$identity),
+                Limit::perDay($settings['tutor_daily_limit'])->by('ai-tutor-day:'.$identity),
+            ];
+        });
+
+        RateLimiter::for('ai-generation', function (Request $request) {
+            $identity = $request->user()?->id ?? $request->ip();
+            $settings = PlatformSetting::aiLimits();
+
+            return [
+                Limit::perMinute($settings['generation_minute_limit'])->by('ai-generation-minute:'.$identity),
+                Limit::perDay($settings['generation_daily_limit'])->by('ai-generation-day:'.$identity),
             ];
         });
 

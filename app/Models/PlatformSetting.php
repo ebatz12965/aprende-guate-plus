@@ -79,6 +79,8 @@ class PlatformSetting extends Model
         return [
             'tutor_minute_limit' => static::integer('tutor_minute_limit', 6, 1, 60),
             'tutor_daily_limit' => static::integer('tutor_daily_limit', 60, 1, 5000),
+            'generation_minute_limit' => static::integer('generation_minute_limit', 10, 1, 60),
+            'generation_daily_limit' => static::integer('generation_daily_limit', 100, 1, 5000),
             'diagnostic_min_characters' => static::integer('diagnostic_min_characters', 12, 1, 1000),
             'diagnostic_max_characters' => static::integer('diagnostic_max_characters', 500, 10, 5000),
             'ai_token_budget' => static::aiTokenBudget(),

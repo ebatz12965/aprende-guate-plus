@@ -20,6 +20,8 @@ class AdminAiSettingsTest extends TestCase
         $this->actingAs($admin)->put(route('admin.ai-settings.update'), [
             'tutor_minute_limit' => 4,
             'tutor_daily_limit' => 25,
+            'generation_minute_limit' => 8,
+            'generation_daily_limit' => 90,
             'diagnostic_min_characters' => 20,
             'diagnostic_max_characters' => 300,
             'ai_token_budget' => 15000,
@@ -27,6 +29,8 @@ class AdminAiSettingsTest extends TestCase
 
         $this->assertSame(4, PlatformSetting::aiLimits()['tutor_minute_limit']);
         $this->assertSame(25, PlatformSetting::aiLimits()['tutor_daily_limit']);
+        $this->assertSame(8, PlatformSetting::aiLimits()['generation_minute_limit']);
+        $this->assertSame(90, PlatformSetting::aiLimits()['generation_daily_limit']);
         $this->assertSame(20, PlatformSetting::aiLimits()['diagnostic_min_characters']);
         $this->assertSame(300, PlatformSetting::aiLimits()['diagnostic_max_characters']);
         $this->assertSame(15000, PlatformSetting::aiLimits()['ai_token_budget']);
