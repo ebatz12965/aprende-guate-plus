@@ -110,7 +110,11 @@
                         <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
                         <svg class="hidden h-4 w-4 text-slate-400 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
-                    <div x-cloak x-show="profileOpen" @click.outside="profileOpen = false" x-transition class="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10" role="menu">
+                    <div x-cloak x-show="profileOpen" @click.outside="profileOpen = false" x-transition class="absolute right-0 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10" role="menu">
+                        <p class="px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Cambiar espacio</p>
+                        <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="learning"><button class="platform-menu-link w-full text-left" role="menuitem">Mi aprendizaje</button></form>
+                        @if(auth()->user()->hasRole('Instructor'))<form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="mentor"><button class="platform-menu-link w-full text-left" role="menuitem">Espacio mentor</button></form>@endif
+                        <div class="my-1 border-t border-slate-100"></div>
                         <a href="{{ route('notifications.index') }}" class="platform-menu-link" role="menuitem">Notificaciones @if($twoFactorPending)<span class="float-right mt-1 h-2.5 w-2.5 rounded-full bg-orange-500" title="Verificación en dos pasos pendiente"></span>@endif</a><a href="{{ route('profile.edit') }}" class="platform-menu-link" role="menuitem">Configuración</a>
                         <form method="POST" action="{{ route('logout') }}">@csrf
                             <button class="platform-menu-link w-full text-left text-rose-700 hover:bg-rose-50 hover:text-rose-800" role="menuitem">Cerrar sesión</button>

@@ -25,7 +25,8 @@ class MentorApplicationController extends Controller
     {
         abort_unless($application->status === 'pending_review', 422);
         $data = $request->validate(['admin_notes' => ['nullable', 'string', 'max:3000']]);
-        $application->user->syncRoles(['Instructor']);
+        // La aprobación agrega capacidades de mentor sin retirar su experiencia como estudiante o administrador.
+        $application->user->assignRole('Instructor');
         MentorProfile::updateOrCreate(['user_id' => $application->user_id], ['headline' => $application->professional_title, 'specialties' => $application->specialties, 'about' => $application->professional_background, 'session_duration_minutes' => $application->session_duration_minutes, 'availability' => $application->availability ?? []]);
         $application->update(['status' => 'approved', 'admin_notes' => $data['admin_notes'] ?? null, 'reviewed_by' => $request->user()->id, 'reviewed_at' => now()]);
         $application->user->notify(new PlatformAlertNotification(category: 'platform', title: 'Tu solicitud de mentor fue aprobada', body: 'Tu perfil de mentor ya está habilitado. Puedes comenzar a configurar tu disponibilidad y recibir solicitudes.', url: route('mentor.dashboard'), actionLabel: 'Abrir panel mentor'));

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MentorController;
 use App\Http\Controllers\MentorApplicationController;
+use App\Http\Controllers\WorkspaceController;
 use App\Http\Controllers\MentorshipConversationController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PlatformGuideController;
@@ -27,13 +28,17 @@ Route::view('/preguntas-frecuentes', 'legal.faq')->name('legal.faq');
 Route::get('/perfil/{user}', [AdaptiveLearningController::class, 'publicProfile'])->name('adaptive.public-profile');
 
 Route::get('/dashboard', function () {
-    if (auth()->user()->hasRole('Admin')) {
+    $space = session('active_space');
+    if ($space === 'admin' && auth()->user()->hasRole('Admin')) {
         return redirect()->route('admin.dashboard');
     }
 
-    if (auth()->user()->hasRole('Instructor')) {
+    if ($space === 'mentor' && (auth()->user()->hasRole('Instructor') || auth()->user()->hasRole('Admin'))) {
         return redirect()->route('mentor.dashboard');
     }
+
+    if (! $space && auth()->user()->hasRole('Admin')) return redirect()->route('admin.dashboard');
+    if (! $space && auth()->user()->hasRole('Instructor')) return redirect()->route('mentor.dashboard');
 
     return redirect()->route('adaptive.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -50,6 +55,7 @@ Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect']
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/espacio/cambiar', [WorkspaceController::class, 'switch'])->name('workspace.switch');
     Route::get('/mi-panel', [AdaptiveLearningController::class, 'dashboard'])->name('adaptive.dashboard');
     Route::get('/diagnostico', [AdaptiveLearningController::class, 'diagnostic'])->name('adaptive.diagnostic');
     Route::post('/diagnostico/iniciar', [AdaptiveLearningController::class, 'startDiagnostic'])->middleware('throttle:ai')->name('adaptive.diagnostic.start');
