@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SkillEvidence extends Model
 {
+    // Laravel infiere "skill_evidence" (evidence no tiene plural en inglés); la migración crea skill_evidences.
+    protected $table = 'skill_evidences';
+
     protected $fillable = ['user_skill_id', 'source_type', 'source_id', 'score', 'summary', 'metadata'];
 
     protected function casts(): array

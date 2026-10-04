@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LearningPathPractice extends Model
 {
@@ -17,5 +18,10 @@ class LearningPathPractice extends Model
     public function topic(): BelongsTo
     {
         return $this->belongsTo(LearningPathTopic::class, 'learning_path_topic_id');
+    }
+
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(LearningPathPracticeAttempt::class);
     }
 }

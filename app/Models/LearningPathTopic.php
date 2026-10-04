@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class LearningPathTopic extends Model
@@ -35,8 +35,8 @@ class LearningPathTopic extends Model
         return $this->hasOne(LearningPathPractice::class);
     }
 
-    public function practiceAttempts(): HasMany
+    public function practiceAttempts(): HasManyThrough
     {
-        return $this->hasMany(LearningPathPracticeAttempt::class);
+        return $this->hasManyThrough(LearningPathPracticeAttempt::class, LearningPathPractice::class, 'learning_path_topic_id', 'learning_path_practice_id');
     }
 }

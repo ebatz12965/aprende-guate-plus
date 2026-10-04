@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Learning;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\EvaluatePracticeAttemptJob;
 use App\Jobs\GenerateTopicContentJob;
 use App\Models\LearningPathPracticeAttempt;
 use App\Models\LearningPathTopic;
@@ -28,7 +29,9 @@ class TopicController extends Controller
             $topic->update(['status' => 'in_progress']);
         }
 
-        return view('adaptive.topic', compact('path', 'topic'));
+        $latestAttempt = $topic->practiceAttempts()->where('user_id', $path->user_id)->latest('learning_path_practice_attempts.id')->first();
+
+        return view('adaptive.topic', compact('path', 'topic', 'latestAttempt'));
     }
 
     public function generateLesson(LearningPathTopic $topic): RedirectResponse
@@ -58,16 +61,19 @@ class TopicController extends Controller
         $this->authorize('view', $topic);
         abort_unless($topic->practice, 404);
         $data = $request->validate(['answer' => ['required', 'string', 'max:12000']]);
-        $attempt = LearningPathPracticeAttempt::create(['learning_path_practice_id' => $topic->practice->id, 'user_id' => $request->user()->id, 'answer' => $data['answer'], 'submitted_at' => now()]);
+        $attempt = LearningPathPracticeAttempt::create(['learning_path_practice_id' => $topic->practice->id, 'user_id' => $request->user()->id, 'answer' => $data['answer'], 'status' => 'queued', 'submitted_at' => now()]);
         $skill = Skill::where('slug', data_get($topic->metadata, 'skill_slug'))->first();
         if ($skill) {
+            // La confianza se calcula con el puntaje real cuando el evaluador termina (EvaluatePracticeAttemptJob).
             $userSkill = UserSkill::firstOrCreate(['user_id' => $request->user()->id, 'skill_id' => $skill->id], ['level' => 0, 'confidence' => 0]);
-            $userSkill->update(['level' => max(1, (int) $userSkill->level), 'confidence' => min(100, max((float) $userSkill->confidence, 25)), 'last_evidenced_at' => now()]);
+            $userSkill->update(['level' => max(1, (int) $userSkill->level), 'last_evidenced_at' => now()]);
             SkillEvidence::create(['user_skill_id' => $userSkill->id, 'source_type' => 'learning_path_practice_attempt', 'source_id' => $attempt->id, 'summary' => 'Práctica entregada: '.$topic->title, 'metadata' => ['topic_id' => $topic->id, 'practice_type' => $topic->practice_type]]);
         }
+        // La evaluación es formativa: entregar completa el tema y la retroalimentación llega después.
         $topic->update(['status' => 'completed']);
+        EvaluatePracticeAttemptJob::dispatch($attempt->id)->onQueue('ai');
 
-        return back()->with('success', 'Práctica registrada. Puedes continuar con el siguiente tema o repasar esta lección.');
+        return back()->with('success', 'Práctica registrada. El evaluador IA preparará tu retroalimentación; mientras tanto puedes continuar con el siguiente tema.');
     }
 
     public function downloadPractice(LearningPathTopic $topic): Response
