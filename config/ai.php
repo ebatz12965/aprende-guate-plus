@@ -1,11 +1,13 @@
 <?php
 
-$agent = static fn (string $name, string $description, int $maxTokens, bool $enabled = true): array => [
+// planned: el agente aún no tiene un módulo que lo invoque; no se puede activar desde administración.
+$agent = static fn (string $name, string $description, int $maxTokens, bool $enabled = true, bool $planned = false): array => [
     'name' => $name,
     'description' => $description,
     'provider' => 'openai',
     'max_tokens' => $maxTokens,
-    'enabled' => $enabled,
+    'enabled' => $enabled && ! $planned,
+    'planned' => $planned,
 ];
 
 return [
@@ -33,17 +35,17 @@ return [
     'agents' => [
         'career_profiler' => $agent('Perfilador profesional', 'Convierte diagnóstico y objetivo en perfil, nivel y brechas de habilidades.', 600),
         'learning_path' => $agent('Diseñador de rutas', 'Crea una arquitectura de aprendizaje progresiva y dependiente de habilidades.', 1200),
-        'curriculum' => $agent('Diseñador curricular', 'Desarrolla unidades, objetivos, prerrequisitos y estimaciones.', 1000),
+        'curriculum' => $agent('Diseñador curricular', 'Desarrolla unidades, objetivos, prerrequisitos y estimaciones.', 1000, false, true),
         'content_classifier' => $agent('Clasificador de contenido', 'Decide el formato pedagógico, el tipo de práctica y los recursos que necesita cada tema.', 550),
         'theory_content' => $agent('Generador de teoría', 'Produce contenido estructurado, claro y pedagógico.', 900),
-        'tutorial_script' => $agent('Guionista tutorial', 'Produce guiones y escenas; no genera video directamente.', 900),
+        'tutorial_script' => $agent('Guionista tutorial', 'Produce guiones y escenas; no genera video directamente.', 900, false, true),
         'exercise_generator' => $agent('Generador de ejercicios', 'Crea prácticas profesionales, datasets y criterios de entrega.', 1000),
-        'file_generator' => $agent('Especificador de archivos', 'Describe archivos a generar por el backend; nunca produce binarios.', 600),
+        'file_generator' => $agent('Especificador de archivos', 'Describe archivos a generar por el backend; nunca produce binarios.', 600, false, true),
         'evaluator' => $agent('Evaluador de evidencias', 'Evalúa contra rúbricas y explica mejoras sin revelar soluciones.', 800),
         'tutor' => $agent('Tutor IA', 'Da pistas progresivas y orientación contextual al estudiante.', 300),
-        'interviewer' => $agent('Entrevistador', 'Conduce entrevistas escritas por estados y preguntas adaptativas.', 700, false),
-        'interview_evaluator' => $agent('Evaluador de entrevista', 'Califica entrevistas separadamente mediante rúbricas.', 900, false),
-        'employability' => $agent('Agente de empleabilidad', 'Relaciona vacantes, perfil, evidencias y brechas.', 800, false),
+        'interviewer' => $agent('Entrevistador', 'Conduce entrevistas escritas por estados y preguntas adaptativas.', 700, false, true),
+        'interview_evaluator' => $agent('Evaluador de entrevista', 'Califica entrevistas separadamente mediante rúbricas.', 900, false, true),
+        'employability' => $agent('Agente de empleabilidad', 'Relaciona vacantes, perfil, evidencias y brechas.', 800, false, true),
         'mentor_application_assessor' => $agent('Generador de cuestionarios de mentoría', 'Genera un cuestionario pedagógico según la especialidad y las áreas de apoyo declaradas, sin evaluar ni recibir respuestas personales.', 900),
     ],
 ];

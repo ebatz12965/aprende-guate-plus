@@ -55,6 +55,8 @@ class AiGateway
 
         $provider = $agentConfig['provider'] ?? config('ai.default_provider');
         $model = $agentConfig['model'] ?? config('ai.model');
+        // Un límite fijado desde administración reemplaza el que propone cada operación.
+        $maxTokens = $agentConfig['max_tokens_override'] ?? $maxTokens;
         $request = $this->startRequest($agent, $provider, $model, $operation, $userId, $messages);
         if (! (config("ai.providers.{$provider}.key") ?: config('ai.key'))) {
             $this->finishRequest($request, [], false, 0, 'No hay credencial configurada para el proveedor.');

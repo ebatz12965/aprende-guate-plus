@@ -129,6 +129,8 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:Admin'])->group(
     Route::put('configuracion-ia', [AiSettingsController::class, 'update'])->name('ai-settings.update');
     Route::get('consumo-ia', [AiUsageController::class, 'index'])->name('ai-usage.index');
     Route::get('orquestador-ia', [AiOrchestratorController::class, 'index'])->name('ai-orchestrator.index');
+    Route::put('orquestador-ia/{agent}', [AiOrchestratorController::class, 'update'])->name('ai-orchestrator.update');
+    Route::delete('orquestador-ia/{agent}', [AiOrchestratorController::class, 'reset'])->name('ai-orchestrator.reset');
     Route::get('configuracion-correo', [MailSettingsController::class, 'edit'])->name('mail-settings.edit');
     Route::put('configuracion-correo', [MailSettingsController::class, 'update'])->name('mail-settings.update');
     Route::post('configuracion-correo/probar', [MailSettingsController::class, 'sendTest'])->name('mail-settings.test');
