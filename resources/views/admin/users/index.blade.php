@@ -10,7 +10,7 @@
 
     <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
         <div class="overflow-x-auto">
-            @if($users->count() > 0)
+            @if($users->total() > 0)
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -58,6 +58,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                <div class="border-t border-slate-100 px-5 py-4">{{ $users->links() }}</div>
             @else
                 <div class="p-6 text-center text-gray-500">
                     No hay usuarios registrados.

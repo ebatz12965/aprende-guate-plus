@@ -122,7 +122,7 @@ Route::middleware(['auth', 'verified', 'role:Instructor|Admin'])->group(function
     Route::post('/mentor/solicitudes/{session}/rechazar', [MentorController::class, 'reject'])->name('mentor.sessions.reject');
 });
 
-Route::prefix('admin')->as('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
+Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'role:Admin'])->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::resource('users', AdminUserController::class);
     Route::get('roles', [AdminRoleController::class, 'index'])->name('roles.index');
