@@ -9,9 +9,9 @@
             @elseif ($pendingAttempt->status === 'failed')
                 <p>No pudimos generar tu nueva ruta. Tu ruta actual sigue igual.</p>
                 <form method="POST" action="{{ route('adaptive.diagnostic.retry', $pendingAttempt) }}">@csrf<button
-                        class="rounded-xl bg-blue-600 px-4 py-2.5 font-bold text-white transition hover:bg-blue-700">Reintentar</button></form>
+                        class="rounded-xl bg-blue-600 px-4 py-2.5 font-bold text-white transition hover:bg-blue-700">Intentar de nuevo</button></form>
             @else
-                <p>Tienes un diagnóstico sin terminar.</p>
+                <p>Tienes un diagnóstico sin terminar. Si lo terminas, tu nueva ruta reemplazará la actual.</p>
                 <a href="{{ route('adaptive.diagnostic.questions', $pendingAttempt) }}"
                     class="font-bold text-blue-700 underline-offset-4 hover:underline">Continuar diagnóstico</a>
             @endif
@@ -57,7 +57,7 @@
                     <h1 class="text-3xl font-extrabold sm:text-4xl">No pudimos generar tu ruta</h1>
                     <p class="mt-3 max-w-2xl leading-7 text-slate-300">Tus respuestas siguen guardadas. Intenta de nuevo; si vuelve a fallar, espera unos minutos.</p>
                     <form method="POST" action="{{ route('adaptive.diagnostic.retry', $pendingAttempt) }}" class="mt-6">@csrf<button
-                            class="rounded-xl bg-blue-500 px-5 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-blue-400">Reintentar</button></form>
+                            class="rounded-xl bg-blue-500 px-5 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-blue-400">Generar mi ruta de nuevo</button></form>
                 @break
 
                 @case('active')
@@ -92,18 +92,18 @@
                 <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
                     @if ($stage === 'active')
                         <a href="{{ $nextItem ? route('adaptive.path.item.show', $nextItem) : route('adaptive.path') }}"
-                            class="rounded-xl bg-blue-500 px-5 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-blue-400">Continuar mi ruta</a>
+                            class="rounded-xl bg-blue-500 px-5 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-blue-400">{{ $nextItem ? 'Continuar fase '.$nextItem->position : 'Ver mi ruta' }}</a>
                         <a href="{{ route('adaptive.path') }}" class="text-sm font-bold text-blue-200 underline-offset-4 hover:underline">Ver todas las fases</a>
                     @else
                         <a href="{{ route('adaptive.career') }}"
                             class="rounded-xl bg-blue-500 px-5 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-blue-400">Completar mi perfil profesional</a>
                     @endif
                     @unless ($pendingAttempt)
-                        <a href="{{ route('adaptive.diagnostic') }}" class="text-sm font-bold text-slate-300 underline-offset-4 hover:underline">{{ $stage === 'active' ? 'Actualizar mi diagnóstico' : 'Empezar una nueva ruta' }}</a>
+                        <a href="{{ route('adaptive.diagnostic') }}" class="text-sm font-bold text-slate-300 underline-offset-4 hover:underline">{{ $stage === 'active' ? 'Rehacer mi diagnóstico' : 'Empezar una nueva ruta' }}</a>
                     @endunless
                 </div>
                 @if ($stage === 'active' && ! $pendingAttempt)
-                    <p class="mt-2 text-xs text-slate-400">Actualizar el diagnóstico genera una ruta nueva que reemplaza la actual.</p>
+                    <p class="mt-2 text-xs text-slate-400">Rehacer el diagnóstico crea una ruta nueva que reemplaza la actual.</p>
                 @endif
             @endif
         </div>
@@ -128,12 +128,12 @@
 
                     @case('failed')
                         <h2 class="text-xl font-extrabold text-slate-900">No pudimos preparar tu reto del {{ $challenge['milestone'] }} %</h2>
-                        <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Tu avance no se pierde. Revisa la sección de retos para intentarlo de nuevo.</p>
-                        <a href="{{ route('adaptive.challenges') }}" class="mt-5 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ir a retos</a>
+                        <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Tu avance no se pierde. Un administrador puede volver a prepararlo; mientras tanto, sigue con tu ruta.</p>
+                        <a href="{{ route('adaptive.challenges') }}" class="mt-5 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ver mis retos</a>
                     @break
 
                     @case('locked')
-                        <h2 class="text-xl font-extrabold text-slate-900">Tu próximo reto llega al {{ $challenge['milestone'] }} %</h2>
+                        <h2 class="text-xl font-extrabold text-slate-900">Tu próximo reto se desbloquea al {{ $challenge['milestone'] }} %</h2>
                         <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Te {{ $challenge['phasesLeft'] === 1 ? 'falta 1 fase' : 'faltan '.$challenge['phasesLeft'].' fases' }}. Cada reto se arma con lo que ya aprendiste y se evalúa con una rúbrica.</p>
                         <a href="{{ route('adaptive.challenges') }}" class="mt-5 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ver todos los retos</a>
                     @break
@@ -168,7 +168,7 @@
                 <img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="" class="h-10 w-10 rounded-xl object-cover shadow-sm">
                 <h2 class="mt-5 text-xl font-extrabold text-slate-900">Destraba tu siguiente paso</h2>
                 <p class="mt-2 text-sm leading-6 text-slate-600">Explica qué intentaste y recibe una guía breve, ordenada y conectada con tu aprendizaje.</p>
-                <a href="{{ route('adaptive.tutor') }}" class="mt-5 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Hablar con el tutor →</a>
+                <a href="{{ route('adaptive.tutor') }}" class="mt-5 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Preguntar al Tutor IA →</a>
             </section>
         </div>
     </div>

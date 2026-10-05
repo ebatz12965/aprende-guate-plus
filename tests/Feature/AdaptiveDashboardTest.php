@@ -26,7 +26,7 @@ class AdaptiveDashboardTest extends TestCase
             ->assertSee('Fase número 1')
             ->assertDontSee('Fase número 2')
             ->assertSee(route('adaptive.path.item.show', $item), false)
-            ->assertSee('Tu próximo reto llega al 25 %')
+            ->assertSee('Tu próximo reto se desbloquea al 25 %')
             ->assertSee('Te falta 1 fase');
     }
 
@@ -79,7 +79,7 @@ class AdaptiveDashboardTest extends TestCase
 
         $this->actingAs($user)->get(route('adaptive.dashboard'))->assertOk()
             ->assertSee('Estamos generando tu nueva ruta')
-            ->assertSee('Continuar mi ruta');
+            ->assertSee('Continuar fase 1');
     }
 
     public function test_confirmed_mentorship_shows_date_in_guatemala_time(): void
