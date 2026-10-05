@@ -45,7 +45,7 @@ Lo que un curso en línea común no puede afirmar con verdad:
 
 - Construido con Laravel 13 (PHP 8.3+), Blade, Tailwind CSS 3 y Alpine.js; páginas renderizadas en el servidor, no es una SPA.
 - Tres espacios según el rol: aprendizaje (todas las personas), mentor (`Instructor`) y administración (`Admin`).
-- Cuentas: verificación de correo y verificación en dos pasos opcional. Existen rutas de inicio de sesión con Google, pero ninguna pantalla las muestra todavía.
+- Cuentas: verificación de correo, verificación en dos pasos opcional e inicio de sesión con Google desde la pantalla de acceso.
 - El perfil público es privado por defecto y se comparte con un enlace no adivinable.
 - Vocabulario del producto: Diagnóstico, Ruta, Fase, Tema, Lección, Práctica, Reto, Tutor IA, Mentoría / Mentor, Perfil profesional, Avisos.
 - Solo en español; no se planean otros idiomas.
