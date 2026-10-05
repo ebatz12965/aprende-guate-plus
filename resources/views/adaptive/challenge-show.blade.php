@@ -156,7 +156,7 @@
                                 <p class="mt-2 text-sm font-bold text-slate-800">Arrastra un archivo aquí o examina tu equipo</p>
                                 <p class="mt-1 text-xs text-slate-500" x-text="name || 'PDF, CSV, Excel, Word, PowerPoint, imagen, texto o ZIP · máximo 20 MB'">
                                 </p>
-                                <p class="mt-1 text-xs text-slate-400">El evaluador IA lee el texto de PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), TXT y
+                                <p class="mt-1 text-xs text-slate-500">El evaluador IA lee el texto de PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), TXT y
                                     CSV. Las imágenes y los ZIP se guardan, pero se evalúan con tu respuesta escrita.</p>
                             </label></div>
                     </div>

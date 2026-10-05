@@ -274,7 +274,7 @@
                     <a href="{{ route('workspace.switch') }}" class="hidden">
                     </a>
                     <div class="my-2 border-t border-slate-200 dark:border-slate-700"></div>
-                    <p class="px-3 pt-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Cambiar espacio</p>
+                    <p class="px-3 pt-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Cambiar espacio</p>
                     @if ($activeSpace !== 'learning')
                         <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="learning"><button
                                 class="platform-mobile-link w-full text-left">Mi aprendizaje</button></form>
@@ -436,9 +436,9 @@
                 class="h-10 w-10 rounded-full border-2 border-white/70 bg-white object-cover object-top">
             <div class="min-w-0 flex-1">
                 <p class="text-sm font-extrabold">Quetzi, tu guía</p>
-                <p class="text-xs text-sky-100">Ayuda para usar la plataforma</p>
+                <p class="text-xs text-sky-50">Ayuda para usar la plataforma</p>
             </div>
-            <button type="button" @click="close()" class="rounded-lg p-1.5 text-sky-100 hover:bg-sky-800 hover:text-white"
+            <button type="button" @click="close()" class="rounded-lg p-1.5 text-sky-50 hover:bg-sky-800 hover:text-white"
                 aria-label="Cerrar guía">×</button>
         </header>
         <div class="space-y-3 bg-sky-50/60 p-4">
@@ -708,9 +708,9 @@
         <header class="flex items-center justify-between gap-3 bg-blue-700 px-4 py-3 text-white">
             <div class="min-w-0">
                 <p class="text-sm font-extrabold">Mensajes de mentoría</p>
-                <p class="truncate text-xs text-blue-100" x-text="selected ? selected.counterpart : 'Conversaciones activas'"></p>
+                <p class="truncate text-xs text-blue-50" x-text="selected ? selected.counterpart : 'Conversaciones activas'"></p>
             </div>
-            <button type="button" @click="setOpen(false)" class="rounded-lg p-1.5 text-blue-100 hover:bg-blue-800 hover:text-white"
+            <button type="button" @click="setOpen(false)" class="rounded-lg p-1.5 text-blue-50 hover:bg-blue-800 hover:text-white"
                 aria-label="Minimizar chat">−</button>
         </header>
         <div class="border-b border-slate-200 bg-slate-50 px-3 py-2" x-show="sessions.length > 1">

@@ -44,8 +44,8 @@
                 </div>
                 <div class="grid grid-cols-7">
                     <template x-for="cell in monthCells()" :key="cell.key">
-                        <div :class="cell.inMonth ? 'bg-white' : 'bg-slate-50/70'" class="min-h-[128px] border-b border-r border-slate-200 p-2">
-                            <div class="mb-2 flex justify-end"><span :class="cell.key === todayKey() ? 'bg-blue-600 text-white' : (cell.inMonth ? 'text-slate-700' : 'text-slate-400')" class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-extrabold" x-text="cell.day"></span></div>
+                        <div :class="cell.inMonth ? 'bg-white' : 'bg-slate-50/70 dark:bg-slate-800/40'" class="min-h-[128px] border-b border-r border-slate-200 p-2">
+                            <div class="mb-2 flex justify-end"><span :class="cell.key === todayKey() ? 'bg-blue-600 text-white' : (cell.inMonth ? 'text-slate-700' : 'text-slate-500')" class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-extrabold" x-text="cell.day"></span></div>
                             <div class="space-y-1">
                                 <template x-for="session in sessionsFor(cell.key)" :key="session.id">
                                     <a :href="session.url" class="block truncate rounded-lg border border-blue-100 bg-blue-50 px-2 py-1.5 text-xs font-bold text-blue-800 transition hover:border-blue-300 hover:bg-blue-100" :title="session.title" x-text="formatTime(session.start) + ' · ' + session.title"></a>
@@ -66,7 +66,7 @@
                             <template x-for="session in sessionsFor(day.key)" :key="session.id">
                                 <a :href="session.url" class="block rounded-lg border border-blue-100 bg-blue-50 p-2 text-xs text-blue-900 transition hover:border-blue-300 hover:bg-blue-100"><p class="font-extrabold" x-text="formatTime(session.start)"></p><p class="mt-1 font-semibold" x-text="session.title"></p><p class="mt-1 text-blue-700" x-text="session.student"></p></a>
                             </template>
-                            <p x-show="sessionsFor(day.key).length === 0" class="px-1 py-3 text-center text-xs text-slate-400">Sin sesiones</p>
+                            <p x-show="sessionsFor(day.key).length === 0" class="px-1 py-3 text-center text-xs text-slate-500">Sin sesiones</p>
                         </div>
                     </div>
                 </template>

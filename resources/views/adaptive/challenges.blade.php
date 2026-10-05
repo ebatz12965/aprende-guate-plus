@@ -24,7 +24,7 @@
             @foreach($milestones as $milestone)
                 @php($challenge = $challengesByMilestone->get($milestone))
                 <article class="challenge-milestone-card rounded-2xl border p-5 {{ $progress >= $milestone ? 'border-blue-200 bg-white shadow-sm' : 'border-slate-200 bg-slate-50' }}">
-                    <div class="flex items-center justify-between"><span class="challenge-milestone-badge rounded-full px-2.5 py-1 text-xs font-extrabold {{ $progress >= $milestone ? 'bg-blue-50 text-blue-700' : 'bg-slate-200 text-slate-600' }}">{{ $milestone }} %</span><span class="text-xs font-bold {{ $progress >= $milestone ? 'text-emerald-600' : 'text-slate-400' }}">{{ $progress >= $milestone ? 'Desbloqueado' : 'Bloqueado' }}</span></div>
+                    <div class="flex items-center justify-between"><span class="challenge-milestone-badge rounded-full px-2.5 py-1 text-xs font-extrabold {{ $progress >= $milestone ? 'bg-blue-50 text-blue-700' : 'bg-slate-200 text-slate-600' }}">{{ $milestone }} %</span><span class="text-xs font-bold {{ $progress >= $milestone ? 'text-emerald-600' : 'text-slate-500' }}">{{ $progress >= $milestone ? 'Desbloqueado' : 'Bloqueado' }}</span></div>
                     <h2 class="mt-4 font-extrabold text-slate-900">Reto {{ $loop->iteration }}</h2>
                     @if($progress < $milestone)
                         <p class="mt-2 text-sm leading-6 text-slate-500">Completa el {{ $milestone }} % de tu ruta para recibir un reto acorde a ese nivel.</p>

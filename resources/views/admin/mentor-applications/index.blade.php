@@ -5,7 +5,7 @@
             <div>
                 <p class="text-sm font-bold text-blue-700">GESTIÓN DE MENTORES</p>
                 <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Solicitudes para ser mentor</h1>
-                <p class="mt-2 text-slate-500">Revisa los datos profesionales y el cuestionario antes de autorizar el rol.</p>
+                <p class="mt-2 text-slate-600">Revisa los datos profesionales y el cuestionario antes de autorizar el rol.</p>
             </div>
             <div class="flex flex-wrap gap-2">
                 @foreach (['pending_review' => 'Pendientes', 'approved' => 'Aprobadas', 'rejected' => 'Rechazadas'] as $key => $label)

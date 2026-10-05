@@ -136,7 +136,7 @@ components:
     rounded: "{rounded.md}"
     padding: "10px 12px"
   nav-link-active:
-    backgroundColor: "{colors.azul-lago-profundo}"
+    backgroundColor: "{colors.azul-lago-intenso}"
     textColor: "{colors.superficie}"
     rounded: "{rounded.md}"
     padding: "10px 12px"
@@ -168,8 +168,8 @@ Una paleta fría y contenida: el azul orienta y llama a la acción; todo lo dem�
 
 ### Primary
 - **Azul Lago** (#2196F3): el color de identidad del logo y la marca. Se usa en íconos, detalles decorativos, indicadores de progreso, texto grande y como botón principal sobre fondos oscuros (contraste 6.46:1 sobre Cielo de Atitlán). No lleva texto blanco encima en tamaños normales.
-- **Azul Lago Profundo** (#1976D2): la misma familia, un tono más oscuro, para todo lo que lleva texto: botones primarios con texto blanco (4.60:1), enlaces, navegación activa.
-- **Azul Lago Intenso** (#1565C0): estado hover y presionado de los botones primarios; texto de insignias y de acentos sobre fondos claros (5.75:1 sobre blanco).
+- **Azul Lago Profundo** (#1976D2): la misma familia, un tono más oscuro, para botones primarios con texto blanco (4.60:1).
+- **Azul Lago Intenso** (#1565C0): enlaces, navegación activa, texto azul sobre fondos claros (5.75:1 sobre blanco) y hover de los botones primarios.
 - **Bruma de Lago** (#E3F2FD): fondos teñidos de insignias, estados seleccionados y paneles de acento suave.
 - **Celeste Claro** (#81D4FA): texto de marca sobre superficies oscuras (12.23:1 sobre Cielo de Atitlán) y acento en el modo oscuro.
 
@@ -199,7 +199,7 @@ Una paleta fría y contenida: el azul orienta y llama a la acción; todo lo dem�
 
 **La regla de la noche como portada.** Cielo de Atitlán se usa como mucho una vez por pantalla, en la banda de bienvenida o portada; nunca como fondo de tarjetas en el modo claro.
 
-**Estado actual (deriva por corregir).** Gran parte de la interfaz todavía usa el azul de Tailwind (#1D4ED8, #2563EB, #EFF6FF) en lugar de la familia Azul Lago, y el botón del diagnóstico usa un azul claro con texto oscuro. Al tocar una pantalla, migra sus azules a esta paleta; no introduzcas nuevos usos de #1D4ED8.
+**Implementación.** `tailwind.config.js` redefine las escalas `blue` y `sky` con la familia Azul Lago, asignadas por papel: `blue-600` es el botón con texto blanco, `blue-700` el texto azul y la navegación activa, `blue-500` los anillos de foco y `blue-50`/`blue-100` los tintes (el `100` es #D3EAFC para que el texto `700` encima cumpla 4.64:1). Usa esas clases; no escribas azules en hexadecimal. Sobre `blue-700` solo cumple texto blanco o `blue-50`; sobre `blue-600`, solo blanco.
 
 ## Typography
 
@@ -222,9 +222,8 @@ Una paleta fría y contenida: el azul orienta y llama a la acción; todo lo dem�
 ### Named Rules
 **La regla del peso con propósito.** El peso 800 se reserva para títulos y cifras; el texto corrido nunca va en negrita completa y los botones van en 700.
 
-**La regla de la etiqueta legible.** Las etiquetas en mayúsculas miden al menos 11 px y usan como mínimo Texto apagado (#64748B). Las etiquetas actuales en #94A3B8 (2.56:1) no cumplen el contraste y deben oscurecerse.
+**La regla de la etiqueta legible.** Las etiquetas en mayúsculas miden al menos 11 px y usan como mínimo Texto apagado (#64748B) sobre blanco. Sobre el fondo de administración (#F1F5F9) el texto secundario usa #475569, porque #64748B queda en 4.34:1. Nunca #94A3B8 para texto sobre fondos claros (2.56:1).
 
-**Estado actual (deriva por corregir).** La página de inicio declara Inter pero no la carga, así que muestra la fuente del sistema. Debe usar Figtree como el resto.
 
 ## Layout
 
@@ -298,7 +297,7 @@ Ventana emergente blanca de 16px de radio con sombra marcada que presenta la pla
 ## Do's and Don'ts
 
 ### Do:
-- **Do** usar Azul Lago Profundo (#1976D2) o Intenso (#1565C0) cada vez que el azul lleve texto o sea texto.
+- **Do** usar Azul Lago Profundo (#1976D2, `blue-600`) para botones con texto blanco e Intenso (#1565C0, `blue-700`) para texto azul.
 - **Do** mantener una sola llamada principal por bloque y dejar visible el siguiente paso de la ruta.
 - **Do** usar contenedores suaves (fondo teñido, borde y texto oscuro del mismo tono) para éxito, error y aviso.
 - **Do** escalonar las esquinas: 12 px en controles, 16 px en tarjetas, 24 px en bandas.
@@ -312,5 +311,5 @@ Ventana emergente blanca de 16px de radio con sombra marcada que presenta la pla
 - **Don't** llenar la interfaz de contadores, insignias y colores compitiendo por atención: no es una red social.
 - **Don't** poner texto blanco sobre Azul Lago (#2196F3) en tamaños normales (3.12:1).
 - **Don't** usar #94A3B8 o más claro para texto sobre fondos claros.
-- **Don't** introducir nuevos usos del azul de Tailwind #1D4ED8 ni otro azul fuera de la familia Azul Lago.
+- **Don't** escribir azules en hexadecimal ni usar `indigo`, `violet` u otro azul fuera de la familia Azul Lago: las clases `blue-*` y `sky-*` ya son Azul Lago.
 - **Don't** usar Cielo de Atitlán más de una vez por pantalla en el modo claro.

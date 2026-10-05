@@ -85,7 +85,7 @@
                             @error('professional_goal')<p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label for="linkedin_url" class="text-sm font-bold text-slate-800">Perfil de LinkedIn <span class="font-medium text-slate-400">(opcional)</span></label>
+                            <label for="linkedin_url" class="text-sm font-bold text-slate-800">Perfil de LinkedIn <span class="font-medium text-slate-500">(opcional)</span></label>
                             <input id="linkedin_url" type="url" name="linkedin_url" value="{{ old('linkedin_url', $profile->linkedin_url) }}" class="mt-2 block w-full rounded-xl border-slate-200 text-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://linkedin.com/in/tu-perfil">
                             @error('linkedin_url')<p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>@enderror
                         </div>
@@ -113,7 +113,7 @@
                     <template x-if="education.length === 0"><p class="rounded-xl bg-slate-50 px-4 py-4 text-sm text-slate-500">Aún no agregas estudios. Incluye los más relevantes para tu objetivo.</p></template>
                     <template x-for="(item, index) in education" :key="'education-' + index">
                         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="flex items-center justify-between gap-3"><p class="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400" x-text="'Estudio ' + (index + 1)"></p><button type="button" @click="education.splice(index, 1)" class="text-sm font-bold text-rose-600 hover:text-rose-700">Quitar</button></div>
+                            <div class="flex items-center justify-between gap-3"><p class="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-500" x-text="'Estudio ' + (index + 1)"></p><button type="button" @click="education.splice(index, 1)" class="text-sm font-bold text-rose-600 hover:text-rose-700">Quitar</button></div>
                             <div class="mt-3 grid gap-3 sm:grid-cols-2"><input x-model="item.program" :name="'education[' + index + '][program]'" class="rounded-xl border-slate-200 text-sm" placeholder="Carrera, título o curso"><input x-model="item.institution" :name="'education[' + index + '][institution]'" class="rounded-xl border-slate-200 text-sm" placeholder="Institución educativa"></div>
                             <input x-model="item.period" :name="'education[' + index + '][period]'" class="mt-3 w-full rounded-xl border-slate-200 text-sm" placeholder="Periodo, por ejemplo: 2022 - 2025">
                         </div>
@@ -131,7 +131,7 @@
                     <template x-if="experience.length === 0"><p class="rounded-xl bg-slate-50 px-4 py-4 text-sm text-slate-500">Aún no agregas experiencia. También puedes incluir proyectos personales.</p></template>
                     <template x-for="(item, index) in experience" :key="'experience-' + index">
                         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="flex items-center justify-between gap-3"><p class="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400" x-text="'Experiencia ' + (index + 1)"></p><button type="button" @click="experience.splice(index, 1)" class="text-sm font-bold text-rose-600 hover:text-rose-700">Quitar</button></div>
+                            <div class="flex items-center justify-between gap-3"><p class="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-500" x-text="'Experiencia ' + (index + 1)"></p><button type="button" @click="experience.splice(index, 1)" class="text-sm font-bold text-rose-600 hover:text-rose-700">Quitar</button></div>
                             <div class="mt-3 grid gap-3 sm:grid-cols-2"><input x-model="item.role" :name="'work_experience[' + index + '][role]'" class="rounded-xl border-slate-200 text-sm" placeholder="Cargo o función"><input x-model="item.company" :name="'work_experience[' + index + '][company]'" class="rounded-xl border-slate-200 text-sm" placeholder="Empresa u organización"></div>
                             <input x-model="item.period" :name="'work_experience[' + index + '][period]'" class="mt-3 w-full rounded-xl border-slate-200 text-sm" placeholder="Periodo, por ejemplo: 2025 - Actual">
                             <textarea x-model="item.description" :name="'work_experience[' + index + '][description]'" rows="3" class="mt-3 w-full rounded-xl border-slate-200 text-sm" placeholder="Responsabilidades, resultados o herramientas utilizadas"></textarea>

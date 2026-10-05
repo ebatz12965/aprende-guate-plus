@@ -31,9 +31,9 @@
 
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="admin-sidebar fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-sky-100 bg-white transition-transform duration-200 lg:translate-x-0">
         <div class="flex h-20 items-center justify-between border-b border-slate-100 px-6">
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 text-sky-950">
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 text-sky-950 dark:text-white">
                 <img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="" class="ag-brand-icon">
-                <span><span class="block text-base font-extrabold tracking-tight">Aprende Guate</span><span class="block text-xs font-medium text-blue-700">Administración</span></span>
+                <span><span class="block text-base font-extrabold tracking-tight">Aprende Guate</span><span class="block text-xs font-medium text-blue-700 dark:text-blue-300">Administración</span></span>
             </a>
             <button @click="sidebarOpen = false" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden" aria-label="Cerrar menú">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg>
@@ -108,10 +108,10 @@
                         <span class="grid h-9 w-9 place-items-center rounded-lg bg-blue-100 text-blue-800">{{ Str::upper(Str::substr(auth()->user()->name, 0, 1)) }}</span>
                         @if($twoFactorPending)<span class="h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-white" title="Verificación en dos pasos pendiente"></span>@endif
                         <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
-                        <svg class="hidden h-4 w-4 text-slate-400 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                        <svg class="hidden h-4 w-4 text-slate-500 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                     <div x-cloak x-show="profileOpen" @click.outside="profileOpen = false" x-transition class="absolute right-0 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10" role="menu">
-                        <p class="px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Cambiar espacio</p>
+                        <p class="px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Cambiar espacio</p>
                         <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="learning"><button class="platform-menu-link w-full text-left" role="menuitem">Mi aprendizaje</button></form>
                         @if(auth()->user()->hasRole('Instructor'))<form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="mentor"><button class="platform-menu-link w-full text-left" role="menuitem">Espacio mentor</button></form>@endif
                         <div class="my-1 border-t border-slate-100"></div>

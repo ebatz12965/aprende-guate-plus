@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-05T04:45:00-06:00",
+  "generatedAt": "2026-10-05T06:30:00-06:00",
   "title": "Design System: Aprende Guate",
   "extensions": {
     "colorMeta": {
-      "azul-lago": { "role": "primary", "displayName": "Azul Lago", "canonical": "#2196F3", "tonalRamp": ["#0D47A1", "#1565C0", "#1976D2", "#1E88E5", "#2196F3", "#64B5F6", "#90CAF9", "#E3F2FD"] },
+      "azul-lago": { "role": "primary", "displayName": "Azul Lago", "canonical": "#2196F3", "tonalRamp": ["#0D47A1", "#1565C0", "#1976D2", "#2196F3", "#42A5F5", "#64B5F6", "#90CAF9", "#D3EAFC"] },
       "azul-lago-profundo": { "role": "primary", "displayName": "Azul Lago Profundo", "canonical": "#1976D2", "tonalRamp": ["#0D47A1", "#1565C0", "#1976D2", "#1E88E5", "#2196F3", "#64B5F6", "#90CAF9", "#E3F2FD"] },
       "azul-lago-intenso": { "role": "primary", "displayName": "Azul Lago Intenso", "canonical": "#1565C0" },
       "azul-lago-bruma": { "role": "primary", "displayName": "Bruma de Lago", "canonical": "#E3F2FD" },
@@ -97,7 +97,7 @@
       "refersTo": "nav-link-active",
       "description": "Menú lateral de administración y del estudiante.",
       "html": "<nav class=\"ds-nav\"><p class=\"ds-nav-label\">GESTIÓN</p><a class=\"ds-nav-link ds-nav-link-active\" href=\"#\">Panel</a><a class=\"ds-nav-link\" href=\"#\">Usuarios</a><a class=\"ds-nav-link\" href=\"#\">Solicitudes de mentor</a></nav>",
-      "css": ".ds-nav { display: grid; gap: 4px; width: 240px; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; } .ds-nav-label { margin: 0 0 4px; padding: 0 12px; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #64748B; } .ds-nav-link { display: flex; align-items: center; padding: 10px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; color: #475569; text-decoration: none; transition: background-color .2s ease, color .2s ease; } .ds-nav-link:hover { background: #E3F2FD; color: #1565C0; } .ds-nav-link:focus-visible { outline: 2px solid #2196F3; outline-offset: 2px; } .ds-nav-link-active, .ds-nav-link-active:hover { background: #1976D2; color: #FFFFFF; box-shadow: 0 4px 6px -1px rgb(25 118 210 / .2); }"
+      "css": ".ds-nav { display: grid; gap: 4px; width: 240px; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; } .ds-nav-label { margin: 0 0 4px; padding: 0 12px; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #64748B; } .ds-nav-link { display: flex; align-items: center; padding: 10px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; color: #475569; text-decoration: none; transition: background-color .2s ease, color .2s ease; } .ds-nav-link:hover { background: #E3F2FD; color: #1565C0; } .ds-nav-link:focus-visible { outline: 2px solid #2196F3; outline-offset: 2px; } .ds-nav-link-active, .ds-nav-link-active:hover { background: #1565C0; color: #FFFFFF; box-shadow: 0 4px 6px -1px rgb(21 101 192 / .2); }"
     },
     {
       "name": "Insignia",
@@ -148,14 +148,14 @@
       { "name": "La regla del único acento", "body": "Azul Lago es el único color de identidad. Verde, rojo y ámbar existen solo para comunicar estados, nunca para decorar.", "section": "colors" },
       { "name": "La regla de la noche como portada", "body": "Cielo de Atitlán se usa como mucho una vez por pantalla, en la banda de bienvenida o portada; nunca como fondo de tarjetas en el modo claro.", "section": "colors" },
       { "name": "La regla del peso con propósito", "body": "El peso 800 se reserva para títulos y cifras; el texto corrido nunca va en negrita completa y los botones van en 700.", "section": "typography" },
-      { "name": "La regla de la etiqueta legible", "body": "Las etiquetas en mayúsculas miden al menos 11 px y usan como mínimo Texto apagado (#64748B). Las etiquetas actuales en #94A3B8 (2.56:1) no cumplen el contraste y deben oscurecerse.", "section": "typography" },
+      { "name": "La regla de la etiqueta legible", "body": "Las etiquetas en mayúsculas miden al menos 11 px y usan como mínimo Texto apagado (#64748B) sobre blanco. Sobre el fondo de administración (#F1F5F9) el texto secundario usa #475569, porque #64748B queda en 4.34:1. Nunca #94A3B8 para texto sobre fondos claros (2.56:1).", "section": "typography" },
       { "name": "La regla del siguiente paso visible", "body": "En cada pantalla del estudiante, la acción que lo hace avanzar en su ruta es visible sin desplazarse en escritorio y es la primera acción en móvil.", "section": "layout" },
       { "name": "La regla de plano en reposo", "body": "Nada flota en reposo. La elevación es una respuesta (cursor, foco, apertura de un menú o modal), nunca un estado decorativo.", "section": "elevation" },
       { "name": "La regla del movimiento respetuoso", "body": "Las entradas usan cubic-bezier(.22, 1, .36, 1): 0.45 s para la aparición escalonada del contenido y 0.22 s para modales. Con prefers-reduced-motion: reduce todas las animaciones y transiciones se anulan.", "section": "elevation" },
       { "name": "La regla de la escalera", "body": "Un elemento nunca tiene esquinas más redondeadas que su contenedor: control (12 px) dentro de tarjeta (16 px) dentro de banda (24 px).", "section": "shapes" }
     ],
     "dos": [
-      "Do usar Azul Lago Profundo (#1976D2) o Intenso (#1565C0) cada vez que el azul lleve texto o sea texto.",
+      "Do usar Azul Lago Profundo (#1976D2, blue-600) para botones con texto blanco e Intenso (#1565C0, blue-700) para texto azul.",
       "Do mantener una sola llamada principal por bloque y dejar visible el siguiente paso de la ruta.",
       "Do usar contenedores suaves (fondo teñido, borde y texto oscuro del mismo tono) para éxito, error y aviso.",
       "Do escalonar las esquinas: 12 px en controles, 16 px en tarjetas, 24 px en bandas.",
@@ -169,7 +169,7 @@
       "Don't llenar la interfaz de contadores, insignias y colores compitiendo por atención: no es una red social.",
       "Don't poner texto blanco sobre Azul Lago (#2196F3) en tamaños normales (3.12:1).",
       "Don't usar #94A3B8 o más claro para texto sobre fondos claros.",
-      "Don't introducir nuevos usos del azul de Tailwind #1D4ED8 ni otro azul fuera de la familia Azul Lago.",
+      "Don't escribir azules en hexadecimal ni usar indigo, violet u otro azul fuera de la familia Azul Lago: las clases blue-* y sky-* ya son Azul Lago.",
       "Don't usar Cielo de Atitlán más de una vez por pantalla en el modo claro."
     ]
   }

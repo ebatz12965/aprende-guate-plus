@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aprende Guate</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     <script>
@@ -27,7 +29,7 @@
     <style>
         :root {
             color-scheme: light;
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: Figtree, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: #0f172a;
             background: #f8fafc
         }
@@ -67,7 +69,7 @@
             align-items: center;
             gap: 12px;
             font-weight: 800;
-            color: #172554;
+            color: #072859;
             font-size: 18px
         }
 
@@ -76,7 +78,7 @@
             height: 40px;
             display: grid;
             place-items: center;
-            background: #1d4ed8;
+            background: #1565C0;
             border-radius: 12px;
             color: #fff;
             box-shadow: 0 10px 20px rgba(29, 78, 216, .2)
@@ -88,20 +90,20 @@
             gap: 12px;
             font-size: 14px;
             font-weight: 700;
-            color: #1e40af
+            color: #0D47A1
         }
 
         .button {
             padding: 11px 17px;
             border-radius: 11px;
-            border: 1px solid #bfdbfe;
+            border: 1px solid #90CAF9;
             white-space: nowrap
         }
 
         .button-primary {
             color: #fff;
-            background: #1d4ed8;
-            border-color: #1d4ed8;
+            background: #1565C0;
+            border-color: #1565C0;
             box-shadow: 0 8px 16px rgba(29, 78, 216, .16)
         }
 
@@ -117,7 +119,7 @@
             padding: clamp(32px, 5vw, 84px);
             border-radius: 28px;
             color: #fff;
-            background: linear-gradient(135deg, #172554 0%, #1d4ed8 58%, #2563eb 100%);
+            background: linear-gradient(135deg, #072859 0%, #0D47A1 58%, #1565C0 100%);
             box-shadow: 0 20px 45px rgba(30, 64, 175, .22)
         }
 
@@ -138,10 +140,10 @@
             align-items: center;
             gap: 9px;
             padding: 10px 15px;
-            border: 1px solid rgba(191, 219, 254, .4);
+            border: 1px solid rgba(144, 202, 249, .4);
             border-radius: 999px;
-            background: rgba(255, 255, 255, .1);
-            color: #dbeafe;
+            background: rgba(2, 6, 23, .28);
+            color: #E3F2FD;
             font-size: 14px;
             font-weight: 700
         }
@@ -150,7 +152,7 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #5eead4
+            background: #81D4FA
         }
 
         .hero h1 {
@@ -164,7 +166,7 @@
         .hero p {
             max-width: 710px;
             margin: 22px 0 0;
-            color: #dbeafe;
+            color: #E3F2FD;
             font-size: clamp(16px, 1.35vw, 20px);
             line-height: 1.6
         }
@@ -181,7 +183,7 @@
         }
 
         .button-light {
-            color: #1e3a8a;
+            color: #0B3A86;
             background: #fff;
             border-color: #fff
         }
@@ -209,9 +211,9 @@
             place-items: center;
             width: 24px;
             height: 24px;
-            border: 1px solid #bfdbfe;
+            border: 1px solid #90CAF9;
             border-radius: 50%;
-            color: #1d4ed8;
+            color: #1565C0;
             font-size: 17px;
             line-height: 1;
             animation: hint-bounce 1.8s ease-in-out infinite
@@ -250,8 +252,8 @@
             height: 40px;
             place-items: center;
             border-radius: 12px;
-            color: #075985;
-            background: #e0f2fe;
+            color: #0D47A1;
+            background: #BBDEFB;
             font-size: 12px;
             font-weight: 800
         }
@@ -381,7 +383,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #93c5fd;
+            background: #64B5F6;
             opacity: .35;
             animation: hint-pulse 1.8s ease-in-out infinite
         }
@@ -410,18 +412,19 @@
 
         .theme-toggle {
             padding: 9px 12px;
-            border: 1px solid #bfdbfe;
+            border: 1px solid #90CAF9;
             border-radius: 11px;
             background: #fff;
-            color: #1e40af;
+            color: #0D47A1;
             font: inherit;
             font-size: 12px;
             font-weight: 700;
+            white-space: nowrap;
             cursor: pointer
         }
 
         .theme-toggle:hover {
-            background: #eff6ff
+            background: #E3F2FD
         }
 
         .dark body {
@@ -439,13 +442,13 @@
         }
 
         .dark .top-actions {
-            color: #bfdbfe
+            color: #90CAF9
         }
 
         .dark .theme-toggle {
             border-color: #334155;
             background: #1e293b;
-            color: #dbeafe
+            color: #E3F2FD
         }
 
         .dark .theme-toggle:hover {

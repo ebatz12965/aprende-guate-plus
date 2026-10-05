@@ -106,7 +106,7 @@
     .learning-stat { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm; }
     .learning-stat > p { @apply text-sm font-bold text-slate-500; }
     .learning-stat strong { @apply text-3xl font-extrabold text-slate-900; }
-    .learning-stat span { @apply text-xs font-semibold text-slate-400; }
+    .learning-stat span { @apply text-xs font-semibold text-slate-500; }
 }
 
 
@@ -114,7 +114,7 @@
     .admin-sidebar-link { @apply mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-800; }
     .admin-sidebar-link-active { @apply bg-blue-700 text-white shadow-md shadow-blue-700/20 hover:bg-blue-700 hover:text-white; }
     .admin-sidebar-icon { @apply h-5 w-5 shrink-0; }
-    .admin-sidebar-label { @apply px-3 text-[11px] font-extrabold tracking-[0.12em] text-slate-400; }
+    .admin-sidebar-label { @apply px-3 text-[11px] font-extrabold tracking-[0.12em] text-slate-500; }
     .admin-student-link { @apply flex items-center gap-3 rounded-xl bg-blue-50 px-3 py-3 text-sm font-bold text-blue-800 transition hover:bg-blue-100; }
     .admin-theme-toggle { @apply inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50; }
     .admin-stat-card { @apply rounded-2xl border border-blue-100 bg-white p-6 shadow-sm; }
@@ -122,6 +122,8 @@
     .admin-stat-card strong { @apply mt-3 block text-3xl font-extrabold tracking-tight text-slate-900; }
     .admin-stat-card span { @apply mt-2 block text-sm leading-6 text-slate-500; }
     .admin-stat-card a { @apply mt-5 inline-block text-sm font-bold text-blue-700 hover:text-blue-900; }
+    .admin-eyebrow { @apply text-sm font-bold text-blue-700; }
+    .admin-secondary-button { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2; }
 }
 
 @layer base {
@@ -129,11 +131,14 @@
     .dark .admin-sidebar, .dark .admin-topbar { border-color: #1e293b; background-color: #0f172a; }
     .dark .admin-sidebar-link { color: #cbd5e1; }
     .dark .admin-sidebar-link:hover { background-color: #1e293b; color: #fff; }
-    .dark .admin-sidebar-link-active, .dark .admin-sidebar-link-active:hover { background-color: #2563eb; color: #fff; }
+    .dark .admin-sidebar-link-active, .dark .admin-sidebar-link-active:hover { background-color: #1976D2; color: #fff; }
     .dark .admin-sidebar-label { color: #94a3b8; }
-    .dark .admin-student-link { background-color: rgb(23 37 84 / .7); color: #bfdbfe; }
-    .dark .admin-student-link:hover { background-color: #1e3a8a; }
+    .dark .admin-student-link { background-color: rgb(7 40 89 / .7); color: #90CAF9; }
+    .dark .admin-student-link:hover { background-color: #0B3A86; }
     .dark .admin-theme-toggle { border-color: #334155; background-color: #1e293b; color: #f1f5f9; }
+    .dark .admin-secondary-button { border-color: #334155; background-color: #1e293b; color: #f1f5f9; }
+    .dark .admin-secondary-button:hover { background-color: #334155; }
+    .dark .admin-eyebrow { color: #90CAF9; }
     .dark .admin-theme-toggle:hover, .dark .admin-topbar .bg-slate-100 { background-color: #334155; }
     .dark .admin-topbar .text-slate-900, .dark .admin-topbar .text-slate-700 { color: #f1f5f9; }
     .dark .admin-topbar .text-slate-500 { color: #94a3b8; }
@@ -146,14 +151,24 @@
     .dark .admin-content .text-gray-600, .dark .admin-content .text-gray-500, .dark .admin-content .text-slate-600, .dark .admin-content .text-slate-500 { color: #cbd5e1; }
     .dark .admin-content input, .dark .admin-content select, .dark .admin-content textarea { border-color: #475569; background-color: #1e293b; color: #f1f5f9; }
     .dark .admin-content input::placeholder, .dark .admin-content textarea::placeholder { color: #94a3b8; }
-    .dark .admin-content .bg-blue-100 { background-color: rgb(23 37 84 / .7); }
-    .dark .admin-content .text-blue-800 { color: #bfdbfe; }
+    .dark .admin-content .bg-blue-100, .dark .admin-content .bg-sky-100 { background-color: rgb(7 40 89 / .7); }
+    .dark .admin-content .text-blue-800, .dark .admin-content .text-blue-700, .dark .admin-content .text-blue-600, .dark .admin-content .text-sky-700, .dark .admin-content .text-sky-600 { color: #90CAF9; }
+    .dark .admin-content .text-slate-950 { color: #f1f5f9; }
+    .dark .admin-content .bg-slate-100 { background-color: #1e293b; }
+    .dark .admin-content .bg-blue-50 { background-color: rgb(25 118 210 / .18); }
+    .dark .admin-content .bg-emerald-50 { background-color: rgb(16 185 129 / .14); }
+    .dark .admin-content .bg-rose-50, .dark .admin-content .bg-red-50 { background-color: rgb(244 63 94 / .14); }
+    .dark .admin-content .bg-amber-50 { background-color: rgb(245 158 11 / .14); }
+    .dark .admin-content .text-amber-700, .dark .admin-content .text-amber-900 { color: #fcd34d; }
+    .dark .admin-content .text-slate-800 { color: #e2e8f0; }
+    .dark .admin-content .text-emerald-700, .dark .admin-content .text-emerald-600 { color: #6ee7b7; }
+    .dark .admin-content .text-rose-700, .dark .admin-content .text-rose-600, .dark .admin-content .text-red-600 { color: #fda4af; }
 }
 
 @layer components {
     .student-sidebar-link { @apply mb-1 flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-800; }
     .student-sidebar-link-active { @apply bg-blue-700 text-white shadow-md shadow-blue-700/20 hover:bg-blue-700 hover:text-white; }
-    .student-sidebar-label { @apply px-3 text-[11px] font-extrabold tracking-[0.12em] text-slate-400; }
+    .student-sidebar-label { @apply px-3 text-[11px] font-extrabold tracking-[0.12em] text-slate-500; }
     .student-layout-switch { @apply mb-2 block w-full rounded-xl bg-blue-50 px-3 py-2.5 text-left text-sm font-bold text-blue-800 transition hover:bg-blue-100; }
 }
 
@@ -181,7 +196,7 @@
     .dark .platform-menu-link:hover { background-color: #1e293b; color: #fff; }
     .dark .student-content .bg-blue-50 { background-color: rgb(25 118 210 / .18); }
     .dark .student-content .bg-blue-100 { background-color: rgb(25 118 210 / .3); }
-    .dark .student-content .text-blue-800, .dark .student-content .text-blue-700 { color: #81d4fa; }
+    .dark .student-content .text-blue-800, .dark .student-content .text-blue-700, .dark .student-content .text-blue-600 { color: #81d4fa; }
     .dark .student-content .ring-white { --tw-ring-color: #0f172a; }
     .dark .student-content .profile-save-bar { border-color: #334155; background-color: rgb(15 23 42 / .96) !important; }
     .dark .student-content .profile-save-bar .text-slate-500 { color: #cbd5e1; }

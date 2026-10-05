@@ -8,7 +8,7 @@
     @endif
 
     <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200">
-        <button type="button" @click="authenticatorOpen = !authenticatorOpen" class="flex w-full items-center justify-between gap-4 bg-white px-5 py-4 text-left transition hover:bg-slate-50"><span class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-100 text-lg text-blue-800">🔐</span><span><span class="block font-extrabold text-slate-900">Aplicación autenticadora</span><span class="mt-1 block text-sm text-slate-500">Google Authenticator, Microsoft Authenticator, Authy u otra compatible</span></span></span><span class="text-xl text-slate-400" x-text="authenticatorOpen ? '−' : '+'"></span></button>
+        <button type="button" @click="authenticatorOpen = !authenticatorOpen" class="flex w-full items-center justify-between gap-4 bg-white px-5 py-4 text-left transition hover:bg-slate-50"><span class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-100 text-lg text-blue-800">🔐</span><span><span class="block font-extrabold text-slate-900">Aplicación autenticadora</span><span class="mt-1 block text-sm text-slate-500">Google Authenticator, Microsoft Authenticator, Authy u otra compatible</span></span></span><span class="text-xl text-slate-500" x-text="authenticatorOpen ? '−' : '+'"></span></button>
 
         <div x-show="authenticatorOpen" x-transition x-cloak class="border-t border-slate-200 bg-slate-50/70 p-5">
             @if ($user->hasTwoFactorEnabled())

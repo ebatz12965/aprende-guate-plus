@@ -4,7 +4,7 @@
 @php($photoUrl = $profile->photo_path ? Storage::disk('public')->url($profile->photo_path) : null)
 <div class="mx-auto w-full max-w-5xl">
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div class="bg-gradient-to-br from-slate-950 via-blue-950 to-blue-700 px-6 py-9 text-white sm:px-10 sm:py-11">
+        <div class="bg-gradient-to-br from-slate-950 via-blue-950 to-blue-800 px-6 py-9 text-white sm:px-10 sm:py-11">
             <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex min-w-0 items-center gap-5">
                     @if($photoUrl)
