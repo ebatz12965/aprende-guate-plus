@@ -105,8 +105,8 @@
     .learning-panel { @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-sm; }
     .learning-stat { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm; }
     .learning-stat > p { @apply text-sm font-bold text-slate-500; }
-    .learning-stat strong { @apply text-3xl font-extrabold text-slate-900; }
-    .learning-stat span { @apply text-xs font-semibold text-slate-500; }
+    .learning-stat > strong { @apply mt-2 block text-3xl font-extrabold tabular-nums text-slate-900; }
+    .learning-stat > span { @apply mt-1 block text-xs font-semibold text-slate-500; }
 }
 
 
