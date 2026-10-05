@@ -96,14 +96,37 @@
         @endif
     @endif
 
-    <form method="POST" action="{{ route('adaptive.topic.practice.submit', $topic) }}" class="mt-8">@csrf
-        <label for="practice-answer" class="font-extrabold text-slate-900">{{ $latest ? 'Tu nuevo intento' : 'Tu respuesta' }}</label>
-        <textarea id="practice-answer" required name="answer" rows="10" maxlength="12000"
-            class="mt-3 w-full rounded-xl border-slate-200 text-sm leading-6 focus:border-blue-500 focus:ring-blue-500 {{ $kind === 'code' ? 'font-mono' : '' }}"
-            placeholder="{{ $v2 ? Str::limit($brief['deliverable'] ?? '', 160) : 'Describe tu solución, pega tu resultado o comparte el código corregido.' }}">{{ old('answer') }}</textarea>
-        <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-            <button class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700">{{ $latest ? 'Enviar nuevo intento' : 'Enviar mi práctica' }}</button>
-            <p class="text-sm text-slate-600">El evaluador IA revisará cada criterio y te dirá qué mejorar. Puedes intentarlo las veces que quieras.</p>
+    {{-- Al escribir, el cuadro se acopla abajo de la pantalla: se puede subir a releer el caso sin perder de vista la respuesta.
+         El borrador se guarda en el dispositivo hasta enviarlo. --}}
+    <form method="POST" action="{{ route('adaptive.topic.practice.submit', $topic) }}" class="mt-8 transition-shadow duration-200"
+        x-data="{ text: '', docked: false, collapsed: false, saved: false, key: 'ag-practice-draft-{{ $practice->id }}',
+            init() { const current = this.$refs.answer.value; let draft = ''; try { draft = localStorage.getItem(this.key) || ''; } catch (error) {} this.text = current || draft; this.saved = ! current && draft !== ''; },
+            store() { try { this.text.trim() ? localStorage.setItem(this.key, this.text) : localStorage.removeItem(this.key); this.saved = this.text.trim() !== ''; } catch (error) {} },
+            dock() { this.docked = true; this.collapsed = false; },
+            expand() { this.collapsed = false; this.$nextTick(() => this.$refs.answer.focus()); },
+            clearDraft() { try { localStorage.removeItem(this.key); } catch (error) {} } }"
+        @submit="clearDraft()" @invalid.capture="collapsed = false"
+        :class="docked ? 'sticky bottom-[5.5rem] z-20 rounded-2xl border border-blue-200 bg-white p-4 shadow-2xl sm:bottom-4 dark:bg-slate-900' : ''">@csrf
+        <div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <label for="practice-answer" class="font-extrabold text-slate-900">{{ $latest ? 'Tu nuevo intento' : 'Tu respuesta' }}</label>
+                <div x-show="docked" x-cloak class="flex gap-1">
+                    <button type="button" x-show="! collapsed" @click="collapsed = true" class="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-bold text-blue-700 hover:bg-blue-50">Minimizar</button>
+                    <button type="button" x-show="collapsed" @click="expand()" class="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-bold text-blue-700 hover:bg-blue-50">Abrir</button>
+                    <button type="button" @click="docked = false; collapsed = false" class="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-bold text-slate-600 hover:bg-slate-100">Soltar</button>
+                </div>
+            </div>
+            <p x-show="docked && ! collapsed" x-cloak class="mt-1 text-xs text-slate-600">Tu respuesta se queda aquí mientras subes a releer el caso.</p>
+            <p x-show="collapsed" x-cloak class="mt-1 truncate text-sm text-slate-600" x-text="text.trim() ? text.trim().slice(0, 120) : 'Aún no escribes nada.'"></p>
+            <textarea id="practice-answer" x-ref="answer" x-model="text" @focus="dock()" @input.debounce.400ms="store()" x-show="! collapsed" required name="answer" rows="10" maxlength="12000"
+                class="mt-3 w-full rounded-xl border-slate-200 text-sm leading-6 focus:border-blue-500 focus:ring-blue-500 {{ $kind === 'code' ? 'font-mono' : '' }}"
+                :class="docked ? 'h-32 max-h-[35vh] sm:h-36' : ''"
+                placeholder="{{ $v2 ? Str::limit($brief['deliverable'] ?? '', 160) : 'Describe tu solución, pega tu resultado o comparte el código corregido.' }}">{{ old('answer') }}</textarea>
+            <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+                <button class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700">{{ $latest ? 'Enviar nuevo intento' : 'Enviar mi práctica' }}</button>
+                <p x-show="saved" x-cloak class="text-sm text-slate-600" role="status">Borrador guardado en este dispositivo</p>
+                <p x-show="! docked" class="text-sm text-slate-600">El evaluador IA revisará cada criterio y te dirá qué mejorar. Puedes intentarlo las veces que quieras.</p>
+            </div>
         </div>
     </form>
 
