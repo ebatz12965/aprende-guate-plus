@@ -37,7 +37,8 @@
       "body-small": { "displayName": "Body small", "purpose": "Descripciones, ayudas y contenido de campos." },
       "button": { "displayName": "Button", "purpose": "Botones y enlaces de navegación." },
       "caption": { "displayName": "Caption", "purpose": "Insignias y metadatos breves." },
-      "label": { "displayName": "Label", "purpose": "Etiquetas de sección en mayúsculas." }
+      "label": { "displayName": "Label", "purpose": "Etiquetas de sección en mayúsculas dentro del contenido." },
+      "label-small": { "displayName": "Label small", "purpose": "Etiquetas de menús y pie de página; tamaño mínimo de texto del sistema." }
     },
     "shadows": [
       { "name": "reposo", "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "purpose": "Tarjetas y paneles en reposo." },

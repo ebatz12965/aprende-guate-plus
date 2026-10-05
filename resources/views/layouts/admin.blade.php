@@ -111,7 +111,7 @@
                         <svg class="hidden h-4 w-4 text-slate-500 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                     <div x-cloak x-show="profileOpen" @click.outside="profileOpen = false" x-transition class="absolute right-0 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10" role="menu">
-                        <p class="px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Cambiar espacio</p>
+                        <p class="px-3 py-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Cambiar espacio</p>
                         <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="learning"><button class="platform-menu-link w-full text-left" role="menuitem">Mi aprendizaje</button></form>
                         @if(auth()->user()->hasRole('Instructor'))<form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="mentor"><button class="platform-menu-link w-full text-left" role="menuitem">Espacio mentor</button></form>@endif
                         <div class="my-1 border-t border-slate-100"></div>

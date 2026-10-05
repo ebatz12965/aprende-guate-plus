@@ -95,7 +95,7 @@
 
         .button {
             padding: 11px 17px;
-            border-radius: 11px;
+            border-radius: 12px;
             border: 1px solid #90CAF9;
             white-space: nowrap
         }
@@ -117,7 +117,7 @@
             overflow: hidden;
             position: relative;
             padding: clamp(32px, 5vw, 84px);
-            border-radius: 28px;
+            border-radius: 24px;
             color: #fff;
             background: linear-gradient(135deg, #072859 0%, #0D47A1 58%, #1565C0 100%);
             box-shadow: 0 20px 45px rgba(30, 64, 175, .22)
@@ -216,18 +216,18 @@
             color: #1565C0;
             font-size: 17px;
             line-height: 1;
-            animation: hint-bounce 1.8s ease-in-out infinite
+            animation: hint-nudge .9s cubic-bezier(.22, 1, .36, 1) .6s both
         }
 
-        @keyframes hint-bounce {
-
-            0%,
-            100% {
-                transform: translateY(0)
+        @keyframes hint-nudge {
+            from {
+                opacity: 0;
+                transform: translateY(-6px)
             }
 
-            50% {
-                transform: translateY(4px)
+            to {
+                opacity: 1;
+                transform: translateY(0)
             }
         }
 
@@ -241,7 +241,7 @@
         .feature {
             padding: 25px;
             border: 1px solid #e2e8f0;
-            border-radius: 20px;
+            border-radius: 16px;
             background: #fff;
             box-shadow: 0 2px 6px rgba(15, 23, 42, .04)
         }
@@ -327,7 +327,7 @@
             }
 
             .hero {
-                border-radius: 22px;
+                border-radius: 24px;
                 padding: 30px 24px
             }
 
@@ -385,7 +385,7 @@
             border-radius: 50%;
             background: #64B5F6;
             opacity: .35;
-            animation: hint-pulse 1.8s ease-in-out infinite
+            animation: hint-settle .9s cubic-bezier(.22, 1, .36, 1) .6s both
         }
 
         .scroll-hint-dot:nth-child(2) {
@@ -396,24 +396,22 @@
             animation-delay: .4s
         }
 
-        @keyframes hint-pulse {
-
-            0%,
-            100% {
-                opacity: .25;
-                transform: translateY(0) scale(.85)
+        @keyframes hint-settle {
+            from {
+                opacity: 0;
+                transform: translateY(-4px) scale(.85)
             }
 
-            50% {
+            to {
                 opacity: 1;
-                transform: translateY(5px) scale(1.15)
+                transform: translateY(0) scale(1)
             }
         }
 
         .theme-toggle {
             padding: 9px 12px;
             border: 1px solid #90CAF9;
-            border-radius: 11px;
+            border-radius: 12px;
             background: #fff;
             color: #0D47A1;
             font: inherit;
@@ -421,6 +419,36 @@
             font-weight: 700;
             white-space: nowrap;
             cursor: pointer
+        }
+
+        .theme-icon {
+            display: none;
+            width: 16px;
+            height: 16px
+        }
+
+        @media(max-width:560px) {
+            .theme-toggle {
+                display: inline-grid;
+                place-items: center;
+                padding: 9px
+            }
+
+            .theme-toggle [data-theme-label] {
+                display: none
+            }
+
+            .theme-icon-moon {
+                display: block
+            }
+
+            .dark .theme-icon-moon {
+                display: none
+            }
+
+            .dark .theme-icon-sun {
+                display: block
+            }
         }
 
         .theme-toggle:hover {
@@ -480,7 +508,7 @@
     <header class="topbar"><a href="{{ route('home') }}" class="brand"><img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt=""
                 class="brand-mark-image"><span>Aprende Guate</span></a>
         <nav class="top-actions" aria-label="Acciones de cuenta"><button type="button" class="theme-toggle" onclick="toggleLandingTheme()"
-                aria-label="Cambiar tema"><span data-theme-label>Tema oscuro</span></button>@auth <a class="button" href="{{ route('adaptive.dashboard') }}">Ir
+                aria-label="Cambiar tema"><svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><span data-theme-label>Tema oscuro</span></button>@auth <a class="button" href="{{ route('adaptive.dashboard') }}">Ir
                     a mi panel</a>
             @else
                 <a class="login" href="{{ route('login') }}">Iniciar sesión</a>

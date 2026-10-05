@@ -595,7 +595,7 @@
             :style="tooltipStyle" role="dialog" aria-label="Recorrido guiado">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <p class="text-[10px] font-extrabold uppercase tracking-[.14em] text-blue-700">RECORRIDO · PASO <span x-text="index + 1"></span> DE
+                    <p class="text-[11px] font-extrabold uppercase tracking-[.14em] text-blue-700">RECORRIDO · PASO <span x-text="index + 1"></span> DE
                         <span x-text="steps.length"></span></p>
                     <h2 class="mt-1 text-base font-extrabold text-slate-900" x-text="currentStep?.title"></h2>
                 </div><span class="grid h-7 w-7 place-items-center rounded-full bg-blue-50 text-sm text-blue-700" aria-hidden="true">⚑</span>

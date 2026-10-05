@@ -73,6 +73,12 @@ typography:
     fontWeight: 800
     lineHeight: "16px"
     letterSpacing: "0.12em"
+  label-small:
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "11px"
+    fontWeight: 800
+    lineHeight: "16px"
+    letterSpacing: "0.12em"
 rounded:
   sm: "8px"
   md: "12px"
@@ -217,7 +223,8 @@ Una paleta fría y contenida: el azul orienta y llama a la acción; todo lo dem�
 - **Body small** (400, 14px, 24px): descripciones de tarjetas, ayudas, contenido de campos.
 - **Button** (700, 14px, 20px): botones y enlaces de navegación.
 - **Caption** (700, 12px, 16px): insignias y metadatos breves.
-- **Label** (800, 12px, 0.12em, MAYÚSCULAS): etiquetas de sección ("CONTINÚA TU RUTA", "GESTIÓN").
+- **Label** (800, 12px, 0.12em, MAYÚSCULAS): etiquetas de sección dentro del contenido ("CONTINÚA TU RUTA").
+- **Label small** (800, 11px, 0.12em, MAYÚSCULAS): etiquetas de menús laterales, menús desplegables y pie de página ("GESTIÓN", "CAMBIAR ESPACIO", "INFORMACIÓN"). Es el tamaño mínimo de texto del sistema.
 
 ### Named Rules
 **La regla del peso con propósito.** El peso 800 se reserva para títulos y cifras; el texto corrido nunca va en negrita completa y los botones van en 700.
