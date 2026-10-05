@@ -16,9 +16,13 @@ class DiagnosticController extends Controller
 {
     private const ALREADY_PROCESSED = 'Este cuestionario ya fue procesado. Puedes iniciar un nuevo diagnóstico cuando lo necesites.';
 
-    public function show(): View
+    public function show(Request $request): View
     {
-        return view('adaptive.diagnostic', ['settings' => PlatformSetting::aiLimits()]);
+        return view('adaptive.diagnostic', [
+            'settings' => PlatformSetting::aiLimits(),
+            // Rehacer el diagnóstico reemplaza la ruta activa: la vista lo avisa.
+            'activePath' => $request->user()->learningPaths()->active()->with('items')->latest('id')->first(),
+        ]);
     }
 
     public function start(StartDiagnosticRequest $request): RedirectResponse

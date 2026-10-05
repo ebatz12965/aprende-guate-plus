@@ -68,6 +68,7 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/espacio/cambiar', [WorkspaceController::class, 'switch'])->name('workspace.switch');
     Route::get('/mi-panel', LearningDashboardController::class)->name('adaptive.dashboard');
+    Route::get('/mi-panel/estado', [LearningDashboardController::class, 'status'])->name('adaptive.dashboard.status');
     Route::get('/diagnostico', [DiagnosticController::class, 'show'])->name('adaptive.diagnostic');
     Route::post('/diagnostico/iniciar', [DiagnosticController::class, 'start'])->middleware('throttle:ai-generation')->name('adaptive.diagnostic.start');
     Route::get('/diagnostico/{attempt}/preguntas', [DiagnosticController::class, 'questions'])->name('adaptive.diagnostic.questions');

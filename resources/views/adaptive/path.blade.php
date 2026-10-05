@@ -6,7 +6,7 @@
 @else
     <h1 class="text-3xl font-black text-slate-900">{{ $path->title }}</h1><p class="mt-1 text-sm font-semibold text-blue-600">Ruta personalizada · {{ $path->estimated_level ?? 'Inicial' }}</p>
     <p class="mt-2 max-w-3xl text-slate-600">{{ $path->goal }} · {{ $path->estimated_hours ? $path->estimated_hours.' horas estimadas' : 'Avance a tu ritmo' }}</p>
-    <p class="mt-5 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-900">La ruta se diseñó primero. Al abrir cada tema podrás generar su lección y su práctica especializada sin esperar a que toda la plataforma cargue contenido innecesario.</p>
+    <p class="mt-5 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900 dark:text-blue-50">Cada fase se desbloquea al aprobar el mini-quiz de la anterior. Dentro de cada tema generas su lección y su práctica cuando la abres. Al llegar al 25, 50, 75 y 100 % se desbloquea un reto opcional.</p>
     <div class="mt-8 space-y-5">
     @foreach($path->items as $item)
         @php($locked=$path->items->where('position','<',$item->position)->where('status','!=','completed')->isNotEmpty())

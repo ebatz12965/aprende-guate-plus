@@ -8,6 +8,8 @@ use App\Models\ChallengeSubmission;
 use App\Models\DiagnosticAttempt;
 use App\Models\LearningPath;
 use App\Models\MentorshipSession;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -18,7 +20,20 @@ class DashboardController extends Controller
 
     public function __invoke(Request $request): View
     {
-        $user = $request->user();
+        return view('adaptive.dashboard', $this->state($request->user()));
+    }
+
+    /**
+     * Huella del estado del panel: la vista la consulta mientras algo se genera
+     * y solo recarga cuando cambia, en lugar de recargar a ciegas.
+     */
+    public function status(Request $request): JsonResponse
+    {
+        return response()->json(['key' => $this->state($request->user())['pollKey']]);
+    }
+
+    private function state(User $user): array
+    {
         $path = $user->learningPaths()->whereIn('status', ['active', 'completed'])->with('items')->latest('id')->first();
         $attempt = DiagnosticAttempt::where('user_id', $user->id)->latest('id')->first();
 
@@ -29,9 +44,10 @@ class DashboardController extends Controller
         $completed = $path?->items->where('status', 'completed')->count() ?? 0;
         // Igual que el desbloqueo de retos: se redondea hacia abajo.
         $progress = $total ? (int) floor($completed / $total * 100) : 0;
+        $challenge = $path && $total ? $this->challengeSummary($path, $progress, $completed, $total) : null;
 
-        return view('adaptive.dashboard', [
-            'stage' => $this->stage($path, $pendingAttempt),
+        $state = [
+            'stage' => $this->stage($path, $pendingAttempt, $total),
             'firstName' => strtok($user->name, ' ') ?: $user->name,
             'path' => $path,
             'pendingAttempt' => $pendingAttempt,
@@ -40,15 +56,25 @@ class DashboardController extends Controller
             'progress' => $progress,
             'milestones' => self::MILESTONES,
             'nextItem' => $path?->items->firstWhere('status', 'in_progress') ?? $path?->items->firstWhere('status', 'pending'),
-            'challenge' => $path ? $this->challengeSummary($path, $progress, $completed, $total) : null,
+            'challenge' => $challenge,
+            'submittedCount' => $path ? ChallengeSubmission::where('user_id', $user->id)->whereHas('challenge', fn ($query) => $query->where('learning_path_id', $path->id))->count() : 0,
             'session' => $this->upcomingSession($user->id),
-        ]);
+            'polling' => in_array($pendingAttempt?->status, ['preparing', 'generating'], true) || ($challenge['state'] ?? null) === 'preparing',
+        ];
+        $state['pollKey'] = implode('|', [$state['stage'], $pendingAttempt?->status, $challenge['state'] ?? '', $completed]);
+
+        return $state;
     }
 
-    private function stage(?LearningPath $path, ?DiagnosticAttempt $attempt): string
+    private function stage(?LearningPath $path, ?DiagnosticAttempt $attempt, int $total): string
     {
         if ($path) {
-            return $path->status === 'completed' ? 'completed' : 'active';
+            if ($path->status === 'completed') {
+                return 'completed';
+            }
+
+            // Una ruta activa sin fases no tiene un siguiente paso posible.
+            return $total ? 'active' : 'empty';
         }
 
         return match ($attempt?->status) {
@@ -96,7 +122,9 @@ class DashboardController extends Controller
     {
         $sessions = MentorshipSession::where('student_id', $userId)->with('mentor');
 
+        // Primero la próxima sesión con fecha; luego una aceptada sin fecha; al final una solicitud pendiente.
         return (clone $sessions)->whereIn('status', ['accepted', 'scheduled'])->where('scheduled_at', '>=', now())->orderBy('scheduled_at')->first()
+            ?? (clone $sessions)->whereIn('status', ['accepted', 'scheduled'])->whereNull('scheduled_at')->latest('id')->first()
             ?? (clone $sessions)->where('status', 'requested')->latest('id')->first();
     }
 }

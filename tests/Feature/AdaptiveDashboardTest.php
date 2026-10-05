@@ -22,7 +22,7 @@ class AdaptiveDashboardTest extends TestCase
 
         $this->actingAs($user)->get(route('adaptive.dashboard'))->assertOk()
             ->assertSee('Tu meta: Conseguir empleo como auxiliar contable')
-            ->assertSee('Fase 1 de 2')
+            ->assertSee('Sigue con la fase 1: Fase número 1')
             ->assertSee('Fase número 1')
             ->assertDontSee('Fase número 2')
             ->assertSee(route('adaptive.path.item.show', $item), false)
@@ -67,6 +67,7 @@ class AdaptiveDashboardTest extends TestCase
         $this->actingAs($user)->get(route('adaptive.dashboard'))->assertOk()
             ->assertSee('¡Completaste tu ruta!')
             ->assertSee('Completar mi perfil profesional')
+            ->assertSee('2 fases completadas')
             ->assertSee('Reto final de conciliación')
             ->assertDontSee('Empezar diagnóstico');
     }
@@ -91,6 +92,65 @@ class AdaptiveDashboardTest extends TestCase
         $this->actingAs($user)->get(route('adaptive.dashboard'))->assertOk()
             ->assertSee('Preparar mi entrevista')
             ->assertSee('3:00 p. m. (hora de Guatemala) con Luis Pérez');
+    }
+
+    public function test_path_without_phases_offers_to_redo_the_diagnostic(): void
+    {
+        $user = User::factory()->create();
+        LearningPath::create(['user_id' => $user->id, 'title' => 'Ruta vacía', 'goal' => 'Meta', 'status' => 'active']);
+
+        $this->actingAs($user)->get(route('adaptive.dashboard'))->assertOk()
+            ->assertSee('Tu ruta quedó sin fases')
+            ->assertDontSee('Te falta 1 fase')
+            ->assertDontSee('0 de 0 fases');
+    }
+
+    public function test_accepted_session_without_date_and_missing_mentor_read_naturally(): void
+    {
+        $user = User::factory()->create();
+        $this->pathWithItems($user, ['in_progress']);
+        $mentor = User::factory()->create(['name' => 'Luis Pérez']);
+        MentorshipSession::create(['student_id' => $user->id, 'mentor_id' => $mentor->id, 'topic' => 'Revisar mi CV', 'status' => 'accepted']);
+
+        $this->actingAs($user)->get(route('adaptive.dashboard'))->assertOk()
+            ->assertSee('Revisar mi CV')
+            ->assertSee('Luis Pérez aceptó tu solicitud. La fecha está por confirmar.')
+            ->assertDontSee('Pedir una mentoría');
+    }
+
+    public function test_status_endpoint_changes_when_the_path_is_ready(): void
+    {
+        $user = User::factory()->create();
+        $attempt = DiagnosticAttempt::create(['user_id' => $user->id, 'primary_answer' => 'Excel', 'answers' => [0, 1, 2, 3], 'status' => 'generating']);
+
+        $before = $this->actingAs($user)->getJson(route('adaptive.dashboard.status'))->assertOk()->json('key');
+        $this->actingAs($user)->get(route('adaptive.dashboard'))->assertSee('mi-panel\/estado', false);
+
+        $attempt->update(['status' => 'completed']);
+        $this->pathWithItems($user, ['in_progress']);
+
+        $this->assertNotSame($before, $this->actingAs($user)->getJson(route('adaptive.dashboard.status'))->json('key'));
+    }
+
+    public function test_redoing_the_diagnostic_warns_that_the_path_will_be_replaced(): void
+    {
+        $user = User::factory()->create();
+        $this->pathWithItems($user, ['completed', 'in_progress']);
+
+        $this->actingAs($user)->get(route('adaptive.diagnostic'))->assertOk()
+            ->assertSee('1 de 2 fases')
+            ->assertSee('se creará una ruta nueva que la reemplaza')
+            ->assertSee('Volver a mi panel')
+            ->assertDontSee('DIAGNÓSTICO PERSONALIZADO');
+    }
+
+    public function test_info_messages_are_shown(): void
+    {
+        $user = User::factory()->create();
+        $attempt = DiagnosticAttempt::create(['user_id' => $user->id, 'primary_answer' => 'Excel', 'answers' => [0, 1, 2, 3], 'status' => 'completed']);
+
+        $this->actingAs($user)->followingRedirects()->get(route('adaptive.diagnostic.questions', $attempt))->assertOk()
+            ->assertSee('Este cuestionario ya fue procesado');
     }
 
     private function pathWithItems(User $user, array $statuses): LearningPath

@@ -82,7 +82,7 @@
     .platform-feature, .learning-panel, .learning-stat, .admin-stat-card {
         transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
     }
-    .platform-feature:hover, .learning-panel:hover, .learning-stat:hover, .admin-stat-card:hover {
+    .platform-feature:hover, .admin-stat-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 12px 28px rgb(15 23 42 / .08);
     }
@@ -203,6 +203,9 @@
     .dark .student-content .topic-header { border-color: #334155; background-color: #0f172a !important; background-image: none !important; }
     .dark .student-content .topic-type-label { color: #81d4fa !important; }
     .dark .student-content .bg-slate-100 { background-color: #1e293b; }
+    .dark .student-content a.text-blue-700:hover { color: #E3F2FD; }
+    .student-content a:focus-visible, .student-content button:focus-visible, .student-content summary:focus-visible { outline: 2px solid #2196F3; outline-offset: 2px; }
+    .student-content summary::-webkit-details-marker { display: none; }
     /* En modo oscuro las sombras de color se leen como brillo: se apagan. */
     .dark .ag-brand-icon, .dark .student-sidebar-link-active, .dark .admin-sidebar-link-active { box-shadow: none; }
 }
