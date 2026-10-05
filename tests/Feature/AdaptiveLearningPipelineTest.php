@@ -54,7 +54,7 @@ class AdaptiveLearningPipelineTest extends TestCase
         $this->assertDatabaseHas('learning_path_practices', ['learning_path_topic_id' => $topic->id, 'type' => 'excel_dataset']);
         $this->actingAs($user)->get(route('adaptive.topic.practice.download', $topic))->assertOk()
             ->assertHeader('content-type', 'text/csv; charset=UTF-8')
-            ->assertSee('id_registro');
+            ->assertSee('ID_Venta');
     }
 
     public function test_programming_topic_generates_a_code_artifact_and_records_submission(): void

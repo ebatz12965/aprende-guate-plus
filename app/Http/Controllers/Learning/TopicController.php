@@ -29,9 +29,10 @@ class TopicController extends Controller
             $topic->update(['status' => 'in_progress']);
         }
 
-        $latestAttempt = $topic->practiceAttempts()->where('user_id', $path->user_id)->latest('learning_path_practice_attempts.id')->first();
+        $attempts = $topic->practiceAttempts()->where('user_id', $path->user_id)->latest('learning_path_practice_attempts.id')->get();
+        $latestAttempt = $attempts->first();
 
-        return view('adaptive.topic', compact('path', 'topic', 'latestAttempt'));
+        return view('adaptive.topic', compact('path', 'topic', 'latestAttempt', 'attempts'));
     }
 
     public function generateLesson(LearningPathTopic $topic): RedirectResponse
@@ -73,7 +74,7 @@ class TopicController extends Controller
         $topic->update(['status' => 'completed']);
         EvaluatePracticeAttemptJob::dispatch($attempt->id)->onQueue('ai');
 
-        return back()->with('success', 'Práctica registrada. El evaluador IA preparará tu retroalimentación; mientras tanto puedes continuar con el siguiente tema.');
+        return redirect()->to(route('adaptive.topic.show', $topic).'#practica')->with('success', 'Práctica enviada. El evaluador IA está revisando tu entrega; la retroalimentación aparecerá aquí en unos momentos.');
     }
 
     public function downloadPractice(LearningPathTopic $topic): Response
