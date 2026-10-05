@@ -146,8 +146,7 @@
                         <div class="grid h-11 w-11 place-items-center rounded-xl bg-orange-100 text-xl" aria-hidden="true">🔒</div><button
                             @click="showTwoFactorReminder = false" class="rounded-lg p-1 text-slate-500 hover:bg-slate-100" aria-label="Cerrar aviso">✕</button>
                     </div>
-                    <p class="mt-5 text-xs font-extrabold tracking-[0.14em] text-orange-700">RECOMENDACIÓN DE SEGURIDAD</p>
-                    <h2 id="two-factor-reminder-title" class="mt-2 text-xl font-extrabold text-slate-900">Activa la verificación en dos pasos</h2>
+                    <h2 id="two-factor-reminder-title" class="mt-5 text-xl font-extrabold text-slate-900">Activa la verificación en dos pasos</h2>
                     <p class="mt-3 text-sm leading-6 text-slate-600">Añade un código temporal de tu aplicación autenticadora además de tu contraseña. Así
                         proteges mejor tu cuenta aunque alguien conozca tu clave.</p>
                     <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button @click="showTwoFactorReminder = false"
@@ -595,9 +594,7 @@
             :style="tooltipStyle" role="dialog" aria-label="Recorrido guiado">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <p class="text-[11px] font-extrabold uppercase tracking-[.14em] text-blue-700">RECORRIDO · PASO <span x-text="index + 1"></span> DE
-                        <span x-text="steps.length"></span></p>
-                    <h2 class="mt-1 text-base font-extrabold text-slate-900" x-text="currentStep?.title"></h2>
+                    <h2 class="text-base font-extrabold text-slate-900" x-text="currentStep?.title"></h2><p class="mt-1 text-sm font-semibold text-blue-700">Paso <span x-text="index + 1"></span> de <span x-text="steps.length"></span></p>
                 </div><span class="grid h-7 w-7 place-items-center rounded-full bg-blue-50 text-sm text-blue-700" aria-hidden="true">⚑</span>
             </div>
             <p class="mt-2 text-sm leading-5 text-slate-600" x-text="currentStep?.text"></p>

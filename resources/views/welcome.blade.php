@@ -3,7 +3,6 @@
 @section('content')
 <section class="hero">
     <div class="hero-content">
-        <p class="eyebrow"><span class="dot"></span> Aprendizaje que se adapta a ti</p>
         <h1>Construye habilidades para tu futuro con IA.</h1>
         <p>Diagnóstico, ruta personalizada, Tutor IA, retos prácticos y mentoría profesional en una sola plataforma para Guatemala.</p>
         <div class="hero-actions">

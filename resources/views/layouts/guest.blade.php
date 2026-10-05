@@ -19,7 +19,6 @@
             </a>
 
             <div class="relative max-w-xl">
-                <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200/30 bg-white/10 px-4 py-2 text-sm font-semibold text-blue-100"><span class="h-2 w-2 rounded-full bg-blue-200"></span> Aprendizaje que se adapta a ti</p>
                 <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-white xl:text-5xl">Tu próximo paso profesional empieza hoy.</h1>
                 <p class="mt-6 max-w-md text-lg leading-8 text-blue-100/90">Define tu objetivo, avanza con una ruta personalizada y demuestra tus habilidades con práctica real.</p>
                 <div class="mt-10 grid max-w-lg grid-cols-3 gap-3 border-t border-white/20 pt-7 text-sm text-blue-100">

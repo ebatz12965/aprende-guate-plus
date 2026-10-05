@@ -29,6 +29,8 @@
       "pendiente": { "role": "status", "displayName": "Pendiente", "canonical": "#F97316" }
     },
     "typographyMeta": {
+      "display-landing": { "displayName": "Display landing", "purpose": "Titular de la portada, fluido entre 36 y 72 px." },
+      "display-landing-compact": { "displayName": "Display landing compact", "purpose": "Tope del titular de la portada en celulares y pantallas bajas." },
       "display": { "displayName": "Display", "purpose": "Saludo de la banda de bienvenida." },
       "headline": { "displayName": "Headline", "purpose": "Título principal de página y cifras de estadísticas." },
       "title-large": { "displayName": "Title large", "purpose": "Títulos de sección dentro de una página." },
@@ -37,7 +39,7 @@
       "body-small": { "displayName": "Body small", "purpose": "Descripciones, ayudas y contenido de campos." },
       "button": { "displayName": "Button", "purpose": "Botones y enlaces de navegación." },
       "caption": { "displayName": "Caption", "purpose": "Insignias y metadatos breves." },
-      "label": { "displayName": "Label", "purpose": "Etiquetas de sección en mayúsculas dentro del contenido." },
+      "label": { "displayName": "Label", "purpose": "Etiquetas en mayúsculas sobre tablas, cifras y bloques de texto; nunca sobre un título." },
       "label-small": { "displayName": "Label small", "purpose": "Etiquetas de menús y pie de página; tamaño mínimo de texto del sistema." }
     },
     "shadows": [
@@ -150,6 +152,7 @@
       { "name": "La regla de la noche como portada", "body": "Cielo de Atitlán se usa como mucho una vez por pantalla, en la banda de bienvenida o portada; nunca como fondo de tarjetas en el modo claro.", "section": "colors" },
       { "name": "La regla del peso con propósito", "body": "El peso 800 se reserva para títulos y cifras; el texto corrido nunca va en negrita completa y los botones van en 700.", "section": "typography" },
       { "name": "La regla de la etiqueta legible", "body": "Las etiquetas en mayúsculas miden al menos 11 px y usan como mínimo Texto apagado (#64748B) sobre blanco. Sobre el fondo de administración (#F1F5F9) el texto secundario usa #475569, porque #64748B queda en 4.34:1. Nunca #94A3B8 para texto sobre fondos claros (2.56:1).", "section": "typography" },
+      { "name": "La regla del título que habla solo", "body": "Ninguna etiqueta va encima de un título. Si la etiqueta solo repite la categoría, se borra; si lleva un dato (módulo, nivel, fecha, paso), va debajo del título como metadato en Body small, peso 600, sin mayúsculas.", "section": "typography" },
       { "name": "La regla del siguiente paso visible", "body": "En cada pantalla del estudiante, la acción que lo hace avanzar en su ruta es visible sin desplazarse en escritorio y es la primera acción en móvil.", "section": "layout" },
       { "name": "La regla de plano en reposo", "body": "Nada flota en reposo. La elevación es una respuesta (cursor, foco, apertura de un menú o modal), nunca un estado decorativo.", "section": "elevation" },
       { "name": "La regla del movimiento respetuoso", "body": "Las entradas usan cubic-bezier(.22, 1, .36, 1): 0.45 s para la aparición escalonada del contenido y 0.22 s para modales. Con prefers-reduced-motion: reduce todas las animaciones y transiciones se anulan.", "section": "elevation" },
@@ -164,6 +167,7 @@
       "Do respetar prefers-reduced-motion en cualquier animación nueva."
     ],
     "donts": [
+      "Don't poner etiquetas o \"eyebrows\" encima de los títulos; el dato que lleven va debajo, como metadato.",
       "Don't usar degradados morados, brillos de neón ni tarjetas idénticas repetidas: Aprende Guate no debe parecer una plantilla genérica de IA.",
       "Don't usar colores primarios saturados ni ilustraciones caricaturescas: no es un aula infantil.",
       "Don't construir pantallas grises, rígidas y sin calidez: no es un banco ni una oficina de gobierno.",

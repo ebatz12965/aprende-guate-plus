@@ -3,8 +3,7 @@
 @section('content')
     <div class="mb-8 flex items-center justify-between">
         <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.14em] text-sky-700">Administración</p>
-            <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900">Editar usuario</h1>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Editar usuario</h1>
             <p class="mt-2 text-sm text-slate-600">Actualiza sus datos y define el nivel de acceso a la plataforma.</p>
         </div>
         <a href="{{ route('admin.users.index') }}" class="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">Volver a usuarios</a>

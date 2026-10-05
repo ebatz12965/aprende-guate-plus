@@ -70,7 +70,7 @@
             gap: 12px;
             font-weight: 800;
             color: #072859;
-            font-size: 18px
+            font-size: 20px
         }
 
         .brand-mark {
@@ -135,30 +135,11 @@
             max-width: 850px
         }
 
-        .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 9px;
-            padding: 10px 15px;
-            border: 1px solid rgba(144, 202, 249, .4);
-            border-radius: 999px;
-            background: rgba(2, 6, 23, .28);
-            color: #E3F2FD;
-            font-size: 14px;
-            font-weight: 700
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #81D4FA
-        }
-
         .hero h1 {
-            margin: 22px 0 0;
+            font-weight: 800;
+            margin: 0;
             max-width: 870px;
-            font-size: clamp(40px, 4.5vw, 70px);
+            font-size: clamp(36px, 4.5vw, 72px);
             line-height: 1.04;
             letter-spacing: -.055em
         }
@@ -179,7 +160,8 @@
         }
 
         .hero-actions .button {
-            font-size: 15px
+            font-weight: 700;
+            font-size: 16px
         }
 
         .button-light {
@@ -192,43 +174,6 @@
             color: #fff;
             border-color: rgba(255, 255, 255, .45);
             background: rgba(255, 255, 255, .06)
-        }
-
-        .scroll-hint {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin: 18px auto 0;
-            color: #64748b;
-            font-size: 13px;
-            font-weight: 700;
-            text-align: center
-        }
-
-        .scroll-hint-arrow {
-            display: grid;
-            place-items: center;
-            width: 24px;
-            height: 24px;
-            border: 1px solid #90CAF9;
-            border-radius: 50%;
-            color: #1565C0;
-            font-size: 17px;
-            line-height: 1;
-            animation: hint-nudge .9s cubic-bezier(.22, 1, .36, 1) .6s both
-        }
-
-        @keyframes hint-nudge {
-            from {
-                opacity: 0;
-                transform: translateY(-6px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
         }
 
         .features {
@@ -259,8 +204,9 @@
         }
 
         .feature h2 {
+            font-weight: 800;
             margin: 20px 0 0;
-            font-size: 18px
+            font-size: 20px
         }
 
         .feature p {
@@ -286,7 +232,7 @@
             }
 
             .hero h1 {
-                font-size: clamp(38px, 4.2vw, 58px)
+                font-size: clamp(36px, 4.2vw, 48px)
             }
 
             .hero p {
@@ -332,7 +278,7 @@
             }
 
             .hero h1 {
-                font-size: clamp(36px, 11vw, 52px)
+                font-size: clamp(36px, 11vw, 48px)
             }
 
             .hero p {
@@ -352,10 +298,6 @@
 
             .feature {
                 padding: 20px
-            }
-
-            .scroll-hint {
-                font-size: 12px
             }
         }
 

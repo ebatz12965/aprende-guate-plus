@@ -5,8 +5,7 @@
 <div class="mx-auto w-full max-w-6xl">
     <div class="flex flex-col justify-between gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end">
         <div class="max-w-2xl">
-            <p class="text-xs font-extrabold tracking-[0.16em] text-blue-700">PERFIL PROFESIONAL</p>
-            <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Presenta tu trayectoria con claridad</h1>
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Presenta tu trayectoria con claridad</h1>
             <p class="mt-3 text-sm leading-6 text-slate-600 sm:text-base">Organiza la información que ayuda a identificar tu objetivo, experiencia y preparación para nuevas oportunidades.</p>
         </div>
         <div class="flex flex-col items-start gap-2 lg:items-end">
@@ -49,8 +48,7 @@
                         <span class="absolute -bottom-2 -right-2 grid h-8 w-8 place-items-center rounded-full border-2 border-blue-900 bg-emerald-400 text-xs font-black text-emerald-950" title="Perfil editable">✓</span>
                     </div>
                     <div class="min-w-0">
-                        <p class="text-xs font-bold uppercase tracking-[0.14em] text-blue-200">Tu identidad profesional</p>
-                        <h2 class="mt-1 truncate text-2xl font-extrabold">{{ auth()->user()->name }}</h2>
+                        <h2 class="truncate text-2xl font-extrabold">{{ auth()->user()->name }}</h2>
                         <p class="mt-1 text-sm text-blue-100">{{ $profile->professional_goal ?: 'Agrega tu objetivo profesional para completar tu presentación.' }}</p>
                     </div>
                 </div>

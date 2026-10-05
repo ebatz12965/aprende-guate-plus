@@ -1,7 +1,6 @@
 <section>
     <header>
-        <p class="text-xs font-extrabold tracking-[.14em] text-blue-700">CONFIGURACIÓN DE AVISOS</p>
-        <h2 class="mt-2 text-xl font-extrabold text-slate-900">Notificaciones</h2>
+        <h2 class="text-xl font-extrabold text-slate-900">Notificaciones</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600">Elige cómo deseas recibir mensajes, decisiones de mentoría y avisos de la plataforma.</p>
     </header>
 

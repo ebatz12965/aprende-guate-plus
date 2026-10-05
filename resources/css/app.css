@@ -122,7 +122,6 @@
     .admin-stat-card strong { @apply mt-3 block text-3xl font-extrabold tracking-tight text-slate-900; }
     .admin-stat-card span { @apply mt-2 block text-sm leading-6 text-slate-500; }
     .admin-stat-card a { @apply mt-5 inline-block text-sm font-bold text-blue-700 hover:text-blue-900; }
-    .admin-eyebrow { @apply text-sm font-bold text-blue-700; }
     .admin-secondary-button { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2; }
 }
 
@@ -138,7 +137,6 @@
     .dark .admin-theme-toggle { border-color: #334155; background-color: #1e293b; color: #f1f5f9; }
     .dark .admin-secondary-button { border-color: #334155; background-color: #1e293b; color: #f1f5f9; }
     .dark .admin-secondary-button:hover { background-color: #334155; }
-    .dark .admin-eyebrow { color: #90CAF9; }
     .dark .admin-theme-toggle:hover, .dark .admin-topbar .bg-slate-100 { background-color: #334155; }
     .dark .admin-topbar .text-slate-900, .dark .admin-topbar .text-slate-700 { color: #f1f5f9; }
     .dark .admin-topbar .text-slate-500 { color: #94a3b8; }

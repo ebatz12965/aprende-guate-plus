@@ -3,7 +3,7 @@
 @section('content')
 <div class="mx-auto w-full max-w-4xl">
     <a href="{{ route('mentor.dashboard') }}" class="text-sm font-bold text-blue-700 hover:text-blue-900">← Volver al panel</a>
-    <div class="mt-5"><p class="text-xs font-extrabold tracking-[0.14em] text-blue-700">CONFIGURACIÓN DEL MENTOR</p><h1 class="mt-2 text-3xl font-extrabold text-slate-900">Perfil, disponibilidad y mensajes</h1><p class="mt-2 text-slate-600">Esta información ayuda a organizar tus sesiones y responder a tus estudiantes.</p></div>
+    <div class="mt-5"><h1 class="text-3xl font-extrabold text-slate-900">Perfil, disponibilidad y mensajes</h1><p class="mt-2 text-slate-600">Esta información ayuda a organizar tus sesiones y responder a tus estudiantes.</p></div>
     <section class="mt-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <form method="POST" action="{{ route('mentor.settings.update') }}" class="space-y-6">@csrf @method('PATCH')
             <div><label class="text-sm font-bold text-slate-700">Titular profesional</label><input name="headline" value="{{ old('headline', $profile->headline) }}" class="mt-2 w-full rounded-xl border-slate-200 text-sm" placeholder="Ej. Mentor de empleabilidad digital"></div>

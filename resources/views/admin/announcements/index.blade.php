@@ -3,8 +3,7 @@
 @section('content')
     <div class="max-w-6xl">
         <div>
-            <p class="text-xs font-extrabold tracking-[0.16em] text-blue-700">COMUNICACIÓN</p>
-            <h1 class="mt-2 text-3xl font-extrabold text-slate-900">Avisos de la plataforma</h1>
+            <h1 class="text-3xl font-extrabold text-slate-900">Avisos de la plataforma</h1>
             <p class="mt-2 max-w-2xl text-slate-600">Redacta información, avisos o recordatorios y decide si se entregan en la aplicación y por correo según las
                 preferencias de cada persona.</p>
         </div>

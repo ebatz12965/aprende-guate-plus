@@ -26,6 +26,18 @@ colors:
   aviso-suave: "#FFFBEB"
   pendiente: "#F97316"
 typography:
+  display-landing:
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "72px"
+    fontWeight: 800
+    lineHeight: "76px"
+    letterSpacing: "-0.055em"
+  display-landing-compact:
+    fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "48px"
+    fontWeight: 800
+    lineHeight: "52px"
+    letterSpacing: "-0.055em"
   display:
     fontFamily: "Figtree, ui-sans-serif, system-ui, sans-serif"
     fontSize: "36px"
@@ -215,6 +227,8 @@ Una paleta fría y contenida: el azul orienta y llama a la acción; todo lo dem�
 **Character:** una sola familia geométrica y amable que cambia de voz con el peso: 800 compacto para títulos y cifras que orientan, 400 cómodo para leer. Se carga desde Bunny Fonts en los pesos 400 a 800.
 
 ### Hierarchy
+- **Display landing** (800, 72px, -0.055em): solo el titular de la portada; fluido entre Display (36px) y 72px según el ancho.
+- **Display landing compact** (800, 48px, -0.055em): tope del titular de la portada en celulares y en pantallas bajas.
 - **Display** (800, 36px, 40px): el saludo de la banda de bienvenida.
 - **Headline** (800, 30px, 36px, -0.025em): título principal de cada página y cifras de las tarjetas de estadísticas.
 - **Title large** (800, 24px, 32px): títulos de sección dentro de una página.
@@ -223,13 +237,15 @@ Una paleta fría y contenida: el azul orienta y llama a la acción; todo lo dem�
 - **Body small** (400, 14px, 24px): descripciones de tarjetas, ayudas, contenido de campos.
 - **Button** (700, 14px, 20px): botones y enlaces de navegación.
 - **Caption** (700, 12px, 16px): insignias y metadatos breves.
-- **Label** (800, 12px, 0.12em, MAYÚSCULAS): etiquetas de sección dentro del contenido ("CONTINÚA TU RUTA").
+- **Label** (800, 12px, 0.12em, MAYÚSCULAS): etiquetas sobre contenido que no es un título: encabezados de tabla, rótulos de cifras y de bloques de texto ("CONTEXTO DEL CASO").
 - **Label small** (800, 11px, 0.12em, MAYÚSCULAS): etiquetas de menús laterales, menús desplegables y pie de página ("GESTIÓN", "CAMBIAR ESPACIO", "INFORMACIÓN"). Es el tamaño mínimo de texto del sistema.
 
 ### Named Rules
 **La regla del peso con propósito.** El peso 800 se reserva para títulos y cifras; el texto corrido nunca va en negrita completa y los botones van en 700.
 
 **La regla de la etiqueta legible.** Las etiquetas en mayúsculas miden al menos 11 px y usan como mínimo Texto apagado (#64748B) sobre blanco. Sobre el fondo de administración (#F1F5F9) el texto secundario usa #475569, porque #64748B queda en 4.34:1. Nunca #94A3B8 para texto sobre fondos claros (2.56:1).
+
+**La regla del título que habla solo.** Ninguna etiqueta va encima de un título. Si la etiqueta solo repite la categoría, se borra; si lleva un dato (módulo, nivel, fecha, paso), va debajo del título como metadato en Body small, peso 600, sin mayúsculas.
 
 
 ## Layout
@@ -296,10 +312,10 @@ Suaves y seguros: invitan a avanzar sin gritar.
 - **Administración:** menú lateral con etiquetas de sección en Label y accesos directos para cambiar al espacio del estudiante.
 
 ### Banda de bienvenida
-La firma visual del espacio del estudiante: un bloque Cielo de Atitlán de 24px de radio y relleno de 32 × 40 px que saluda por su nombre a la persona, con una etiqueta en Celeste Claro, el saludo en Display blanco, una línea de contexto y una única llamada a la acción On dark. Aparece una sola vez, al inicio del panel.
+La firma visual del espacio del estudiante: un bloque Cielo de Atitlán de 24px de radio y relleno de 32 × 40 px que saluda por su nombre a la persona, con el saludo en Display blanco, una línea de contexto y una única llamada a la acción On dark. Aparece una sola vez, al inicio del panel.
 
 ### Recorrido guiado
-Ventana emergente blanca de 16px de radio con sombra marcada que presenta la plataforma por pasos ("RECORRIDO · PASO 1 DE 8"), con acciones Omitir, Atrás y Siguiente. Señala el elemento que explica y atenúa el resto de la pantalla.
+Ventana emergente blanca de 16px de radio con sombra marcada que presenta la plataforma por pasos, con el título del paso y debajo "Paso 1 de 8", con acciones Omitir, Atrás y Siguiente. Señala el elemento que explica y atenúa el resto de la pantalla.
 
 ## Do's and Don'ts
 
@@ -312,6 +328,7 @@ Ventana emergente blanca de 16px de radio con sombra marcada que presenta la pla
 - **Do** respetar `prefers-reduced-motion` en cualquier animación nueva.
 
 ### Don't:
+- **Don't** poner etiquetas o "eyebrows" encima de los títulos; el dato que lleven va debajo, como metadato.
 - **Don't** usar degradados morados, brillos de neón ni tarjetas idénticas repetidas: Aprende Guate no debe parecer una plantilla genérica de IA.
 - **Don't** usar colores primarios saturados ni ilustraciones caricaturescas: no es un aula infantil.
 - **Don't** construir pantallas grises, rígidas y sin calidez: no es un banco ni una oficina de gobierno.

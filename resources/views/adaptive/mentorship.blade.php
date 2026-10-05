@@ -79,8 +79,7 @@
             <section @click.outside="close()" class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <p class="text-xs font-extrabold tracking-[0.14em] text-blue-700">SOLICITUD DE MENTORÍA</p>
-                        <h2 id="mentor-request-title" class="mt-2 text-2xl font-extrabold text-slate-900" x-text="mentorName"></h2>
+                        <h2 id="mentor-request-title" class="text-2xl font-extrabold text-slate-900" x-text="mentorName"></h2>
                         <p class="mt-1 text-sm text-slate-500" x-text="mentorHeadline"></p>
                     </div><button type="button" @click="close()" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Cerrar">✕</button>
                 </div>

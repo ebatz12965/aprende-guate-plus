@@ -15,8 +15,7 @@
 <div class="mx-auto w-full max-w-7xl" x-data="mentorCalendar(@js($calendarSessions), @js(request('view', 'month')), @js(request('date', now()->toDateString())))">
     <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-            <p class="text-xs font-extrabold tracking-[0.14em] text-blue-700">PANEL DE MENTOR</p>
-            <h1 class="mt-2 text-3xl font-extrabold text-slate-900">Calendario</h1>
+            <h1 class="text-3xl font-extrabold text-slate-900">Calendario</h1>
             <p class="mt-2 text-slate-600">Organiza tus sesiones y consulta tu disponibilidad por día, semana o mes.</p>
         </div>
         <a href="{{ route('mentor.dashboard') }}" class="text-sm font-bold text-blue-700 hover:text-blue-900">← Solicitudes</a>

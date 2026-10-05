@@ -2,8 +2,7 @@
 
 @section('content')
 <article class="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
-    <p class="text-xs font-extrabold uppercase tracking-[.16em] text-blue-700">Ayuda</p>
-    <h1 class="mt-2 text-3xl font-extrabold text-slate-900">Preguntas frecuentes</h1>
+    <h1 class="text-3xl font-extrabold text-slate-900">Preguntas frecuentes</h1>
     <div class="mt-8 space-y-3">
         @foreach ([
             ['¿Cómo se crea mi ruta?', 'Completas el diagnóstico y la plataforma organiza fases, temas, lecciones y prácticas según tu objetivo y nivel.'],

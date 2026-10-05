@@ -81,8 +81,7 @@
         <section class="mt-6 learning-panel">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p class="text-xs font-extrabold uppercase tracking-wide text-blue-600">Tu evidencia</p>
-                    <h2 class="mt-1 text-2xl font-extrabold text-slate-900">Entrega y evaluación</h2>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Entrega y evaluación</h2>
                 </div>
                 @if ($submission)
                     <span

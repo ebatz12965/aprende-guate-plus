@@ -6,9 +6,7 @@
     <div class="mx-auto max-w-5xl" @if ($lessonPending || $practicePending) x-data x-init="setTimeout(() => window.location.reload(), 4000)" @endif>
         <a href="{{ route('adaptive.path.item.show', $module) }}" class="text-sm font-bold text-blue-700">← Volver a {{ $module->title }}</a>
         <header class="topic-header mt-5 rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 sm:p-8">
-            <p class="topic-type-label text-xs font-extrabold uppercase tracking-wide text-blue-600">Tema {{ $topic->position }} ·
-                {{ str_replace('_', ' ', $topic->practice_type) }}</p>
-            <h1 class="mt-2 text-3xl font-black text-slate-900">{{ $topic->title }}</h1>
+            <h1 class="text-3xl font-black text-slate-900">{{ $topic->title }}</h1><p class="mt-1 text-sm font-semibold text-blue-600 topic-type-label">Tema {{ $topic->position }} · {{ str_replace('_', ' ', $topic->practice_type) }}</p>
             <p class="mt-3 max-w-3xl leading-7 text-slate-700">{{ $topic->learning_objective }}</p>
         </header>
         @if ($lessonPending || $practicePending)

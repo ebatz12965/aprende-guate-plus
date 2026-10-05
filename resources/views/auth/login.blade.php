@@ -1,7 +1,6 @@
 <x-guest-layout>
     <div class="mb-8">
-        <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Bienvenido de nuevo</p>
-        <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Inicia sesión</h2>
+        <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Inicia sesión</h2>
         <p class="mt-2 text-sm leading-6 text-slate-500">Continúa con tu ruta, tus prácticas y tu crecimiento profesional.</p>
     </div>
 
