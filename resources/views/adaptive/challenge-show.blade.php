@@ -2,7 +2,7 @@
 @section('content')
     @php($evaluation = $submission?->evaluation ?? [])
     <div class="mx-auto max-w-6xl">
-        <a href="{{ route('adaptive.challenges') }}" class="text-sm font-bold text-blue-700 hover:text-blue-900">← Volver al laboratorio</a>
+        <a href="{{ route('adaptive.challenges') }}" class="text-sm font-bold text-blue-700 hover:text-blue-900">← Volver a retos</a>
         <section class="mt-5 overflow-hidden rounded-3xl bg-slate-950 p-7 text-white shadow-xl sm:p-9">
             <p class="text-xs font-extrabold tracking-[.18em] text-blue-300">PRUEBA · {{ Str::upper($challenge->area ?? 'COMPETENCIA') }}</p>
             <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

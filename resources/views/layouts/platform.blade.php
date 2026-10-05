@@ -28,86 +28,6 @@
             ? session('active_space', auth()->user()->hasRole('Admin') ? 'admin' : (auth()->user()->hasRole('Instructor') ? 'mentor' : 'learning'))
             : 'learning';
         $guideTours = auth()->check() ? app(\App\Services\PlatformGuideService::class)->tours(auth()->user()->hasRole('Instructor')) : [];
-        $platformTourSteps = auth()->check()
-            ? [
-                [
-                    'path' => parse_url(route('adaptive.dashboard'), PHP_URL_PATH),
-                    'target' => '[data-tour="mi-panel"], aside nav a[href*="/mi-panel"]',
-                    'title' => 'Tu panel',
-                    'text' => 'Aquí comienza tu experiencia. Revisa tu avance y el siguiente paso recomendado.',
-                ],
-                [
-                    'path' => parse_url(route('adaptive.path'), PHP_URL_PATH),
-                    'target' => '[data-tour="mi-ruta"], aside nav a[href*="/mi-ruta"]',
-                    'title' => 'Tu ruta de aprendizaje',
-                    'text' => 'Aquí encontrarás las fases, temas, lecciones y prácticas organizadas para tu objetivo.',
-                ],
-                [
-                    'path' => parse_url(route('adaptive.dashboard'), PHP_URL_PATH),
-                    'target' => '[data-tour="apoyo"], aside nav button.student-sidebar-link',
-                    'title' => 'Aprendizaje y apoyo',
-                    'text' => 'Desde este menú puedes abrir el Tutor IA o solicitar mentoría profesional.',
-                ],
-                [
-                    'path' => parse_url(route('adaptive.challenges'), PHP_URL_PATH),
-                    'target' => '[data-tour="retos"], aside nav a[href*="/retos"]',
-                    'title' => 'Retos prácticos',
-                    'text' => 'Practica con actividades vinculadas a tu avance y entrega evidencias cuando corresponda.',
-                ],
-                [
-                    'path' => parse_url(route('adaptive.career'), PHP_URL_PATH),
-                    'target' => '[data-tour="perfil"], aside nav a[href*="/perfil-profesional"]',
-                    'title' => 'Perfil profesional',
-                    'text' => 'Mantén actualizados tu objetivo y tus habilidades para personalizar tu experiencia.',
-                ],
-                [
-                    'path' => parse_url(route('adaptive.dashboard'), PHP_URL_PATH),
-                    'target' => '[data-tour="cuenta"]',
-                    'title' => 'Tu cuenta',
-                    'text' => 'Abre tu nombre en la esquina superior derecha para acceder a configuración, notificaciones, seguridad y cierre de sesión.',
-                ],
-                [
-                    'path' => parse_url(route('profile.edit', ['section' => 'security']), PHP_URL_PATH),
-                    'target' => '[data-tour="seguridad"]',
-                    'title' => 'Seguridad y privacidad',
-                    'text' => 'Aquí puedes activar la verificación en dos pasos y proteger tu cuenta.',
-                ],
-                [
-                    'path' => parse_url(route('notifications.index'), PHP_URL_PATH),
-                    'target' => '[data-tour="notificaciones"]',
-                    'title' => 'Notificaciones',
-                    'text' => 'Consulta mensajes, recordatorios y avisos importantes de la plataforma.',
-                ],
-            ]
-            : [];
-        if (auth()->check() && auth()->user()->hasRole('Instructor')) {
-            $platformTourSteps = array_merge($platformTourSteps, [
-                [
-                    'path' => parse_url(route('mentor.dashboard'), PHP_URL_PATH),
-                    'target' => 'a[href*="/mentor"]',
-                    'title' => 'Solicitudes de mentoría',
-                    'text' => 'Revisa las solicitudes, conoce el objetivo del estudiante y decide si aceptas o rechazas cada una.',
-                ],
-                [
-                    'path' => parse_url(route('mentor.calendar'), PHP_URL_PATH),
-                    'target' => 'a[href*="/mentor/calendario"]',
-                    'title' => 'Calendario del mentor',
-                    'text' => 'Consulta tus sesiones programadas por día, semana o mes.',
-                ],
-                [
-                    'path' => parse_url(route('mentor.sessions'), PHP_URL_PATH),
-                    'target' => 'a[href*="/mentor/sesiones"]',
-                    'title' => 'Sesiones y chats',
-                    'text' => 'Abre las conversaciones activas con tus estudiantes y revisa el historial completo.',
-                ],
-                [
-                    'path' => parse_url(route('mentor.settings'), PHP_URL_PATH),
-                    'target' => 'a[href*="/mentor/configuracion"]',
-                    'title' => 'Perfil de mentor',
-                    'text' => 'Configura tus especialidades, duración de sesiones y mensaje de bienvenida.',
-                ],
-            ]);
-        }
     @endphp
     <div x-data="{
         menuOpen: false,
@@ -248,7 +168,7 @@
                         @endif
                     @endauth
                 </div>
-                <button @click="menuOpen = !menuOpen" class="rounded-lg p-2 text-slate-600 hover:bg-blue-50 md:hidden" aria-label="Abrir menú"><svg
+                <button @click="menuOpen = !menuOpen" class="rounded-lg p-2.5 text-slate-600 hover:bg-blue-50 md:hidden" aria-label="Abrir menú"><svg
                         class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M4 6h16M4 12h16M4 18h16" />
                     </svg></button>
@@ -357,10 +277,10 @@
     </div>
 </aside>
 
-<div :class="navMode === 'side' ? 'lg:pl-72' : ''" class="min-h-screen transition-[padding] duration-200">
+<div :class="navMode === 'side' ? 'lg:pl-72' : ''" class="min-h-screen">
     <header x-cloak x-show="navMode === 'side'"
         class="student-side-topbar sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
-        <div class="flex items-center gap-3"><button @click="sidebarOpen = true" class="rounded-xl p-2 text-slate-600 hover:bg-blue-50 lg:hidden"
+        <div class="flex items-center gap-3"><button @click="sidebarOpen = true" class="rounded-xl p-2.5 text-slate-600 hover:bg-blue-50 lg:hidden"
                 aria-label="Abrir menú"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg></button>
@@ -584,121 +504,6 @@
     }
 </script>
 @endif
-@auth
-<div x-data="platformTour()" x-init="init()" class="pointer-events-none fixed inset-0 z-[80]" aria-live="polite">
-    <div x-cloak x-show="active" x-transition.opacity class="absolute inset-0">
-        <div class="absolute rounded-xl border-2 border-blue-500 shadow-[0_0_0_9999px_rgba(15,23,42,.46)] transition-all duration-300"
-            :style="focusStyle"></div>
-        <section
-            class="pointer-events-auto absolute w-[min(19rem,calc(100vw-2rem))] rounded-xl border border-blue-200 bg-white p-4 shadow-2xl transition-all duration-300"
-            :style="tooltipStyle" role="dialog" aria-label="Recorrido guiado">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <h2 class="text-base font-extrabold text-slate-900" x-text="currentStep?.title"></h2><p class="mt-1 text-sm font-semibold text-blue-700">Paso <span x-text="index + 1"></span> de <span x-text="steps.length"></span></p>
-                </div><span class="grid h-7 w-7 place-items-center rounded-full bg-blue-50 text-sm text-blue-700" aria-hidden="true">⚑</span>
-            </div>
-            <p class="mt-2 text-sm leading-5 text-slate-600" x-text="currentStep?.text"></p>
-            <div class="mt-4 flex items-center justify-between gap-2"><button type="button" @click="skip()"
-                    class="text-xs font-bold text-slate-500 hover:text-slate-800">Omitir recorrido</button>
-                <div class="flex gap-2"><button type="button" @click="previous()" :disabled="index === 0"
-                        class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 disabled:opacity-40">Atrás</button><button
-                        type="button" @click="next()" class="rounded-lg bg-blue-700 px-3 py-2 text-xs font-extrabold text-white hover:bg-blue-800"
-                        x-text="index === steps.length - 1 ? 'Terminar' : 'Siguiente'"></button></div>
-            </div>
-        </section>
-    </div>
-    <button x-cloak x-show="!active" @click="restart()"
-        class="pointer-events-auto fixed bottom-20 right-4 grid h-11 w-11 place-items-center rounded-full border-2 border-white bg-blue-700 text-lg text-white shadow-lg shadow-blue-700/25 transition hover:scale-105 hover:bg-blue-800"
-        title="Volver a iniciar el recorrido" aria-label="Volver a iniciar el recorrido">⚑</button>
-</div>
-<script>
-    function platformTour() {
-        return {
-            active: false,
-            index: Number(window.localStorage.getItem('platform-tour-step') || 0),
-            steps: @js($platformTourSteps),
-            focusStyle: '',
-            tooltipStyle: '',
-            refreshTimer: null,
-            get currentStep() {
-                return this.steps[this.index] || null;
-            },
-            init() {
-                const status = window.localStorage.getItem('platform-tour-status');
-                if (status === 'completed' || status === 'skipped' || !this.steps.length) return;
-                this.active = true;
-                this.refreshTarget();
-                window.addEventListener('resize', () => this.refreshTarget());
-                window.addEventListener('scroll', () => this.refreshTarget(), {
-                    passive: true
-                });
-            },
-            refreshTarget() {
-                window.clearTimeout(this.refreshTimer);
-                this.refreshTimer = window.setTimeout(() => {
-                    const target = this.currentStep ? Array.from(document.querySelectorAll(this.currentStep.target)).find((element) => {
-                        const box = element.getBoundingClientRect();
-                        return box.width > 0 && box.height > 0;
-                    }) : null;
-                    if (!target) {
-                        this.focusStyle = 'left: 50%; top: 35%; width: 2px; height: 2px;';
-                        this.tooltipStyle = 'left: 50%; top: 35%; transform: translate(-50%, 1.25rem);';
-                        return;
-                    }
-                    const rect = target.getBoundingClientRect();
-                    const pad = 6;
-                    const top = Math.max(8, rect.top - pad);
-                    const left = Math.max(8, rect.left - pad);
-                    const width = Math.min(window.innerWidth - left - 8, rect.width + pad * 2);
-                    const height = Math.min(window.innerHeight - top - 8, rect.height + pad * 2);
-                    this.focusStyle = `left:${left}px;top:${top}px;width:${width}px;height:${height}px;`;
-                    const tooltipTop = top + height + 12;
-                    const safeTop = tooltipTop + 170 < window.innerHeight ? tooltipTop : Math.max(8, top - 182);
-                    const safeLeft = Math.min(Math.max(8, left), Math.max(8, window.innerWidth - 320));
-                    this.tooltipStyle = `left:${safeLeft}px;top:${safeTop}px;`;
-                }, 30);
-            },
-            persist() {
-                window.localStorage.setItem('platform-tour-step', String(this.index));
-            },
-            next() {
-                if (this.index >= this.steps.length - 1) {
-                    this.finish();
-                    return;
-                }
-                this.index += 1;
-                this.persist();
-                if (this.currentStep.path !== window.location.pathname) window.location.href = this.currentStep.path;
-                else this.refreshTarget();
-            },
-            previous() {
-                if (this.index === 0) return;
-                this.index -= 1;
-                this.persist();
-                if (this.currentStep.path !== window.location.pathname) window.location.href = this.currentStep.path;
-                else this.refreshTarget();
-            },
-            skip() {
-                window.localStorage.setItem('platform-tour-status', 'skipped');
-                this.active = false;
-            },
-            finish() {
-                window.localStorage.setItem('platform-tour-status', 'completed');
-                window.localStorage.removeItem('platform-tour-step');
-                this.active = false;
-            },
-            restart() {
-                const current = this.steps.findIndex((step) => step.path === window.location.pathname);
-                this.index = current >= 0 ? current : 0;
-                this.persist();
-                window.localStorage.setItem('platform-tour-status', 'active');
-                this.active = true;
-                this.refreshTarget();
-            },
-        };
-    }
-</script>
-@endauth
 @if (auth()->check() && !auth()->user()->hasRole('Admin'))
 <div x-data="mentorChatWidget()" x-init="init()" class="fixed bottom-4 right-4 z-[60] w-[min(22rem,calc(100vw-2rem))]" aria-live="polite">
     <section x-cloak x-show="open" x-transition.origin.bottom.right class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
@@ -761,7 +566,7 @@
 <script>
     function mentorChatWidget() {
         return {
-            open: true,
+            open: false,
             loading: true,
             sending: false,
             error: '',
@@ -776,8 +581,10 @@
                 return this.sessions.reduce((total, session) => total + (session.unread || 0), 0);
             },
             async init() {
-                this.open = window.localStorage.getItem('mentor-chat-open') !== '0';
+                const preference = window.localStorage.getItem('mentor-chat-open');
                 await this.refresh();
+                // Sin preferencia guardada, solo se abre si hay conversaciones.
+                this.open = preference === null ? this.sessions.length > 0 : preference === '1';
                 this.poll = window.setInterval(() => this.refresh(), 5000);
             },
             setOpen(value) {

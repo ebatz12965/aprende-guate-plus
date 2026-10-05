@@ -105,8 +105,8 @@
     .learning-panel { @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-sm; }
     .learning-stat { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm; }
     .learning-stat > p { @apply text-sm font-bold text-slate-500; }
-    .learning-stat strong { @apply text-3xl font-extrabold text-slate-900; }
-    .learning-stat span { @apply text-xs font-semibold text-slate-500; }
+    .learning-stat > strong { @apply mt-2 block text-3xl font-extrabold tabular-nums text-slate-900; }
+    .learning-stat > span { @apply mt-1 block text-xs font-semibold text-slate-500; }
 }
 
 
@@ -192,7 +192,7 @@
     .dark .student-layout-switch:hover { background-color: rgb(25 118 210 / .35); }
     .dark .platform-menu-link { color: #cbd5e1; }
     .dark .platform-menu-link:hover { background-color: #1e293b; color: #fff; }
-    .dark .student-content .bg-blue-50 { background-color: rgb(25 118 210 / .18); }
+    .dark .student-content .bg-blue-50, .dark .student-content .learning-panel.bg-blue-50 { background-color: rgb(25 118 210 / .18); }
     .dark .student-content .bg-blue-100 { background-color: rgb(25 118 210 / .3); }
     .dark .student-content .text-blue-800, .dark .student-content .text-blue-700, .dark .student-content .text-blue-600 { color: #81d4fa; }
     .dark .student-content .ring-white { --tw-ring-color: #0f172a; }
@@ -203,6 +203,8 @@
     .dark .student-content .topic-header { border-color: #334155; background-color: #0f172a !important; background-image: none !important; }
     .dark .student-content .topic-type-label { color: #81d4fa !important; }
     .dark .student-content .bg-slate-100 { background-color: #1e293b; }
+    /* En modo oscuro las sombras de color se leen como brillo: se apagan. */
+    .dark .ag-brand-icon, .dark .student-sidebar-link-active, .dark .admin-sidebar-link-active { box-shadow: none; }
 }
 
 /* En pantallas de escritorio, las vistas del estudiante aprovechan toda el área
