@@ -108,7 +108,10 @@ class TopicContentGenerationTest extends TestCase
             ->assertSee('Los tres totales coinciden.')
             ->assertSee('Ahora calculaste el total de Luis, que faltaba antes.')
             ->assertSee('Intento 1:')
-            ->assertSee('Enviar nuevo intento');
+            ->assertSee('Enviar nuevo intento')
+            ->assertSee('role="tablist"', false)
+            ->assertSee('aria-controls="panel-practica"', false)
+            ->assertSee('85/100');
     }
 
     public function test_numeric_results_are_computed_from_the_csv_not_trusted_from_the_model(): void

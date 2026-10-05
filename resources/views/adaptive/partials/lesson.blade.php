@@ -300,7 +300,8 @@
                         // Las flechas solo navegan si el foco está en la lección (o en ninguna parte) y no en un campo de texto.
                         const focused = document.activeElement;
                         const inDeck = focused === document.body || this.rootEl.contains(focused);
-                        if (this.asText || ! inDeck || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+                        // Tampoco si la pestaña de la lección está oculta.
+                        if (this.asText || ! inDeck || this.rootEl.offsetParent === null || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
                         if (event.key === 'ArrowRight') this.go(this.i + 1);
                         if (event.key === 'ArrowLeft') this.go(this.i - 1);
                     },
