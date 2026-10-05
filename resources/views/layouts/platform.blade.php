@@ -168,7 +168,7 @@
                         @endif
                     @endauth
                 </div>
-                <button @click="menuOpen = !menuOpen" class="rounded-lg p-2 text-slate-600 hover:bg-blue-50 md:hidden" aria-label="Abrir menú"><svg
+                <button @click="menuOpen = !menuOpen" class="rounded-lg p-2.5 text-slate-600 hover:bg-blue-50 md:hidden" aria-label="Abrir menú"><svg
                         class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M4 6h16M4 12h16M4 18h16" />
                     </svg></button>
@@ -280,7 +280,7 @@
 <div :class="navMode === 'side' ? 'lg:pl-72' : ''" class="min-h-screen transition-[padding] duration-200">
     <header x-cloak x-show="navMode === 'side'"
         class="student-side-topbar sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
-        <div class="flex items-center gap-3"><button @click="sidebarOpen = true" class="rounded-xl p-2 text-slate-600 hover:bg-blue-50 lg:hidden"
+        <div class="flex items-center gap-3"><button @click="sidebarOpen = true" class="rounded-xl p-2.5 text-slate-600 hover:bg-blue-50 lg:hidden"
                 aria-label="Abrir menú"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg></button>

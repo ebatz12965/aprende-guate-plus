@@ -9,11 +9,11 @@
             @elseif ($pendingAttempt->status === 'failed')
                 <p>No pudimos generar tu nueva ruta. Tu ruta actual sigue igual.</p>
                 <form method="POST" action="{{ route('adaptive.diagnostic.retry', $pendingAttempt) }}">@csrf<button
-                        class="rounded-xl bg-blue-600 px-4 py-2.5 font-bold text-white transition hover:bg-blue-700">Intentar de nuevo</button></form>
+                        class="rounded-xl bg-blue-600 px-4 py-3 font-bold text-white transition hover:bg-blue-700">Intentar de nuevo</button></form>
             @else
                 <p>Tienes un diagnóstico sin terminar. Si lo terminas, tu nueva ruta reemplazará la actual.</p>
                 <a href="{{ route('adaptive.diagnostic.questions', $pendingAttempt) }}"
-                    class="font-bold text-blue-700 underline-offset-4 hover:underline">Continuar diagnóstico</a>
+                    class="inline-flex min-h-11 items-center font-bold text-blue-700 underline-offset-4 hover:underline">Continuar diagnóstico</a>
             @endif
         </div>
     @endif
@@ -93,13 +93,13 @@
                     @if ($stage === 'active')
                         <a href="{{ $nextItem ? route('adaptive.path.item.show', $nextItem) : route('adaptive.path') }}"
                             class="rounded-xl bg-blue-500 px-5 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-blue-400">{{ $nextItem ? 'Continuar fase '.$nextItem->position : 'Ver mi ruta' }}</a>
-                        <a href="{{ route('adaptive.path') }}" class="text-sm font-bold text-blue-200 underline-offset-4 hover:underline">Ver todas las fases</a>
+                        <a href="{{ route('adaptive.path') }}" class="inline-flex min-h-11 items-center text-sm font-bold text-blue-200 underline-offset-4 hover:underline">Ver todas las fases</a>
                     @else
                         <a href="{{ route('adaptive.career') }}"
                             class="rounded-xl bg-blue-500 px-5 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-blue-400">Completar mi perfil profesional</a>
                     @endif
                     @unless ($pendingAttempt)
-                        <a href="{{ route('adaptive.diagnostic') }}" class="text-sm font-bold text-slate-300 underline-offset-4 hover:underline">{{ $stage === 'active' ? 'Rehacer mi diagnóstico' : 'Empezar una nueva ruta' }}</a>
+                        <a href="{{ route('adaptive.diagnostic') }}" class="inline-flex min-h-11 items-center text-sm font-bold text-slate-300 underline-offset-4 hover:underline">{{ $stage === 'active' ? 'Rehacer mi diagnóstico' : 'Empezar una nueva ruta' }}</a>
                     @endunless
                 </div>
                 @if ($stage === 'active' && ! $pendingAttempt)
@@ -118,7 +118,7 @@
                         <p class="mt-1 text-sm font-semibold text-blue-700">Reto del {{ $challenge['challenge']->milestone }} % · opcional</p>
                         <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">{{ Str::limit($challenge['challenge']->description, 220) }}</p>
                         <a href="{{ route('adaptive.challenges.show', $challenge['challenge']) }}"
-                            class="mt-5 inline-flex rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700">Abrir reto</a>
+                            class="mt-5 inline-flex rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700">Abrir reto</a>
                     @break
 
                     @case('preparing')
@@ -129,19 +129,19 @@
                     @case('failed')
                         <h2 class="text-balance text-xl font-extrabold text-slate-900">No pudimos preparar tu reto del {{ $challenge['milestone'] }} %</h2>
                         <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Tu avance no se pierde. Un administrador puede volver a prepararlo; mientras tanto, sigue con tu ruta.</p>
-                        <a href="{{ route('adaptive.challenges') }}" class="mt-5 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ver mis retos</a>
+                        <a href="{{ route('adaptive.challenges') }}" class="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-blue-700 hover:text-blue-900">Ver mis retos</a>
                     @break
 
                     @case('locked')
                         <h2 class="text-balance text-xl font-extrabold text-slate-900">Tu próximo reto se desbloquea al {{ $challenge['milestone'] }} %</h2>
                         <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Te {{ $challenge['phasesLeft'] === 1 ? 'falta 1 fase' : 'faltan '.$challenge['phasesLeft'].' fases' }}. Cada reto se arma con lo que ya aprendiste y se evalúa con una rúbrica.</p>
-                        <a href="{{ route('adaptive.challenges') }}" class="mt-5 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ver todos los retos</a>
+                        <a href="{{ route('adaptive.challenges') }}" class="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-blue-700 hover:text-blue-900">Ver todos los retos</a>
                     @break
 
                     @default
                         <h2 class="text-balance text-xl font-extrabold text-slate-900">Entregaste todos tus retos</h2>
                         <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Revisa la evaluación de cada uno y agrégalos como evidencia a tu perfil.</p>
-                        <a href="{{ route('adaptive.challenges') }}" class="mt-5 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ver evaluaciones</a>
+                        <a href="{{ route('adaptive.challenges') }}" class="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-blue-700 hover:text-blue-900">Ver evaluaciones</a>
                 @endswitch
             </section>
         @endif
@@ -153,14 +153,14 @@
                     @if (in_array($session?->status, ['accepted', 'scheduled']))
                         <p class="mt-3 font-bold text-slate-900">{{ $session->topic }}</p>
                         <p class="mt-1 text-sm leading-6 text-slate-600">{{ ucfirst($session->scheduled_at->translatedFormat('l j \d\e F, g:i a')) }} (hora de Guatemala) con {{ $session->mentor?->name }}</p>
-                        <a href="{{ route('adaptive.mentorship') }}" class="mt-4 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ver mis mentorías</a>
+                        <a href="{{ route('adaptive.mentorship') }}" class="mt-2 inline-flex min-h-11 items-center text-sm font-bold text-blue-700 hover:text-blue-900">Ver mis mentorías</a>
                     @elseif ($session)
                         <p class="mt-3 font-bold text-slate-900">{{ $session->topic }}</p>
                         <p class="mt-1 text-sm leading-6 text-slate-600">Solicitud enviada a {{ $session->mentor?->name }}. Te avisaremos cuando confirme la fecha.</p>
-                        <a href="{{ route('adaptive.mentorship') }}" class="mt-4 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ver mis mentorías</a>
+                        <a href="{{ route('adaptive.mentorship') }}" class="mt-2 inline-flex min-h-11 items-center text-sm font-bold text-blue-700 hover:text-blue-900">Ver mis mentorías</a>
                     @else
                         <p class="mt-2 text-sm leading-6 text-slate-600">Habla con una persona que trabaja en el área que te interesa.</p>
-                        <a href="{{ route('adaptive.mentorship') }}" class="mt-4 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Pedir una mentoría</a>
+                        <a href="{{ route('adaptive.mentorship') }}" class="mt-2 inline-flex min-h-11 items-center text-sm font-bold text-blue-700 hover:text-blue-900">Pedir una mentoría</a>
                     @endif
                 </section>
             @endif
@@ -168,7 +168,7 @@
                 <img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="" class="h-10 w-10 rounded-xl object-cover shadow-sm">
                 <h2 class="mt-5 text-xl font-extrabold text-slate-900">Destraba tu siguiente paso</h2>
                 <p class="mt-2 text-sm leading-6 text-slate-600">Explica qué intentaste y recibe una guía breve, ordenada y conectada con tu aprendizaje.</p>
-                <a href="{{ route('adaptive.tutor') }}" class="mt-5 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Preguntar al Tutor IA</a>
+                <a href="{{ route('adaptive.tutor') }}" class="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-blue-700 hover:text-blue-900">Preguntar al Tutor IA</a>
             </section>
         </div>
     </div>
