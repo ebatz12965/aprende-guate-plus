@@ -3,7 +3,7 @@
 @php($goal = $path?->goal ?: $pendingAttempt?->primary_answer)
 <div class="space-y-6">
     @if ($path && $pendingAttempt)
-        <div class="flex flex-col gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-900 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-900 dark:border-blue-900/60 dark:text-blue-50 sm:flex-row sm:items-center sm:justify-between">
             @if ($pendingAttempt->status === 'generating')
                 <p>Estamos generando tu nueva ruta. Cuando esté lista, reemplazará la actual.</p>
             @elseif ($pendingAttempt->status === 'failed')
@@ -18,10 +18,9 @@
         </div>
     @endif
 
-    <section class="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-8 text-white shadow-xl sm:px-10 sm:py-10"
+    <section class="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-8 text-white shadow-xl dark:bg-slate-900 dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-slate-700/60 sm:px-10 sm:py-10"
+        style="background-image: radial-gradient(circle at 88% 0%, rgb(66 165 245 / .2), transparent 42%), radial-gradient(circle at 35% 120%, rgb(33 150 243 / .16), transparent 40%)"
         @if (in_array($stage, ['questions', 'generating']) && in_array($pendingAttempt?->status, ['preparing', 'generating'])) x-data x-init="setTimeout(() => window.location.reload(), 5000)" @endif>
-        <div class="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-blue-400/15 blur-3xl"></div>
-        <div class="absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl"></div>
         <div class="relative max-w-3xl">
             @switch($stage)
                 @case('start')
@@ -79,7 +78,7 @@
                         aria-valuemax="100" aria-valuenow="{{ $progress }}" aria-valuetext="{{ $completed }} de {{ $total }} fases completadas">
                         <div class="h-full rounded-full bg-blue-400" style="width: {{ $progress }}%"></div>
                         @foreach ([25, 50, 75] as $tick)
-                            <span class="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 bg-slate-950" style="left: {{ $tick }}%"></span>
+                            <span class="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 bg-slate-950 dark:bg-slate-900" style="left: {{ $tick }}%"></span>
                         @endforeach
                     </div>
                     <ol class="mt-2 grid grid-cols-4 text-xs font-semibold">
@@ -109,7 +108,7 @@
         </div>
     </section>
 
-    <div class="grid gap-6 lg:grid-cols-3">
+    <div class="grid items-start gap-6 lg:grid-cols-3">
         @if ($challenge)
             <section class="learning-panel lg:col-span-2">
                 @switch($challenge['state'])
@@ -152,7 +151,7 @@
                     <h2 class="text-balance text-xl font-extrabold text-slate-900">Mentoría</h2>
                     @if (in_array($session?->status, ['accepted', 'scheduled']))
                         <p class="mt-3 font-bold text-slate-900">{{ $session->topic }}</p>
-                        <p class="mt-1 text-sm leading-6 text-slate-600">{{ ucfirst($session->scheduled_at->translatedFormat('l j \d\e F, g:i a')) }} (hora de Guatemala) con {{ $session->mentor?->name }}</p>
+                        <p class="mt-1 text-sm leading-6 text-slate-600">{{ ucfirst($session->scheduled_at->locale('es')->translatedFormat('l j \d\e F, g:i a')) }} (hora de Guatemala) con {{ $session->mentor?->name }}</p>
                         <a href="{{ route('adaptive.mentorship') }}" class="mt-2 inline-flex min-h-11 items-center text-sm font-bold text-blue-700 hover:text-blue-900">Ver mis mentorías</a>
                     @elseif ($session)
                         <p class="mt-3 font-bold text-slate-900">{{ $session->topic }}</p>
@@ -164,7 +163,7 @@
                     @endif
                 </section>
             @endif
-            <section class="learning-panel bg-gradient-to-br from-blue-50 to-blue-50">
+            <section class="learning-panel bg-blue-50">
                 <img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="" class="h-10 w-10 rounded-xl object-cover shadow-sm">
                 <h2 class="mt-5 text-xl font-extrabold text-slate-900">Destraba tu siguiente paso</h2>
                 <p class="mt-2 text-sm leading-6 text-slate-600">Explica qué intentaste y recibe una guía breve, ordenada y conectada con tu aprendizaje.</p>

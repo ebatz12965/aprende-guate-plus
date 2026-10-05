@@ -90,7 +90,7 @@ class AdaptiveDashboardTest extends TestCase
 
         $this->actingAs($user)->get(route('adaptive.dashboard'))->assertOk()
             ->assertSee('Preparar mi entrevista')
-            ->assertSee('3:00 pm (hora de Guatemala) con Luis Pérez');
+            ->assertSee('3:00 p. m. (hora de Guatemala) con Luis Pérez');
     }
 
     private function pathWithItems(User $user, array $statuses): LearningPath

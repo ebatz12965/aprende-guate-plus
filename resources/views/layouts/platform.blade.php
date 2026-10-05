@@ -277,7 +277,7 @@
     </div>
 </aside>
 
-<div :class="navMode === 'side' ? 'lg:pl-72' : ''" class="min-h-screen transition-[padding] duration-200">
+<div :class="navMode === 'side' ? 'lg:pl-72' : ''" class="min-h-screen">
     <header x-cloak x-show="navMode === 'side'"
         class="student-side-topbar sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
         <div class="flex items-center gap-3"><button @click="sidebarOpen = true" class="rounded-xl p-2.5 text-slate-600 hover:bg-blue-50 lg:hidden"
@@ -566,7 +566,7 @@
 <script>
     function mentorChatWidget() {
         return {
-            open: true,
+            open: false,
             loading: true,
             sending: false,
             error: '',
@@ -581,8 +581,10 @@
                 return this.sessions.reduce((total, session) => total + (session.unread || 0), 0);
             },
             async init() {
-                this.open = window.localStorage.getItem('mentor-chat-open') !== '0';
+                const preference = window.localStorage.getItem('mentor-chat-open');
                 await this.refresh();
+                // Sin preferencia guardada, solo se abre si hay conversaciones.
+                this.open = preference === null ? this.sessions.length > 0 : preference === '1';
                 this.poll = window.setInterval(() => this.refresh(), 5000);
             },
             setOpen(value) {

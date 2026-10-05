@@ -192,7 +192,7 @@
     .dark .student-layout-switch:hover { background-color: rgb(25 118 210 / .35); }
     .dark .platform-menu-link { color: #cbd5e1; }
     .dark .platform-menu-link:hover { background-color: #1e293b; color: #fff; }
-    .dark .student-content .bg-blue-50 { background-color: rgb(25 118 210 / .18); }
+    .dark .student-content .bg-blue-50, .dark .student-content .learning-panel.bg-blue-50 { background-color: rgb(25 118 210 / .18); }
     .dark .student-content .bg-blue-100 { background-color: rgb(25 118 210 / .3); }
     .dark .student-content .text-blue-800, .dark .student-content .text-blue-700, .dark .student-content .text-blue-600 { color: #81d4fa; }
     .dark .student-content .ring-white { --tw-ring-color: #0f172a; }
@@ -203,6 +203,8 @@
     .dark .student-content .topic-header { border-color: #334155; background-color: #0f172a !important; background-image: none !important; }
     .dark .student-content .topic-type-label { color: #81d4fa !important; }
     .dark .student-content .bg-slate-100 { background-color: #1e293b; }
+    /* En modo oscuro las sombras de color se leen como brillo: se apagan. */
+    .dark .ag-brand-icon, .dark .student-sidebar-link-active, .dark .admin-sidebar-link-active { box-shadow: none; }
 }
 
 /* En pantallas de escritorio, las vistas del estudiante aprovechan toda el área
