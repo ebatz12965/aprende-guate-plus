@@ -80,7 +80,9 @@ return [
     'content_review' => (bool) env('AI_CONTENT_REVIEW', true),
     'tutor_timeout' => (int) env('AI_TUTOR_TIMEOUT', 20),
     'retry_times' => (int) env('AI_RETRY_TIMES', 1),
-    'architecture_max_tokens' => (int) env('AI_ARCHITECTURE_MAX_TOKENS', 1200),
+    'architecture_max_tokens' => (int) env('AI_ARCHITECTURE_MAX_TOKENS', 5000),
+    'analysis_max_tokens' => (int) env('AI_ANALYSIS_MAX_TOKENS', 2500),
+    'diagnostic_max_tokens' => (int) env('AI_DIAGNOSTIC_MAX_TOKENS', 5000),
     'lesson_max_tokens' => (int) env('AI_LESSON_MAX_TOKENS', 3200),
     'practice_max_tokens' => (int) env('AI_PRACTICE_MAX_TOKENS', 2400),
     'evaluation_max_tokens' => (int) env('AI_EVALUATION_MAX_TOKENS', 900),
@@ -88,8 +90,9 @@ return [
     'agents' => [
         'goal_analyst' => $agent('Analista de metas', 'Analiza a fondo la meta de la persona: puesto, habilidades que exige, conocimientos previos que sugiere y ambigüedades.', 2500, true, false, 'reasoning'),
         'diagnostic_designer' => $agent('Diseñador del diagnóstico', 'Crea el cuestionario de nivel con respuestas correctas por habilidad y dificultad, a partir del análisis de la meta.', 4000, true, false, 'reasoning'),
-        'career_profiler' => $agent('Perfilador profesional', 'Convierte diagnóstico y objetivo en perfil, nivel y brechas de habilidades.', 600, true, false, 'reasoning'),
-        'learning_path' => $agent('Diseñador de rutas', 'Crea una arquitectura de aprendizaje progresiva y dependiente de habilidades.', 1200, true, false, 'reasoning'),
+        // Reemplazado por goal_analyst y el cuestionario calificado; se conserva sin uso para no perder su historial.
+        'career_profiler' => $agent('Perfilador profesional', 'Reemplazado por el Analista de metas y el cuestionario de nivel.', 600, false, true, 'reasoning'),
+        'learning_path' => $agent('Diseñador de rutas', 'Crea una arquitectura de aprendizaje progresiva y dependiente de habilidades.', 5000, true, false, 'reasoning'),
         'curriculum' => $agent('Diseñador curricular', 'Desarrolla unidades, objetivos, prerrequisitos y estimaciones.', 1000, false, true),
         'content_classifier' => $agent('Clasificador de contenido', 'Decide el formato pedagógico, el tipo de práctica y los recursos que necesita cada tema.', 550, true, false, 'fast'),
         'theory_content' => $agent('Generador de teoría', 'Produce contenido estructurado, claro y pedagógico.', 3200, true, false, 'writing'),

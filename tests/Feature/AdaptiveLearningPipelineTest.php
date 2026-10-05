@@ -39,7 +39,7 @@ class AdaptiveLearningPipelineTest extends TestCase
         $path = LearningPath::where('user_id', $user->id)->firstOrFail();
         $this->assertGreaterThanOrEqual(5, $path->items()->count());
         $this->assertDatabaseHas('learning_path_topics', ['learning_path_item_id' => $path->items()->first()->id]);
-        $this->assertSame('pipeline-v1', $path->generation_version);
+        $this->assertSame('pipeline-v2', $path->generation_version);
     }
 
     public function test_office_topic_generates_and_downloads_a_csv_practice(): void

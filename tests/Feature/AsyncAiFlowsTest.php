@@ -27,14 +27,17 @@ class AsyncAiFlowsTest extends TestCase
         $attempt = DiagnosticAttempt::firstOrFail();
         $this->assertSame('preparing', $attempt->status);
         Queue::assertPushedOn('ai', GenerateDiagnosticQuestionsJob::class);
-        $this->actingAs($user)->get(route('adaptive.diagnostic.questions', $attempt))->assertOk()->assertSee('Estamos preparando tus preguntas');
+        $this->actingAs($user)->get(route('adaptive.diagnostic.questions', $attempt))->assertOk()->assertSee('Estamos analizando tu meta');
 
         app()->call([new GenerateDiagnosticQuestionsJob($attempt->id), 'handle']);
 
+        // Sin IA disponible: análisis por palabras clave y autoevaluación por habilidad.
         $attempt->refresh();
         $this->assertSame('started', $attempt->status);
-        $this->assertCount(4, $attempt->questions);
-        $this->actingAs($user)->get(route('adaptive.diagnostic.questions', $attempt))->assertOk()->assertDontSee('Estamos preparando tus preguntas');
+        $this->assertSame('ofimatica', $attempt->analysis['domain']);
+        $this->assertSame(['context', 'context'], array_column(array_slice($attempt->questions, 0, 2), 'kind'));
+        $this->assertSame(['self'], array_values(array_unique(array_column(array_slice($attempt->questions, 2), 'kind'))));
+        $this->actingAs($user)->get(route('adaptive.diagnostic.questions', $attempt))->assertOk()->assertDontSee('Estamos analizando tu meta')->assertSee('Esto entendimos de tu meta');
     }
 
     public function test_failed_diagnostic_job_falls_back_to_generic_questions(): void
@@ -45,7 +48,7 @@ class AsyncAiFlowsTest extends TestCase
 
         $attempt->refresh();
         $this->assertSame('started', $attempt->status);
-        $this->assertCount(4, $attempt->questions);
+        $this->assertCount(2 + count($attempt->analysis['skills']), $attempt->questions);
     }
 
     public function test_mentor_questionnaire_is_generated_in_the_background(): void

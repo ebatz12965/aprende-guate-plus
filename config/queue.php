@@ -40,7 +40,7 @@ return [
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
             // Debe superar el timeout de los jobs de IA (ver AiGateway::jobTimeout) para no reejecutarlos en paralelo.
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 360),
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 600),
             'after_commit' => false,
         ],
 
