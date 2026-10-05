@@ -1,7 +1,26 @@
 @extends('layouts.admin')
 @section('content')
 <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h1 class="text-3xl font-extrabold tracking-tight text-slate-950">Orquestador de IA</h1><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Coordina agentes especializados, conserva trazabilidad sin guardar prompts ni respuestas en texto plano y mantiene los proveedores externos separados de la lógica educativa.</p></div><a href="{{ route('admin.ai-usage.index') }}" class="admin-secondary-button">Ver consumo detallado</a></div>
-<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><div class="admin-stat-card"><p>Proveedor actual</p><strong>OpenAI</strong><span class="{{ $providerConfigured && $providerEnabled ? 'text-emerald-700' : 'text-amber-700' }}">{{ $providerConfigured && $providerEnabled ? 'Configurado y disponible' : 'Pendiente de credencial o activación' }}</span></div><div class="admin-stat-card"><p>Agentes activos</p><strong>{{ $agents->where('enabled', true)->count() }}</strong><span>de {{ $agents->count() }} registrados</span></div><div class="admin-stat-card"><p>Solicitudes trazadas</p><strong>{{ number_format($totalRequests) }}</strong><span>{{ number_format($totalTokens) }} tokens registrados</span></div><div class="admin-stat-card"><p>Solicitudes con fallo</p><strong>{{ number_format($failedRequests) }}</strong><span>Revisa el historial inferior</span></div></div>
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><div class="admin-stat-card"><p>Proveedores con API key</p><strong>{{ collect($providers)->where('configured', true)->count() }}</strong><span>de {{ count($providers) }} disponibles</span></div><div class="admin-stat-card"><p>Agentes activos</p><strong>{{ $agents->where('enabled', true)->count() }}</strong><span>de {{ $agents->count() }} registrados</span></div><div class="admin-stat-card"><p>Solicitudes trazadas</p><strong>{{ number_format($totalRequests) }}</strong><span>{{ number_format($totalTokens) }} tokens registrados</span></div><div class="admin-stat-card"><p>Solicitudes con fallo</p><strong>{{ number_format($failedRequests) }}</strong><span>Revisa el historial inferior</span></div></div>
+<section class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div><h2 class="font-bold text-slate-950">Proveedores de IA</h2><p class="mt-1 text-sm text-slate-600">Un proveedor se activa al agregar su API key en el archivo .env. La lista de modelos se consulta a cada proveedor.</p></div>
+        <form method="POST" action="{{ route('admin.ai-orchestrator.models.refresh') }}">@csrf<button class="admin-secondary-button">Actualizar lista de modelos</button></form>
+    </div>
+    <div class="grid divide-y divide-slate-100 sm:grid-cols-2 sm:divide-y-0 xl:grid-cols-4">
+        @foreach ($providers as $slug => $provider)
+            <div class="px-5 py-4 sm:px-6">
+                <p class="font-bold text-slate-900">{{ $provider['name'] }}</p>
+                @if ($provider['configured'])
+                    <p class="mt-1 text-sm font-semibold text-emerald-700">Configurado · {{ count($models[$slug] ?? []) }} modelos</p>
+                @else
+                    <p class="mt-1 text-sm text-slate-600">Falta <code class="rounded bg-slate-100 px-1 text-xs">{{ $provider['key_env'] }}</code> en .env</p>
+                    @if ($provider['keys_url'])<a href="{{ $provider['keys_url'] }}" target="_blank" rel="noopener" class="mt-1 inline-flex text-sm font-bold text-blue-700 underline-offset-4 hover:underline">Obtener API key</a>@endif
+                @endif
+            </div>
+        @endforeach
+    </div>
+</section>
 <div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b border-slate-100 px-5 py-4 sm:px-6"><h2 class="font-bold text-slate-950">Agentes especializados</h2><p class="mt-1 text-sm text-slate-500">Cada agente tiene alcance, límite de respuesta y telemetría independientes. Puedes activar o desactivar cada agente y ajustar su modelo o límite de tokens; los que aún no tienen un módulo de producto no se pueden activar.</p></div><div class="divide-y divide-slate-100">@foreach ($agents as $agent)
 <div class="px-5 py-5 sm:px-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -12,7 +31,7 @@
                 @if ($agent['customized'])<span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">Personalizado</span>@endif
             </div>
             <p class="mt-1 text-sm leading-6 text-slate-600">{{ $agent['description'] }}</p>
-            <p class="mt-2 text-xs font-medium text-slate-500">{{ $agent['provider'] }} · {{ $agent['model'] }} · {{ $agent['max_tokens_override'] ? 'máximo '.number_format($agent['max_tokens_override']).' tokens' : 'límite de tokens según cada operación' }}</p>
+            <p class="mt-2 text-xs font-medium text-slate-500">{{ $providers[$agent['provider']]['name'] ?? $agent['provider'] }} · {{ $agent['model'] }} · {{ ['reasoning' => 'tarea de razonamiento', 'writing' => 'tarea de redacción', 'fast' => 'tarea rápida'][$agent['task']] ?? '' }} · {{ $agent['max_tokens_override'] ? 'máximo '.number_format($agent['max_tokens_override']).' tokens' : 'límite de tokens según cada operación' }}</p>
         </div>
         <div class="grid grid-cols-3 gap-5 text-right text-sm">
             <div><p class="text-slate-500">Solicitudes</p><strong class="text-slate-900">{{ number_format($agent['requests']) }}</strong></div>
@@ -27,7 +46,28 @@
             @csrf @method('PUT')
             <input type="hidden" name="agent" value="{{ $agent['slug'] }}">
             <label class="flex items-center gap-2 text-sm font-bold text-slate-700 sm:col-span-3"><input type="hidden" name="enabled" value="0"><input type="checkbox" name="enabled" value="1" class="rounded border-slate-300 text-blue-600" @checked(old('agent') === $agent['slug'] ? old('enabled') : $agent['enabled'])> Agente activo <span class="font-normal text-slate-500">— desactivado, la plataforma usa el contenido de respaldo</span></label>
-            <label class="block text-sm font-bold text-slate-700">Modelo<input name="model" maxlength="160" value="{{ old('agent') === $agent['slug'] ? old('model') : ($agent['model'] === $agent['default_model'] ? '' : $agent['model']) }}" placeholder="{{ $agent['default_model'] }}" class="mt-1 block w-full rounded-xl border-slate-200 text-sm"><span class="mt-1 block text-xs font-normal text-slate-500">Vacío: {{ $agent['default_model'] }}</span></label>
+            @php($currentProvider = old('agent') === $agent['slug'] ? (old('provider') ?: $agent['provider']) : $agent['provider'])
+            @php($currentModel = old('agent') === $agent['slug'] ? old('model') : ($agent['model'] === $agent['default_model'] && $agent['provider'] === $agent['default_provider'] ? '' : $agent['model']))
+            <div class="grid gap-4 sm:col-span-2 sm:grid-cols-2" x-data="{ provider: @js($currentProvider), model: @js($currentModel), models: @js($models), custom: false,
+                    init() { this.custom = this.model !== '' && ! (this.models[this.provider] || []).includes(this.model); } }">
+                <label class="block text-sm font-bold text-slate-700">Proveedor
+                    <select name="provider" x-model="provider" @change="model = ''; custom = ! (models[provider] || []).length" class="mt-1 block w-full rounded-xl border-slate-200 text-sm">
+                        @foreach ($providers as $slug => $provider)
+                            <option value="{{ $slug }}" @disabled(! $provider['configured'])>{{ $provider['name'] }}{{ $provider['configured'] ? '' : ' (sin API key)' }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="block text-sm font-bold text-slate-700">Modelo
+                    <select x-show="! custom" :name="custom ? '' : 'model'" x-model="model" @change="if (model === '__custom') { model = ''; custom = true }" class="mt-1 block w-full rounded-xl border-slate-200 text-sm">
+                        <option value="" x-show="provider === @js($agent['default_provider'])">Predeterminado ({{ $agent['default_model'] }})</option>
+                        <option value="" x-show="provider !== @js($agent['default_provider'])" disabled>Elige un modelo</option>
+                        <template x-for="item in (models[provider] || [])" :key="item"><option :value="item" x-text="item" :selected="item === model"></option></template>
+                        <option value="__custom">Escribir otro modelo…</option>
+                    </select>
+                    <input x-show="custom" x-cloak :name="custom ? 'model' : ''" x-model="model" maxlength="160" placeholder="Identificador exacto del modelo" class="mt-1 block w-full rounded-xl border-slate-200 text-sm">
+                    <button type="button" x-show="custom && (models[provider] || []).length" x-cloak @click="custom = false; model = ''" class="mt-1 text-xs font-bold text-blue-700 underline-offset-4 hover:underline">Elegir de la lista</button>
+                </label>
+            </div>
             <label class="block text-sm font-bold text-slate-700">Máximo de tokens<input type="number" name="max_tokens" min="50" max="8000" value="{{ old('agent') === $agent['slug'] ? old('max_tokens') : $agent['max_tokens_override'] }}" placeholder="Automático" class="mt-1 block w-full rounded-xl border-slate-200 text-sm"><span class="mt-1 block text-xs font-normal text-slate-500">Vacío: cada operación usa su propio límite.</span></label>
             <div class="flex items-end gap-2">
                 <button class="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800">Guardar</button>

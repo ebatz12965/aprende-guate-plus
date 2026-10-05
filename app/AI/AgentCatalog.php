@@ -13,7 +13,7 @@ use Throwable;
  */
 class AgentCatalog
 {
-    public const AGENTS = ['career_profiler', 'learning_path', 'curriculum', 'content_classifier', 'theory_content', 'tutorial_script', 'exercise_generator', 'content_reviewer', 'file_generator', 'evaluator', 'tutor', 'interviewer', 'interview_evaluator', 'employability', 'mentor_application_assessor'];
+    public const AGENTS = ['goal_analyst', 'diagnostic_designer', 'career_profiler', 'learning_path', 'curriculum', 'content_classifier', 'theory_content', 'tutorial_script', 'exercise_generator', 'content_reviewer', 'file_generator', 'evaluator', 'tutor', 'interviewer', 'interview_evaluator', 'employability', 'mentor_application_assessor'];
 
     private const CACHE_KEY = 'ai.agent_overrides';
 
@@ -29,6 +29,7 @@ class AgentCatalog
 
         return array_merge($defaults, [
             'enabled' => ! $planned && ($override['enabled'] ?? $defaults['enabled'] ?? false),
+            'provider' => $override['provider'] ?? $defaults['provider'] ?? config('ai.default_provider'),
             'model' => $override['model'] ?? $defaults['model'] ?? config('ai.model'),
             // null: cada operación usa su propio límite de tokens.
             'max_tokens_override' => $override['max_tokens'] ?? null,
@@ -43,14 +44,17 @@ class AgentCatalog
     }
 
     /** Guarda los cambios de un agente; un valor igual al de config/ai.php se guarda como null. */
-    public function saveOverride(string $slug, bool $enabled, ?string $model, ?int $maxTokens, ?int $editorId): void
+    public function saveOverride(string $slug, bool $enabled, ?string $model, ?int $maxTokens, ?int $editorId, ?string $provider = null): void
     {
         $defaults = config("ai.agents.{$slug}", []);
         $defaultModel = $defaults['model'] ?? config('ai.model');
+        $defaultProvider = $defaults['provider'] ?? config('ai.default_provider');
 
         AiAgent::updateOrCreate(['slug' => $slug], [
             'enabled' => $enabled === (bool) ($defaults['enabled'] ?? false) ? null : $enabled,
-            'model' => blank($model) || $model === $defaultModel ? null : $model,
+            'provider' => blank($provider) || $provider === $defaultProvider ? null : $provider,
+            // Cambiar de proveedor obliga a elegir un modelo de ese proveedor.
+            'model' => blank($model) || ($model === $defaultModel && (blank($provider) || $provider === $defaultProvider)) ? null : $model,
             'max_tokens' => $maxTokens,
             'updated_by' => $editorId,
         ]);
@@ -64,12 +68,12 @@ class AgentCatalog
         Cache::forget(self::CACHE_KEY);
     }
 
-    /** @return array<string, array{enabled?: bool, model?: string, max_tokens?: int}> */
+    /** @return array<string, array{enabled?: bool, provider?: string, model?: string, max_tokens?: int}> */
     private function overrides(): array
     {
         try {
             return Cache::rememberForever(self::CACHE_KEY, fn () => AiAgent::query()->get()->mapWithKeys(fn (AiAgent $agent) => [
-                $agent->slug => array_filter(['enabled' => $agent->enabled, 'model' => $agent->model, 'max_tokens' => $agent->max_tokens], fn ($value) => $value !== null),
+                $agent->slug => array_filter(['enabled' => $agent->enabled, 'provider' => $agent->provider, 'model' => $agent->model, 'max_tokens' => $agent->max_tokens], fn ($value) => $value !== null),
             ])->all());
         } catch (Throwable) {
             // Sin base de datos disponible (instalación o migraciones pendientes) se usa config/ai.php.

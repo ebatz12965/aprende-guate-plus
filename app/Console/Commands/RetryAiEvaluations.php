@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\AI\AgentCatalog;
+use App\AI\ProviderRegistry;
 use App\Jobs\EvaluateChallengeSubmissionJob;
 use App\Jobs\EvaluatePracticeAttemptJob;
 use App\Models\ChallengeSubmission;
@@ -55,6 +56,6 @@ class RetryAiEvaluations extends Command
         $agent = $catalog->configuration('evaluator');
         $provider = $agent['provider'] ?? config('ai.default_provider');
 
-        return ($agent['enabled'] ?? false) && (bool) (config("ai.providers.{$provider}.key") ?: config('ai.key'));
+        return ($agent['enabled'] ?? false) && app(ProviderRegistry::class)->configured($provider);
     }
 }

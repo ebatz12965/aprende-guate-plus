@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /** Cambios hechos desde administración sobre un agente; null = valor de config/ai.php. */
 class AiAgent extends Model
 {
-    protected $fillable = ['slug', 'enabled', 'model', 'max_tokens', 'updated_by'];
+    protected $fillable = ['slug', 'enabled', 'provider', 'model', 'max_tokens', 'updated_by'];
 
     protected function casts(): array
     {
