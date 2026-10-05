@@ -3,16 +3,16 @@
 @section('content')
 <div class="mx-auto max-w-3xl">
     <div class="mb-8">
-        <p class="text-sm font-bold text-indigo-600">CONFIGURACIÓN ADMINISTRATIVA</p>
+        <p class="text-sm font-bold text-blue-700">CONFIGURACIÓN ADMINISTRATIVA</p>
         <h1 class="mt-2 text-3xl font-extrabold text-slate-900">Correo saliente</h1>
-        <p class="mt-2 text-slate-500">Configura el servidor que envía verificaciones de correo y recuperación de contraseña. Usa una contraseña de aplicación, nunca la contraseña personal de la cuenta.</p>
+        <p class="mt-2 text-slate-600">Configura el servidor que envía verificaciones de correo y recuperación de contraseña. Usa una contraseña de aplicación, nunca la contraseña personal de la cuenta.</p>
     </div>
 
     <form action="{{ route('admin.mail-settings.update') }}" method="POST" class="space-y-6">
         @csrf @method('PUT')
         <section class="platform-feature">
             <label class="flex cursor-pointer items-start gap-3">
-                <input type="checkbox" name="enabled" value="1" @checked(old('enabled', $settings['enabled'])) class="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                <input type="checkbox" name="enabled" value="1" @checked(old('enabled', $settings['enabled'])) class="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
                 <span>
                     <span class="font-bold text-slate-900">Activar correo SMTP administrado</span>
                     <span class="mt-1 block text-sm text-slate-500">Al activarlo, estos valores reemplazan el correo configurado por archivo de entorno.</span>
@@ -61,7 +61,7 @@
         </section>
 
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">Para que los enlaces funcionen fuera de tu computadora, <strong>APP_URL</strong> debe apuntar a un dominio público con HTTPS. Guarda la configuración antes de probar registro o recuperación.</div>
-        <div class="flex justify-end"><button class="rounded-xl bg-indigo-600 px-5 py-3 font-bold text-white shadow-md shadow-indigo-600/20 hover:bg-indigo-700">Guardar correo saliente</button></div>
+        <div class="flex justify-end"><button class="rounded-xl bg-blue-600 px-5 py-3 font-bold text-white shadow-md shadow-blue-600/20 hover:bg-blue-700">Guardar correo saliente</button></div>
     </form>
 
     <section class="platform-feature mt-6">
@@ -70,7 +70,7 @@
         <form action="{{ route('admin.mail-settings.test') }}" method="POST" class="mt-5 flex flex-col gap-3 sm:flex-row">
             @csrf
             <input name="test_recipient" type="email" required class="w-full rounded-xl border-slate-200" placeholder="correo-destino@ejemplo.com">
-            <button class="shrink-0 rounded-xl border border-indigo-600 px-5 py-3 font-bold text-indigo-700 hover:bg-indigo-50">Enviar correo de prueba</button>
+            <button class="shrink-0 rounded-xl border border-blue-600 px-5 py-3 font-bold text-blue-700 hover:bg-blue-50">Enviar correo de prueba</button>
         </form>
     </section>
 </div>

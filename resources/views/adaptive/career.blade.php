@@ -5,8 +5,7 @@
 <div class="mx-auto w-full max-w-6xl">
     <div class="flex flex-col justify-between gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end">
         <div class="max-w-2xl">
-            <p class="text-xs font-extrabold tracking-[0.16em] text-blue-700">PERFIL PROFESIONAL</p>
-            <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Presenta tu trayectoria con claridad</h1>
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Presenta tu trayectoria con claridad</h1>
             <p class="mt-3 text-sm leading-6 text-slate-600 sm:text-base">Organiza la información que ayuda a identificar tu objetivo, experiencia y preparación para nuevas oportunidades.</p>
         </div>
         <div class="flex flex-col items-start gap-2 lg:items-end">
@@ -49,8 +48,7 @@
                         <span class="absolute -bottom-2 -right-2 grid h-8 w-8 place-items-center rounded-full border-2 border-blue-900 bg-emerald-400 text-xs font-black text-emerald-950" title="Perfil editable">✓</span>
                     </div>
                     <div class="min-w-0">
-                        <p class="text-xs font-bold uppercase tracking-[0.14em] text-blue-200">Tu identidad profesional</p>
-                        <h2 class="mt-1 truncate text-2xl font-extrabold">{{ auth()->user()->name }}</h2>
+                        <h2 class="truncate text-2xl font-extrabold">{{ auth()->user()->name }}</h2>
                         <p class="mt-1 text-sm text-blue-100">{{ $profile->professional_goal ?: 'Agrega tu objetivo profesional para completar tu presentación.' }}</p>
                     </div>
                 </div>
@@ -85,7 +83,7 @@
                             @error('professional_goal')<p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label for="linkedin_url" class="text-sm font-bold text-slate-800">Perfil de LinkedIn <span class="font-medium text-slate-400">(opcional)</span></label>
+                            <label for="linkedin_url" class="text-sm font-bold text-slate-800">Perfil de LinkedIn <span class="font-medium text-slate-500">(opcional)</span></label>
                             <input id="linkedin_url" type="url" name="linkedin_url" value="{{ old('linkedin_url', $profile->linkedin_url) }}" class="mt-2 block w-full rounded-xl border-slate-200 text-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://linkedin.com/in/tu-perfil">
                             @error('linkedin_url')<p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>@enderror
                         </div>
@@ -113,7 +111,7 @@
                     <template x-if="education.length === 0"><p class="rounded-xl bg-slate-50 px-4 py-4 text-sm text-slate-500">Aún no agregas estudios. Incluye los más relevantes para tu objetivo.</p></template>
                     <template x-for="(item, index) in education" :key="'education-' + index">
                         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="flex items-center justify-between gap-3"><p class="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400" x-text="'Estudio ' + (index + 1)"></p><button type="button" @click="education.splice(index, 1)" class="text-sm font-bold text-rose-600 hover:text-rose-700">Quitar</button></div>
+                            <div class="flex items-center justify-between gap-3"><p class="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-500" x-text="'Estudio ' + (index + 1)"></p><button type="button" @click="education.splice(index, 1)" class="text-sm font-bold text-rose-600 hover:text-rose-700">Quitar</button></div>
                             <div class="mt-3 grid gap-3 sm:grid-cols-2"><input x-model="item.program" :name="'education[' + index + '][program]'" class="rounded-xl border-slate-200 text-sm" placeholder="Carrera, título o curso"><input x-model="item.institution" :name="'education[' + index + '][institution]'" class="rounded-xl border-slate-200 text-sm" placeholder="Institución educativa"></div>
                             <input x-model="item.period" :name="'education[' + index + '][period]'" class="mt-3 w-full rounded-xl border-slate-200 text-sm" placeholder="Periodo, por ejemplo: 2022 - 2025">
                         </div>
@@ -131,7 +129,7 @@
                     <template x-if="experience.length === 0"><p class="rounded-xl bg-slate-50 px-4 py-4 text-sm text-slate-500">Aún no agregas experiencia. También puedes incluir proyectos personales.</p></template>
                     <template x-for="(item, index) in experience" :key="'experience-' + index">
                         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="flex items-center justify-between gap-3"><p class="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400" x-text="'Experiencia ' + (index + 1)"></p><button type="button" @click="experience.splice(index, 1)" class="text-sm font-bold text-rose-600 hover:text-rose-700">Quitar</button></div>
+                            <div class="flex items-center justify-between gap-3"><p class="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-500" x-text="'Experiencia ' + (index + 1)"></p><button type="button" @click="experience.splice(index, 1)" class="text-sm font-bold text-rose-600 hover:text-rose-700">Quitar</button></div>
                             <div class="mt-3 grid gap-3 sm:grid-cols-2"><input x-model="item.role" :name="'work_experience[' + index + '][role]'" class="rounded-xl border-slate-200 text-sm" placeholder="Cargo o función"><input x-model="item.company" :name="'work_experience[' + index + '][company]'" class="rounded-xl border-slate-200 text-sm" placeholder="Empresa u organización"></div>
                             <input x-model="item.period" :name="'work_experience[' + index + '][period]'" class="mt-3 w-full rounded-xl border-slate-200 text-sm" placeholder="Periodo, por ejemplo: 2025 - Actual">
                             <textarea x-model="item.description" :name="'work_experience[' + index + '][description]'" rows="3" class="mt-3 w-full rounded-xl border-slate-200 text-sm" placeholder="Responsabilidades, resultados o herramientas utilizadas"></textarea>

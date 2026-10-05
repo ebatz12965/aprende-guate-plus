@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-05T06:30:00-06:00",
+  "title": "Design System: Aprende Guate",
+  "extensions": {
+    "colorMeta": {
+      "azul-lago": { "role": "primary", "displayName": "Azul Lago", "canonical": "#2196F3", "tonalRamp": ["#0D47A1", "#1565C0", "#1976D2", "#2196F3", "#42A5F5", "#64B5F6", "#90CAF9", "#D3EAFC"] },
+      "azul-lago-profundo": { "role": "primary", "displayName": "Azul Lago Profundo", "canonical": "#1976D2", "tonalRamp": ["#0D47A1", "#1565C0", "#1976D2", "#1E88E5", "#2196F3", "#64B5F6", "#90CAF9", "#E3F2FD"] },
+      "azul-lago-intenso": { "role": "primary", "displayName": "Azul Lago Intenso", "canonical": "#1565C0" },
+      "azul-lago-bruma": { "role": "primary", "displayName": "Bruma de Lago", "canonical": "#E3F2FD" },
+      "celeste-claro": { "role": "primary", "displayName": "Celeste Claro", "canonical": "#81D4FA", "tonalRamp": ["#01579B", "#0277BD", "#0288D1", "#039BE5", "#29B6F6", "#4FC3F7", "#81D4FA", "#E1F5FE"] },
+      "cielo-de-atitlan": { "role": "secondary", "displayName": "Cielo de Atitlán", "canonical": "#020617", "tonalRamp": ["#020617", "#0F172A", "#1E293B", "#334155", "#475569", "#64748B", "#94A3B8", "#E2E8F0"] },
+      "tinta": { "role": "neutral", "displayName": "Tinta", "canonical": "#0F172A" },
+      "texto": { "role": "neutral", "displayName": "Texto", "canonical": "#1E293B" },
+      "texto-control": { "role": "neutral", "displayName": "Texto de control", "canonical": "#334155" },
+      "texto-secundario": { "role": "neutral", "displayName": "Texto secundario", "canonical": "#475569" },
+      "texto-apagado": { "role": "neutral", "displayName": "Texto apagado", "canonical": "#64748B" },
+      "borde": { "role": "neutral", "displayName": "Borde", "canonical": "#E2E8F0" },
+      "fondo": { "role": "neutral", "displayName": "Fondo", "canonical": "#F8FAFC", "tonalRamp": ["#0F172A", "#1E293B", "#334155", "#64748B", "#94A3B8", "#CBD5E1", "#E2E8F0", "#F8FAFC"] },
+      "fondo-admin": { "role": "neutral", "displayName": "Fondo de administración", "canonical": "#F1F5F9" },
+      "superficie": { "role": "neutral", "displayName": "Superficie", "canonical": "#FFFFFF" },
+      "borde-noche": { "role": "neutral", "displayName": "Borde nocturno", "canonical": "#334155" },
+      "exito": { "role": "status", "displayName": "Éxito", "canonical": "#047857", "tonalRamp": ["#064E3B", "#065F46", "#047857", "#059669", "#10B981", "#6EE7B7", "#A7F3D0", "#ECFDF5"] },
+      "exito-suave": { "role": "status", "displayName": "Éxito suave", "canonical": "#ECFDF5" },
+      "error": { "role": "status", "displayName": "Error", "canonical": "#BE123C", "tonalRamp": ["#881337", "#9F1239", "#BE123C", "#E11D48", "#F43F5E", "#FDA4AF", "#FECDD3", "#FFF1F2"] },
+      "error-suave": { "role": "status", "displayName": "Error suave", "canonical": "#FFF1F2" },
+      "aviso": { "role": "status", "displayName": "Aviso", "canonical": "#B45309", "tonalRamp": ["#78350F", "#92400E", "#B45309", "#D97706", "#F59E0B", "#FCD34D", "#FDE68A", "#FFFBEB"] },
+      "aviso-suave": { "role": "status", "displayName": "Aviso suave", "canonical": "#FFFBEB" },
+      "pendiente": { "role": "status", "displayName": "Pendiente", "canonical": "#F97316" }
+    },
+    "typographyMeta": {
+      "display-landing": { "displayName": "Display landing", "purpose": "Titular de la portada, fluido entre 36 y 72 px." },
+      "display-landing-compact": { "displayName": "Display landing compact", "purpose": "Tope del titular de la portada en celulares y pantallas bajas." },
+      "display": { "displayName": "Display", "purpose": "Saludo de la banda de bienvenida." },
+      "headline": { "displayName": "Headline", "purpose": "Título principal de página y cifras de estadísticas." },
+      "title-large": { "displayName": "Title large", "purpose": "Títulos de sección dentro de una página." },
+      "title": { "displayName": "Title", "purpose": "Títulos de tarjetas y paneles." },
+      "body": { "displayName": "Body", "purpose": "Texto corrido; 65 a 75 caracteres por línea en textos largos." },
+      "body-small": { "displayName": "Body small", "purpose": "Descripciones, ayudas y contenido de campos." },
+      "button": { "displayName": "Button", "purpose": "Botones y enlaces de navegación." },
+      "caption": { "displayName": "Caption", "purpose": "Insignias y metadatos breves." },
+      "label": { "displayName": "Label", "purpose": "Etiquetas en mayúsculas sobre tablas, cifras y bloques de texto; nunca sobre un título." },
+      "label-small": { "displayName": "Label small", "purpose": "Etiquetas de menús y pie de página; tamaño mínimo de texto del sistema." }
+    },
+    "shadows": [
+      { "name": "reposo", "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "purpose": "Tarjetas y paneles en reposo." },
+      { "name": "elevacion-al-pasar", "value": "0 12px 28px rgb(15 23 42 / 0.08)", "purpose": "Tarjetas interactivas bajo el cursor, junto con translateY(-2px)." },
+      { "name": "acento-activo", "value": "0 4px 6px -1px rgb(25 118 210 / 0.2)", "purpose": "Elemento de navegación activo." },
+      { "name": "portada", "value": "0 20px 25px -5px rgb(0 0 0 / 0.1)", "purpose": "Banda de bienvenida." }
+    ],
+    "motion": [
+      { "name": "ease-entrada", "value": "cubic-bezier(.22, 1, .36, 1)", "purpose": "Entradas de contenido, modales y avisos." },
+      { "name": "entrada-contenido", "value": "450ms", "purpose": "Aparición escalonada de los bloques de cada página (50 ms entre bloques)." },
+      { "name": "entrada-modal", "value": "220ms", "purpose": "Apertura de modales." },
+      { "name": "elevacion-tarjeta", "value": "250ms ease", "purpose": "Elevación de tarjetas al pasar el cursor." },
+      { "name": "estado-control", "value": "200ms ease", "purpose": "Cambios de color de botones y enlaces." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal sobre fondos claros.",
+      "html": "<button class=\"ds-btn-primary\">Iniciar diagnóstico</button>",
+      "css": ".ds-btn-primary { background: #1976D2; color: #FFFFFF; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 700; line-height: 20px; padding: 10px 16px; border: none; border-radius: 12px; cursor: pointer; transition: background-color .2s ease; } .ds-btn-primary:hover { background: #1565C0; } .ds-btn-primary:focus-visible { outline: 2px solid #2196F3; outline-offset: 2px; } .ds-btn-primary:active { background: #0D47A1; }"
+    },
+    {
+      "name": "Botón secundario",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acción alternativa junto a una principal.",
+      "html": "<button class=\"ds-btn-secondary\">Ir al laboratorio</button>",
+      "css": ".ds-btn-secondary { background: #FFFFFF; color: #334155; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 700; line-height: 20px; padding: 10px 16px; border: 1px solid #E2E8F0; border-radius: 12px; cursor: pointer; transition: background-color .2s ease; } .ds-btn-secondary:hover { background: #F8FAFC; } .ds-btn-secondary:focus-visible { outline: 2px solid #2196F3; outline-offset: 2px; }"
+    },
+    {
+      "name": "Botón sobre fondo oscuro",
+      "kind": "button",
+      "refersTo": "button-on-dark",
+      "description": "Llamada a la acción dentro de la banda de bienvenida.",
+      "html": "<div class=\"ds-dark-stage\"><button class=\"ds-btn-on-dark\">Crear mi ruta →</button></div>",
+      "css": ".ds-dark-stage { background: #020617; padding: 24px; border-radius: 16px; } .ds-btn-on-dark { background: #2196F3; color: #020617; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 800; line-height: 20px; padding: 12px 20px; border: none; border-radius: 12px; cursor: pointer; transition: background-color .2s ease; } .ds-btn-on-dark:hover { background: #64B5F6; } .ds-btn-on-dark:focus-visible { outline: 2px solid #81D4FA; outline-offset: 2px; }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campos de formulario con foco en Azul Lago.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Tu meta profesional</span><input class=\"ds-input\" placeholder=\"Ej. conseguir trabajo como auxiliar contable\"></label>",
+      "css": ".ds-field { display: grid; gap: 8px; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; max-width: 360px; } .ds-field-label { font-size: 14px; font-weight: 700; color: #334155; } .ds-input { background: #F8FAFC; color: #1E293B; font-family: inherit; font-size: 14px; line-height: 24px; padding: 8px 12px; border: 1px solid #E2E8F0; border-radius: 12px; transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease; } .ds-input::placeholder { color: #64748B; } .ds-input:focus { outline: none; background: #FFFFFF; border-color: #2196F3; box-shadow: 0 0 0 1px #2196F3; }"
+    },
+    {
+      "name": "Navegación lateral",
+      "kind": "nav",
+      "refersTo": "nav-link-active",
+      "description": "Menú lateral de administración y del estudiante.",
+      "html": "<nav class=\"ds-nav\"><p class=\"ds-nav-label\">GESTIÓN</p><a class=\"ds-nav-link ds-nav-link-active\" href=\"#\">Panel</a><a class=\"ds-nav-link\" href=\"#\">Usuarios</a><a class=\"ds-nav-link\" href=\"#\">Solicitudes de mentor</a></nav>",
+      "css": ".ds-nav { display: grid; gap: 4px; width: 240px; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; } .ds-nav-label { margin: 0 0 4px; padding: 0 12px; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #64748B; } .ds-nav-link { display: flex; align-items: center; padding: 10px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; color: #475569; text-decoration: none; transition: background-color .2s ease, color .2s ease; } .ds-nav-link:hover { background: #E3F2FD; color: #1565C0; } .ds-nav-link:focus-visible { outline: 2px solid #2196F3; outline-offset: 2px; } .ds-nav-link-active, .ds-nav-link-active:hover { background: #1565C0; color: #FFFFFF; box-shadow: 0 4px 6px -1px rgb(21 101 192 / .2); }"
+    },
+    {
+      "name": "Insignia",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Etiquetas breves de estado o categoría.",
+      "html": "<span class=\"ds-badge\">Personalizada</span> <span class=\"ds-badge ds-badge-exito\">Verificado</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px; background: #E3F2FD; color: #1565C0; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; font-size: 12px; font-weight: 700; line-height: 16px; } .ds-badge-exito { background: #ECFDF5; color: #047857; }"
+    },
+    {
+      "name": "Tarjeta de estadística",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Cifra principal con contexto; se eleva al pasar el cursor.",
+      "html": "<section class=\"ds-card\"><p class=\"ds-card-kicker\">Progreso de ruta</p><strong class=\"ds-card-value\">40%</strong><p class=\"ds-card-meta\">2 de 5 fases</p><div class=\"ds-progress\"><span></span></div></section>",
+      "css": ".ds-card { max-width: 320px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05); font-family: Figtree, ui-sans-serif, system-ui, sans-serif; transition: transform .25s ease, box-shadow .25s ease; } .ds-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgb(15 23 42 / .08); } .ds-card-kicker { margin: 0; font-size: 14px; font-weight: 700; color: #64748B; } .ds-card-value { display: block; margin-top: 12px; font-size: 30px; line-height: 36px; font-weight: 800; letter-spacing: -.025em; color: #0F172A; } .ds-card-meta { margin: 4px 0 0; font-size: 12px; font-weight: 600; color: #64748B; } .ds-progress { margin-top: 16px; height: 8px; border-radius: 9999px; background: #F1F5F9; overflow: hidden; } .ds-progress span { display: block; width: 40%; height: 100%; border-radius: 9999px; background: #2196F3; } @media (prefers-reduced-motion: reduce) { .ds-card, .ds-card:hover { transition: none; transform: none; } }"
+    },
+    {
+      "name": "Banda de bienvenida",
+      "kind": "custom",
+      "refersTo": "welcome-band",
+      "description": "Firma del espacio del estudiante: saludo personal sobre Cielo de Atitlán, una sola vez por pantalla.",
+      "html": "<section class=\"ds-welcome\"><p class=\"ds-welcome-kicker\">TU ESPACIO DE CRECIMIENTO</p><h1 class=\"ds-welcome-title\">Hola, Ana</h1><p class=\"ds-welcome-text\">Avanza con una ruta creada para tu meta, practica habilidades y recibe orientación cuando la necesites.</p><button class=\"ds-welcome-cta\">Crear mi ruta →</button></section>",
+      "css": ".ds-welcome { background: #020617; color: #FFFFFF; border-radius: 24px; padding: 32px 40px; box-shadow: 0 20px 25px -5px rgb(0 0 0 / .1); font-family: Figtree, ui-sans-serif, system-ui, sans-serif; } .ds-welcome-kicker { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: .18em; color: #81D4FA; } .ds-welcome-title { margin: 12px 0 0; font-size: 36px; line-height: 40px; font-weight: 800; } .ds-welcome-text { margin: 12px 0 0; max-width: 60ch; font-size: 14px; line-height: 24px; color: #CBD5E1; } .ds-welcome-cta { margin-top: 20px; background: #2196F3; color: #020617; font: inherit; font-size: 14px; font-weight: 800; padding: 12px 20px; border: none; border-radius: 12px; cursor: pointer; transition: background-color .2s ease; } .ds-welcome-cta:hover { background: #64B5F6; } .ds-welcome-cta:focus-visible { outline: 2px solid #81D4FA; outline-offset: 2px; }"
+    },
+    {
+      "name": "Aviso de estado",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Contenedor suave para éxito, error y aviso.",
+      "html": "<div class=\"ds-alert ds-alert-exito\">Práctica registrada. El evaluador IA preparará tu retroalimentación.</div><div class=\"ds-alert ds-alert-error\">No se pudo generar la lección. Puedes intentarlo nuevamente.</div>",
+      "css": ".ds-alert { max-width: 420px; margin-bottom: 8px; padding: 12px 16px; border-radius: 12px; border: 1px solid; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; line-height: 20px; } .ds-alert-exito { background: #ECFDF5; border-color: #A7F3D0; color: #047857; } .ds-alert-error { background: #FFF1F2; border-color: #FECDD3; color: #BE123C; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Rumbo claro",
+    "overview": "Aprende Guate se diseña como una brújula profesional. Cada pantalla responde tres preguntas sin que nadie tenga que buscarlas: dónde estoy, cuánto he avanzado y cuál es mi siguiente paso. El sistema es sereno y ordenado, con superficies blancas sobre un fondo casi blanco, un único azul de identidad y tipografía firme que señala lo importante. La calidez no viene de la decoración sino del trato: textos que hablan de tú, esquinas suaves y una banda nocturna de bienvenida que saluda por su nombre a quien aprende.\n\nDebe sentirse confiable y profesional (alguien que busca empleo la puede mostrar con orgullo), cercana y motivadora (no intimida a quien empieza desde cero), moderna (la IA trabaja de fondo sin convertirse en espectáculo) y clara (se entiende en un vistazo, también en el celular). La plataforma es de trabajo: la densidad es media, el contenido manda y el color se usa para orientar, no para adornar.\n\nRechazos confirmados: no debe parecerse a una plantilla genérica de IA (degradados morados, neones, tarjetas clonadas), ni a un aula infantil (colores primarios saturados, ilustraciones caricaturescas), ni a un banco o gobierno frío (gris rígido y burocrático), ni a una red social ruidosa (contadores y colores compitiendo por atención).",
+    "keyCharacteristics": [
+      "Un solo color de identidad, Azul Lago, sobre neutros fríos de la familia pizarra.",
+      "Una banda nocturna (Cielo de Atitlán) como portada de bienvenida, no como fondo general.",
+      "Figtree en todos los pesos; los títulos y cifras pesan 800, el texto corrido 400.",
+      "Esquinas suaves y escalonadas: 12 px en controles, 16 px en tarjetas, 24 px en bandas.",
+      "Plano en reposo; las tarjetas se elevan levemente solo al responder al cursor.",
+      "Modo claro y modo oscuro completos en la plataforma y la administración."
+    ],
+    "rules": [
+      { "name": "La regla del Azul Legible", "body": "Si el azul lleva texto o el texto es azul en tamaño normal, se usa Azul Lago Profundo o Intenso; Azul Lago puro queda para íconos, detalles, texto grande y fondos oscuros.", "section": "colors" },
+      { "name": "La regla del único acento", "body": "Azul Lago es el único color de identidad. Verde, rojo y ámbar existen solo para comunicar estados, nunca para decorar.", "section": "colors" },
+      { "name": "La regla de la noche como portada", "body": "Cielo de Atitlán se usa como mucho una vez por pantalla, en la banda de bienvenida o portada; nunca como fondo de tarjetas en el modo claro.", "section": "colors" },
+      { "name": "La regla del peso con propósito", "body": "El peso 800 se reserva para títulos y cifras; el texto corrido nunca va en negrita completa y los botones van en 700.", "section": "typography" },
+      { "name": "La regla de la etiqueta legible", "body": "Las etiquetas en mayúsculas miden al menos 11 px y usan como mínimo Texto apagado (#64748B) sobre blanco. Sobre el fondo de administración (#F1F5F9) el texto secundario usa #475569, porque #64748B queda en 4.34:1. Nunca #94A3B8 para texto sobre fondos claros (2.56:1).", "section": "typography" },
+      { "name": "La regla del título que habla solo", "body": "Ninguna etiqueta va encima de un título. Si la etiqueta solo repite la categoría, se borra; si lleva un dato (módulo, nivel, fecha, paso), va debajo del título como metadato en Body small, peso 600, sin mayúsculas.", "section": "typography" },
+      { "name": "La regla del siguiente paso visible", "body": "En cada pantalla del estudiante, la acción que lo hace avanzar en su ruta es visible sin desplazarse en escritorio y es la primera acción en móvil.", "section": "layout" },
+      { "name": "La regla de plano en reposo", "body": "Nada flota en reposo. La elevación es una respuesta (cursor, foco, apertura de un menú o modal), nunca un estado decorativo.", "section": "elevation" },
+      { "name": "La regla del movimiento respetuoso", "body": "Las entradas usan cubic-bezier(.22, 1, .36, 1): 0.45 s para la aparición escalonada del contenido y 0.22 s para modales. Con prefers-reduced-motion: reduce todas las animaciones y transiciones se anulan.", "section": "elevation" },
+      { "name": "La regla de la escalera", "body": "Un elemento nunca tiene esquinas más redondeadas que su contenedor: control (12 px) dentro de tarjeta (16 px) dentro de banda (24 px).", "section": "shapes" }
+    ],
+    "dos": [
+      "Do usar Azul Lago Profundo (#1976D2, blue-600) para botones con texto blanco e Intenso (#1565C0, blue-700) para texto azul.",
+      "Do mantener una sola llamada principal por bloque y dejar visible el siguiente paso de la ruta.",
+      "Do usar contenedores suaves (fondo teñido, borde y texto oscuro del mismo tono) para éxito, error y aviso.",
+      "Do escalonar las esquinas: 12 px en controles, 16 px en tarjetas, 24 px en bandas.",
+      "Do cuidar el modo oscuro en cada pantalla nueva: Cielo de Atitlán de fondo, Tinta en tarjetas y Borde nocturno.",
+      "Do respetar prefers-reduced-motion en cualquier animación nueva."
+    ],
+    "donts": [
+      "Don't poner etiquetas o \"eyebrows\" encima de los títulos; el dato que lleven va debajo, como metadato.",
+      "Don't usar degradados morados, brillos de neón ni tarjetas idénticas repetidas: Aprende Guate no debe parecer una plantilla genérica de IA.",
+      "Don't usar colores primarios saturados ni ilustraciones caricaturescas: no es un aula infantil.",
+      "Don't construir pantallas grises, rígidas y sin calidez: no es un banco ni una oficina de gobierno.",
+      "Don't llenar la interfaz de contadores, insignias y colores compitiendo por atención: no es una red social.",
+      "Don't poner texto blanco sobre Azul Lago (#2196F3) en tamaños normales (3.12:1).",
+      "Don't usar #94A3B8 o más claro para texto sobre fondos claros.",
+      "Don't escribir azules en hexadecimal ni usar indigo, violet u otro azul fuera de la familia Azul Lago: las clases blue-* y sky-* ya son Azul Lago.",
+      "Don't usar Cielo de Atitlán más de una vez por pantalla en el modo claro."
+    ]
+  }
+}

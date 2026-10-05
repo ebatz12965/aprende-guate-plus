@@ -18,7 +18,7 @@
                 <textarea x-model="message" required maxlength="600" rows="2" placeholder="Escribe tu pregunta..." class="flex-1 resize-none rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500"></textarea>
                 <button :disabled="loading" class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50" x-text="loading ? 'Pensando...' : 'Enviar'"></button>
             </div>
-            <p class="mt-2 text-right text-xs text-slate-400"><span x-text="message.length"></span>/600 caracteres</p>
+            <p class="mt-2 text-right text-xs text-slate-500"><span x-text="message.length"></span>/600 caracteres</p>
         </form>
     </section>
 </div>

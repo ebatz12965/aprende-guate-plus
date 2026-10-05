@@ -1,7 +1,6 @@
 <x-guest-layout>
     <div class="mb-8">
-        <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Bienvenido de nuevo</p>
-        <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Inicia sesión</h2>
+        <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Inicia sesión</h2>
         <p class="mt-2 text-sm leading-6 text-slate-500">Continúa con tu ruta, tus prácticas y tu crecimiento profesional.</p>
     </div>
 
@@ -27,7 +26,7 @@
         <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2">Ingresar a la plataforma<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
 
-    <div class="my-7 flex items-center gap-3"><div class="h-px flex-1 bg-slate-200"></div><span class="text-xs font-semibold text-slate-400">O continúa con</span><div class="h-px flex-1 bg-slate-200"></div></div>
+    <div class="my-7 flex items-center gap-3"><div class="h-px flex-1 bg-slate-200"></div><span class="text-xs font-semibold text-slate-500">O continúa con</span><div class="h-px flex-1 bg-slate-200"></div></div>
 
     <a href="{{ route('socialite.redirect', 'google') }}" class="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.8 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.5a4.7 4.7 0 0 1-2 3.1v2.5h3.2c1.9-1.8 3.1-4.4 3.1-7.4Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.2-2.5c-.9.6-2 .9-3.5.9-2.7 0-5-1.8-5.8-4.3H2.9v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.2 13.7a6 6 0 0 1 0-3.4V7.7H2.9A10 10 0 0 0 2 12c0 1.5.4 2.9.9 4.3l3.3-2.6Z"/><path fill="#EA4335" d="M12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 2.9 7.7l3.3 2.6C7 7.8 9.3 6 12 6Z"/></svg>Continuar con Google</a>
 

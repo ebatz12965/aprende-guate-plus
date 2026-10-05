@@ -11,7 +11,7 @@
         <div>
             <p class="text-sm font-bold text-blue-700">OBSERVABILIDAD DE IA</p>
             <h1 class="mt-2 text-3xl font-extrabold text-slate-900">Consumo de tokens</h1>
-            <p class="mt-2 max-w-2xl text-slate-500">Uso registrado por la plataforma. Los tokens se obtienen de la respuesta del proveedor; no almacenamos prompts ni respuestas en este panel.</p>
+            <p class="mt-2 max-w-2xl text-slate-600">Uso registrado por la plataforma. Los tokens se obtienen de la respuesta del proveedor; no almacenamos prompts ni respuestas en este panel.</p>
         </div>
         <a href="{{ route('admin.ai-settings.edit') }}" class="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-bold text-blue-700 transition hover:bg-blue-50">Configurar cuota de tokens</a>
     </div>
@@ -19,14 +19,14 @@
     <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <section class="platform-feature"><p class="text-sm font-semibold text-slate-500">Cuota configurada</p><p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $budget > 0 ? $format($budget) : 'Sin definir' }}</p><p class="mt-2 text-xs text-slate-500">Ingresa la cuota adquirida en Límites de IA.</p></section>
         <section class="platform-feature"><p class="text-sm font-semibold text-slate-500">Consumidos registrados</p><p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $format($totalConsumed) }}</p><p class="mt-2 text-xs text-slate-500">Histórico desde que se activó esta medición.</p></section>
-        <section class="platform-feature"><p class="text-sm font-semibold text-slate-500">Disponibles estimados</p><p class="mt-2 text-3xl font-extrabold {{ $remaining === null ? 'text-slate-400' : ($remaining === 0 ? 'text-rose-600' : 'text-emerald-600') }}">{{ $remaining === null ? '—' : $format($remaining) }}</p><p class="mt-2 text-xs text-slate-500">{{ $usageRate === null ? 'Configura una cuota para calcularlo.' : $usageRate.'% de la cuota consumida.' }}</p></section>
+        <section class="platform-feature"><p class="text-sm font-semibold text-slate-500">Disponibles estimados</p><p class="mt-2 text-3xl font-extrabold {{ $remaining === null ? 'text-slate-500' : ($remaining === 0 ? 'text-rose-600' : 'text-emerald-600') }}">{{ $remaining === null ? '—' : $format($remaining) }}</p><p class="mt-2 text-xs text-slate-500">{{ $usageRate === null ? 'Configura una cuota para calcularlo.' : $usageRate.'% de la cuota consumida.' }}</p></section>
         <section class="platform-feature"><p class="text-sm font-semibold text-slate-500">Últimos 30 días</p><p class="mt-2 text-3xl font-extrabold text-slate-900">{{ $format($periodConsumed) }}</p><p class="mt-2 text-xs text-slate-500">{{ $format($successfulRequests) }} solicitudes exitosas de {{ $format($requests) }} registradas.</p></section>
     </div>
 
     <section class="platform-feature mt-6">
         <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end"><div><h2 class="text-lg font-extrabold text-slate-900">Consumo diario</h2><p class="mt-1 text-sm text-slate-500">Pico: {{ $peak['tokens'] > 0 ? $format($peak['tokens']).' tokens el '.$peak['label'] : 'aún no hay consumo registrado' }}.</p></div><span class="text-sm font-bold text-blue-700">{{ $format($periodConsumed) }} tokens / 30 días</span></div>
         <div class="mt-6 flex h-52 items-end gap-1.5 border-b border-slate-200 pb-1" aria-label="Gráfica de consumo diario">@foreach ($dailyUsage as $day)<div class="group relative flex h-full flex-1 items-end"><div title="{{ $day['label'] }}: {{ $format($day['tokens']) }} tokens" class="w-full min-h-1 rounded-t bg-blue-500 transition group-hover:bg-blue-700" style="height: {{ max(2, round(($day['tokens'] / $maximum) * 100)) }}%"></div></div>@endforeach</div>
-        <div class="mt-2 flex justify-between text-xs text-slate-400"><span>{{ $dailyUsage->first()['label'] }}</span><span>{{ $dailyUsage->get(14)['label'] }}</span><span>{{ $dailyUsage->last()['label'] }}</span></div>
+        <div class="mt-2 flex justify-between text-xs text-slate-500"><span>{{ $dailyUsage->first()['label'] }}</span><span>{{ $dailyUsage->get(14)['label'] }}</span><span>{{ $dailyUsage->last()['label'] }}</span></div>
     </section>
 
     <div class="mt-6 grid gap-6 xl:grid-cols-2">

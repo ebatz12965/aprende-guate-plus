@@ -3,8 +3,7 @@
 @section('content')
 <div class="mx-auto w-full max-w-5xl" x-data="{ section: new URLSearchParams(window.location.search).get('section') || 'account' }">
     <div class="mb-6">
-        <p class="text-xs font-extrabold tracking-[.16em] text-blue-700">CONFIGURACIÓN</p>
-        <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Ajustes de tu cuenta</h1>
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Ajustes de tu cuenta</h1>
         <p class="mt-2 text-slate-600">Organiza tu información, privacidad, seguridad y preferencias de comunicación.</p>
     </div>
 

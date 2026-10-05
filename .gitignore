@@ -26,3 +26,6 @@ Thumbs.db
 # Reportes y artefactos de trabajo locales
 /outputs
 /.tmp_*
+
+# Capturas e instantáneas del MCP de Playwright
+/.playwright-mcp

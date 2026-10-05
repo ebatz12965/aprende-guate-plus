@@ -81,8 +81,7 @@
         <section class="mt-6 learning-panel">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p class="text-xs font-extrabold uppercase tracking-wide text-blue-600">Tu evidencia</p>
-                    <h2 class="mt-1 text-2xl font-extrabold text-slate-900">Entrega y evaluación</h2>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Entrega y evaluación</h2>
                 </div>
                 @if ($submission)
                     <span
@@ -156,7 +155,7 @@
                                 <p class="mt-2 text-sm font-bold text-slate-800">Arrastra un archivo aquí o examina tu equipo</p>
                                 <p class="mt-1 text-xs text-slate-500" x-text="name || 'PDF, CSV, Excel, Word, PowerPoint, imagen, texto o ZIP · máximo 20 MB'">
                                 </p>
-                                <p class="mt-1 text-xs text-slate-400">El evaluador IA lee el texto de PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), TXT y
+                                <p class="mt-1 text-xs text-slate-500">El evaluador IA lee el texto de PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), TXT y
                                     CSV. Las imágenes y los ZIP se guardan, pero se evalúan con tu respuesta escrita.</p>
                             </label></div>
                     </div>

@@ -5,7 +5,7 @@
     <div class="mb-8">
         <p class="text-sm font-bold text-blue-700">CONTROL DE ACCESO</p>
         <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Roles del sistema</h1>
-        <p class="mt-2 text-slate-500">Consulta los roles disponibles para organizar los permisos de Aprende Guate.</p>
+        <p class="mt-2 text-slate-600">Consulta los roles disponibles para organizar los permisos de Aprende Guate.</p>
     </div>
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">

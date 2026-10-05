@@ -6,7 +6,7 @@
             <div>
                 <p class="text-sm font-bold text-blue-700">POSTULACIÓN DE MENTOR</p>
                 <h1 class="mt-2 text-3xl font-extrabold text-slate-900">{{ $application->user->name }}</h1>
-                <p class="mt-1 text-slate-500">{{ $application->user->email }} · {{ $application->professional_title }}</p>
+                <p class="mt-1 text-slate-600">{{ $application->user->email }} · {{ $application->professional_title }}</p>
             </div><span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{{ ucfirst(str_replace('_', ' ', $application->status)) }}</span>
         </div>
         <div class="mt-7 grid gap-6 lg:grid-cols-2">

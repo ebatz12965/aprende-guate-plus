@@ -146,8 +146,7 @@
                         <div class="grid h-11 w-11 place-items-center rounded-xl bg-orange-100 text-xl" aria-hidden="true">🔒</div><button
                             @click="showTwoFactorReminder = false" class="rounded-lg p-1 text-slate-500 hover:bg-slate-100" aria-label="Cerrar aviso">✕</button>
                     </div>
-                    <p class="mt-5 text-xs font-extrabold tracking-[0.14em] text-orange-700">RECOMENDACIÓN DE SEGURIDAD</p>
-                    <h2 id="two-factor-reminder-title" class="mt-2 text-xl font-extrabold text-slate-900">Activa la verificación en dos pasos</h2>
+                    <h2 id="two-factor-reminder-title" class="mt-5 text-xl font-extrabold text-slate-900">Activa la verificación en dos pasos</h2>
                     <p class="mt-3 text-sm leading-6 text-slate-600">Añade un código temporal de tu aplicación autenticadora además de tu contraseña. Así
                         proteges mejor tu cuenta aunque alguien conozca tu clave.</p>
                     <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button @click="showTwoFactorReminder = false"
@@ -274,7 +273,7 @@
                     <a href="{{ route('workspace.switch') }}" class="hidden">
                     </a>
                     <div class="my-2 border-t border-slate-200 dark:border-slate-700"></div>
-                    <p class="px-3 pt-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Cambiar espacio</p>
+                    <p class="px-3 pt-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Cambiar espacio</p>
                     @if ($activeSpace !== 'learning')
                         <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="learning"><button
                                 class="platform-mobile-link w-full text-left">Mi aprendizaje</button></form>
@@ -436,9 +435,9 @@
                 class="h-10 w-10 rounded-full border-2 border-white/70 bg-white object-cover object-top">
             <div class="min-w-0 flex-1">
                 <p class="text-sm font-extrabold">Quetzi, tu guía</p>
-                <p class="text-xs text-sky-100">Ayuda para usar la plataforma</p>
+                <p class="text-xs text-sky-50">Ayuda para usar la plataforma</p>
             </div>
-            <button type="button" @click="close()" class="rounded-lg p-1.5 text-sky-100 hover:bg-sky-800 hover:text-white"
+            <button type="button" @click="close()" class="rounded-lg p-1.5 text-sky-50 hover:bg-sky-800 hover:text-white"
                 aria-label="Cerrar guía">×</button>
         </header>
         <div class="space-y-3 bg-sky-50/60 p-4">
@@ -595,9 +594,7 @@
             :style="tooltipStyle" role="dialog" aria-label="Recorrido guiado">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <p class="text-[10px] font-extrabold uppercase tracking-[.14em] text-blue-700">RECORRIDO · PASO <span x-text="index + 1"></span> DE
-                        <span x-text="steps.length"></span></p>
-                    <h2 class="mt-1 text-base font-extrabold text-slate-900" x-text="currentStep?.title"></h2>
+                    <h2 class="text-base font-extrabold text-slate-900" x-text="currentStep?.title"></h2><p class="mt-1 text-sm font-semibold text-blue-700">Paso <span x-text="index + 1"></span> de <span x-text="steps.length"></span></p>
                 </div><span class="grid h-7 w-7 place-items-center rounded-full bg-blue-50 text-sm text-blue-700" aria-hidden="true">⚑</span>
             </div>
             <p class="mt-2 text-sm leading-5 text-slate-600" x-text="currentStep?.text"></p>
@@ -708,9 +705,9 @@
         <header class="flex items-center justify-between gap-3 bg-blue-700 px-4 py-3 text-white">
             <div class="min-w-0">
                 <p class="text-sm font-extrabold">Mensajes de mentoría</p>
-                <p class="truncate text-xs text-blue-100" x-text="selected ? selected.counterpart : 'Conversaciones activas'"></p>
+                <p class="truncate text-xs text-blue-50" x-text="selected ? selected.counterpart : 'Conversaciones activas'"></p>
             </div>
-            <button type="button" @click="setOpen(false)" class="rounded-lg p-1.5 text-blue-100 hover:bg-blue-800 hover:text-white"
+            <button type="button" @click="setOpen(false)" class="rounded-lg p-1.5 text-blue-50 hover:bg-blue-800 hover:text-white"
                 aria-label="Minimizar chat">−</button>
         </header>
         <div class="border-b border-slate-200 bg-slate-50 px-3 py-2" x-show="sessions.length > 1">

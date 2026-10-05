@@ -2,8 +2,7 @@
 
 @section('content')
 <article class="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
-    <p class="text-xs font-extrabold uppercase tracking-[.16em] text-blue-700">Información legal</p>
-    <h1 class="mt-2 text-3xl font-extrabold text-slate-900">Política de cookies</h1>
+    <h1 class="text-3xl font-extrabold text-slate-900">Política de cookies</h1>
     <p class="mt-2 text-sm text-slate-500">Última actualización: {{ now()->format('d/m/Y') }}</p>
     <div class="prose prose-slate mt-8 max-w-none text-sm leading-7">
         <p>Aprende Guate utiliza cookies y almacenamiento local para mantener tu sesión, recordar preferencias y hacer que la plataforma sea segura y funcional.</p>

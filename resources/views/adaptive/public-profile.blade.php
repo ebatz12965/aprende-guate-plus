@@ -4,7 +4,7 @@
 @php($photoUrl = $profile->photo_path ? Storage::disk('public')->url($profile->photo_path) : null)
 <div class="mx-auto w-full max-w-5xl">
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div class="bg-gradient-to-br from-slate-950 via-blue-950 to-blue-700 px-6 py-9 text-white sm:px-10 sm:py-11">
+        <div class="bg-gradient-to-br from-slate-950 via-blue-950 to-blue-800 px-6 py-9 text-white sm:px-10 sm:py-11">
             <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex min-w-0 items-center gap-5">
                     @if($photoUrl)
@@ -12,7 +12,7 @@
                     @else
                         <span class="grid h-24 w-24 shrink-0 place-items-center rounded-2xl border-4 border-white/20 bg-white/10 text-3xl font-extrabold">{{ Str::upper(Str::substr($user->name, 0, 1)) }}</span>
                     @endif
-                    <div class="min-w-0"><p class="text-xs font-bold uppercase tracking-[0.16em] text-blue-200">Perfil profesional</p><h1 class="mt-1 truncate text-3xl font-extrabold sm:text-4xl">{{ $user->name }}</h1><p class="mt-2 text-base text-blue-100">{{ $profile->professional_goal ?: 'Miembro de Aprende Guate' }}</p></div>
+                    <div class="min-w-0"><h1 class="truncate text-3xl font-extrabold sm:text-4xl">{{ $user->name }}</h1><p class="mt-2 text-base text-blue-100">{{ $profile->professional_goal ?: 'Miembro de Aprende Guate' }}</p></div>
                 </div>
                 @if($profile->linkedin_url)<a href="{{ $profile->linkedin_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center justify-center rounded-xl border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/20">LinkedIn ↗</a>@endif
             </div>

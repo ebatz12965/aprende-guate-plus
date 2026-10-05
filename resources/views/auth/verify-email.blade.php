@@ -3,8 +3,7 @@
         <div class="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-sky-700 text-white">
             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="m4 7 8 6 8-6"/></svg>
         </div>
-        <p class="text-sm font-semibold uppercase tracking-wider text-sky-700">Activa tu cuenta</p>
-        <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900">Confirma tu correo electrónico</h1>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Confirma tu correo electrónico</h1>
         <p class="mt-3 text-sm leading-6 text-slate-600">
             Enviamos un enlace de confirmación a <strong class="text-slate-800">{{ auth()->user()->email }}</strong>. Ábrelo para activar tu cuenta y acceder a la plataforma.
         </p>
