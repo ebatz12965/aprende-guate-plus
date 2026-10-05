@@ -24,7 +24,7 @@
         <section id="leccion" class="mt-7 scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <h2 class="text-2xl font-black text-slate-900">Lección</h2>
             @if ($topic->lesson)
-                <div class="mt-5">@include('adaptive.partials.lesson', ['lesson' => $topic->lesson, 'practiceType' => $topic->practice_type])</div>
+                <div class="mt-5">@include('adaptive.partials.lesson', ['lesson' => $topic->lesson, 'practiceType' => $topic->practice_type, 'topicTitle' => $topic->title])</div>
             @elseif($lessonPending)
                 <p class="ag-soft-pulse mt-3 flex items-center gap-2 text-sm leading-6 text-blue-700"><span class="ag-spinner"></span>Escribiendo la lección y revisando que todo sea correcto…</p>
             @else

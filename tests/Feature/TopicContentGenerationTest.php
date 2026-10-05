@@ -36,7 +36,10 @@ class TopicContentGenerationTest extends TestCase
             ->assertSee('Versión revisada')
             ->assertSee('Ejemplo resuelto')
             ->assertSee('Errores frecuentes')
-            ->assertSee('Comprueba lo que aprendiste');
+            ->assertSee('Comprueba lo que aprendiste')
+            ->assertSee('Elige por dónde empezar')
+            ->assertSee('¿Qué harías?')
+            ->assertSee('Ver como texto');
     }
 
     public function test_an_incomplete_draft_is_retried_with_its_problems(): void
@@ -171,6 +174,7 @@ class TopicContentGenerationTest extends TestCase
             'common_mistakes' => [['mistake' => 'No revisar.', 'fix' => 'Compara con otro método.'], ['mistake' => 'Rangos distintos.', 'fix' => 'Usa rangos del mismo tamaño.']],
             'key_concepts' => [['term' => 'Rango', 'definition' => 'Un grupo de celdas.'], ['term' => 'Criterio', 'definition' => 'La condición a cumplir.'], ['term' => 'Total', 'definition' => 'La suma.']],
             'check_questions' => [$question(0), $question(2), $question(1)],
+            'decision' => ['situation' => 'Tu jefa necesita el reporte en una hora y un total no cuadra.', 'question' => '¿Qué harías?', 'choices' => [['label' => 'Entregarlo así', 'best' => false, 'outcome' => 'Entregas un error.'], ['label' => 'Revisar la fórmula', 'best' => true, 'outcome' => 'Encuentras el error a tiempo.']]],
             'summary' => 'Agrupa, suma y revisa.',
             'youtube_queries' => ['SUMAR.SI en Excel'],
         ];

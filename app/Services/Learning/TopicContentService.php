@@ -55,7 +55,7 @@ class TopicContentService
             .'1) exactitud técnica (nombres reales de menús, funciones y comandos; en Excel en español, por ejemplo SUMAR.SI, BUSCARV o BUSCARX); '
             .'2) que la opción marcada como correcta en cada pregunta sea de verdad la única correcta y que su explicación lo justifique; '
             .'3) que el ejemplo resuelto llegue al resultado que dice; 4) español claro con tuteo, sin relleno ni frases vacías; '
-            .'5) que todo el contenido trate este tema y no se adelante a temas posteriores; 6) que ninguna pregunta pida recitar una definición. Recalcula paso a paso cada número del ejemplo resuelto con su material. No te limites a copiar el borrador: mejora lo que esté débil. En review_notes anota cada error que encontraste y cómo lo corregiste. Devuelve la lección completa.';
+            .'5) que todo el contenido trate este tema y no se adelante a temas posteriores; 6) que ninguna pregunta pida recitar una definición; 7) que en la decisión solo una opción sea de verdad la mejor y que cada consecuencia sea realista. Recalcula paso a paso cada número del ejemplo resuelto con su material. No te limites a copiar el borrador: mejora lo que esté débil. En review_notes anota cada error que encontraste y cómo lo corregiste. Devuelve la lección completa.';
 
         return $this->generateReviewed('theory_content', $prompt, $review, $this->lessonSchema(), 'topic_lesson', (int) config('ai.lesson_max_tokens'), $path->user_id,
             fn (array $value) => $this->lessonProblems($value), fn () => $this->lessonFallback($path, $topic));
@@ -64,7 +64,7 @@ class TopicContentService
     private function lessonPrompt(LearningPath $path, LearningPathTopic $topic): string
     {
         $office = $this->isOffice($path)
-            ? 'Es un tema de ofimática: usa los nombres de menús, pestañas y funciones de Microsoft Office en español (por ejemplo, la pestaña Inicio, Insertar > Tabla dinámica, la función SUMAR.SI) y describe dónde hacer clic. '
+            ? 'Es un tema de ofimática: usa los nombres de menús, pestañas y funciones de Microsoft Office en español (por ejemplo, la pestaña Inicio, Insertar > Tabla dinámica, la función SUMAR.SI) y describe dónde hacer clic. El separador de argumentos de las fórmulas depende de la configuración regional (coma o punto y coma): no afirmes cuál se usa en un país; usa uno de forma consistente y menciona que puede ser el otro. '
             : '';
 
         return 'Eres docente experto y diseñador instruccional. Escribe la lección de este tema para que alguien que nunca lo estudió lo entienda por completo y pueda aplicarlo en un trabajo.'."\n"
@@ -72,11 +72,12 @@ class TopicContentService
             .'Requisitos: '
             .'intro: 2 o 3 oraciones sobre para qué sirve esto en un empleo real en Guatemala. '
             .'objectives: 2 a 4 resultados observables que empiezan con un verbo ("Calcular…", "Identificar…"). '
-            .'sections: 3 a 5 secciones que van de lo básico a lo aplicado; cada explanation tiene entre 120 y 180 palabras en 2 o 3 párrafos separados por una línea en blanco, y explica el porqué y el cómo, no solo el qué; cada example tiene de 30 a 60 palabras y es concreto, con datos o situaciones guatemaltecas verosímiles (quetzales, empresas locales ficticias). '
-            .'worked_example: un problema realista resuelto en 4 a 6 pasos. material contiene lo que se trabaja: '.$this->workedMaterialGuide($topic->practice_type).' Cada paso dice exactamente qué hacer (con la fórmula, el código o la acción literal) y por qué. result da el resultado exacto que se obtiene con ese material; verifica cada número antes de escribirlo. '
+            .'sections: 3 a 5 secciones que van de lo básico a lo aplicado, con heading sin numeración; cada explanation tiene entre 120 y 180 palabras en 2 o 3 párrafos separados por una línea en blanco, y explica el porqué y el cómo, no solo el qué; cada example tiene de 30 a 60 palabras y es concreto, con datos o situaciones guatemaltecas verosímiles (quetzales, empresas locales ficticias). '
+            .'worked_example: un problema realista resuelto en 4 a 6 pasos. material contiene lo que se trabaja: '.$this->workedMaterialGuide($topic->practice_type).' Cada paso dice exactamente qué hacer (con la fórmula, el código o la acción literal) y por qué, sin numerarlo. result da el resultado exacto que se obtiene con ese material; verifica cada número antes de escribirlo. '
             .'common_mistakes: 2 a 4 errores reales de principiantes y cómo evitarlos. '
             .'key_concepts: 3 a 6 términos con una definición de una oración. '
-            .'check_questions: exactamente 3 preguntas de opción múltiple con 4 opciones. Al menos 2 presentan una situación concreta (unos datos, un fragmento de código o un caso) y piden decidir qué hacer o predecir el resultado; ninguna pregunta pide recitar una definición ("¿Qué es…?", "¿Qué hace…?"). Los distractores son errores que un principiante cometería de verdad. Solo una opción es correcta; answer es su índice (0 a 3) y explanation dice por qué es correcta y por qué las demás no. Varía la posición de la respuesta correcta. '
+            .'check_questions: exactamente 3 preguntas de opción múltiple con 4 opciones. Al menos 2 presentan una situación concreta (unos datos, un fragmento de código o un caso) y piden decidir qué hacer o predecir el resultado; ninguna pregunta pide recitar una definición ("¿Qué es…?", "¿Qué hace…?"). Los distractores son errores que un principiante cometería de verdad. Solo una opción es correcta; answer es su índice (0 a 3) y explanation dice por qué es correcta y por qué las demás no, refiriéndose a las opciones por su letra (A, B, C, D), nunca por número. Varía la posición de la respuesta correcta. '
+            .'decision: una situación de trabajo realista (situation, 2 o 3 oraciones) donde hay que decidir cómo aplicar el tema, con question (la pregunta, por ejemplo "¿Qué harías?") y choices: 3 opciones con label (la acción), best (true solo en la mejor) y outcome (qué pasaría si eliges esa opción y por qué, 1 o 2 oraciones). Las opciones incorrectas son tentadoras y su outcome muestra la consecuencia real. '
             .'summary: 2 o 3 oraciones con lo esencial. '
             .'youtube_queries: 1 a 3 búsquedas en español para encontrar videos sobre exactamente este tema. '
             .$office
@@ -136,6 +137,10 @@ class TopicContentService
         if (blank($value['intro'] ?? null) || blank($value['summary'] ?? null)) {
             $hard[] = 'Faltan la introducción o el resumen.';
         }
+        $choices = data_get($value, 'decision.choices', []);
+        if (count($choices) < 2 || collect($choices)->where('best', true)->count() !== 1 || blank(data_get($value, 'decision.situation'))) {
+            $soft[] = 'La decisión necesita una situación y de 2 a 3 opciones con exactamente una marcada como la mejor.';
+        }
 
         return [$hard, $soft];
     }
@@ -160,6 +165,11 @@ class TopicContentService
                 ['question' => 'Tu total no coincide con un cálculo a mano. ¿Qué haces?', 'options' => ['Lo entrego igual', 'Cambio el número a mano', 'Reviso los pasos anteriores hasta encontrar el error', 'Borro el cálculo'], 'answer' => 2, 'explanation' => 'Revisar los pasos encuentra la causa; cambiar el número a mano oculta el error.'],
                 ['question' => '¿Qué hace profesional a un trabajo entregado?', 'options' => ['Que sea largo', 'Que esté completo, revisado y se entienda', 'Que use muchos colores', 'Que nadie más pueda modificarlo'], 'answer' => 1, 'explanation' => 'La calidad depende de que sea correcto y comprensible, no de su largo o su apariencia.'],
             ],
+            'decision' => ['situation' => 'Tu coordinadora te pide un resultado para hoy a las 4 de la tarde. A las 3 terminas, pero un total no coincide con tu cálculo a mano.', 'question' => '¿Qué harías?', 'choices' => [
+                ['label' => 'Lo entrego así para cumplir con la hora.', 'best' => false, 'outcome' => 'Cumples la hora, pero entregas un error que alguien tomará como cierto.'],
+                ['label' => 'Reviso los pasos hasta encontrar la diferencia y aviso si necesito unos minutos más.', 'best' => true, 'outcome' => 'Entregas un resultado confiable y tu coordinadora sabe qué esperar.'],
+                ['label' => 'Cambio el número a mano para que coincida.', 'best' => false, 'outcome' => 'El total parece correcto, pero el error sigue escondido en los datos.'],
+            ]],
             'summary' => 'Define el resultado que necesitas, trabaja en pasos cortos y revisa antes de entregar.',
             'youtube_queries' => [Str::limit($topic->title.' tutorial en español', 90, '')],
         ];
@@ -179,6 +189,7 @@ class TopicContentService
             'common_mistakes' => ['type' => 'array', 'minItems' => 2, 'maxItems' => 4, 'items' => $object(['mistake' => $string, 'fix' => $string])],
             'key_concepts' => ['type' => 'array', 'minItems' => 3, 'maxItems' => 6, 'items' => $object(['term' => $string, 'definition' => $string])],
             'check_questions' => ['type' => 'array', 'minItems' => 3, 'maxItems' => 3, 'items' => $object(['question' => $string, 'options' => $strings(4, 4), 'answer' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 3], 'explanation' => $string])],
+            'decision' => $object(['situation' => $string, 'question' => $string, 'choices' => ['type' => 'array', 'minItems' => 2, 'maxItems' => 3, 'items' => $object(['label' => $string, 'best' => ['type' => 'boolean'], 'outcome' => $string])]]),
             'summary' => $string,
             'youtube_queries' => $strings(1, 3),
         ]);
