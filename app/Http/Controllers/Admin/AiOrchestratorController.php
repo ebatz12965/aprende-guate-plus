@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateAiAgentRequest;
 use App\Models\AiRequest;
 use App\Models\AiTokenUsage;
+use App\Services\AiPulseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -41,7 +42,9 @@ class AiOrchestratorController extends Controller
             'completed' => (int) ($metrics[$slug]->completed ?? 0),
         ])->values();
 
-        return view('admin.ai-orchestrator.index', ['providers' => $providers, 'models' => $models, 'agents' => $agents, 'totalRequests' => AiRequest::count(), 'totalTokens' => (int) AiTokenUsage::sum('total_tokens'), 'failedRequests' => AiRequest::where('status', 'failed')->count(), 'recentRequests' => AiRequest::with('user:id,name,email')->latest()->limit(12)->get()]);
+        $pulse = app(AiPulseService::class);
+
+        return view('admin.ai-orchestrator.index', ['providers' => $providers, 'models' => $models, 'priceModels' => $pulse->knownModels(), 'prices' => $pulse->prices(), 'agents' => $agents, 'totalRequests' => AiRequest::count(), 'totalTokens' => (int) AiTokenUsage::sum('total_tokens'), 'failedRequests' => AiRequest::where('status', 'failed')->count(), 'recentRequests' => AiRequest::with('user:id,name,email')->latest()->limit(12)->get()]);
     }
 
     public function update(UpdateAiAgentRequest $request, AgentCatalog $catalog, string $agent): RedirectResponse

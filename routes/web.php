@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AiOrchestratorController;
+use App\Http\Controllers\Admin\AiPulseController;
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\AiUsageController;
 use App\Http\Controllers\Admin\AnnouncementController;
@@ -125,6 +126,10 @@ Route::middleware(['auth', 'verified', 'role:Instructor|Admin'])->group(function
 
 Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'role:Admin'])->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('ia', [AiPulseController::class, 'index'])->name('ai-pulse.index');
+    Route::get('ia/datos', [AiPulseController::class, 'data'])->name('ai-pulse.data');
+    Route::get('ia/detalle', [AiPulseController::class, 'detail'])->name('ai-pulse.detail');
+    Route::put('orquestador-ia/precios', [AiPulseController::class, 'savePrices'])->name('ai-orchestrator.prices');
     Route::resource('users', AdminUserController::class);
     Route::get('roles', [AdminRoleController::class, 'index'])->name('roles.index');
     Route::get('configuracion-ia', [AiSettingsController::class, 'edit'])->name('ai-settings.edit');

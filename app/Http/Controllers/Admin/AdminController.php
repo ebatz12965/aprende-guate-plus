@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AiTokenUsage;
 use App\Models\PlatformSetting;
 use App\Models\User;
+use App\Services\AiPulseService;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -18,15 +19,8 @@ class AdminController extends Controller
         $tokensUsed = (int) AiTokenUsage::sum('total_tokens');
         $tokensAvailable = $tokenBudget > 0 ? max(0, $tokenBudget - $tokensUsed) : null;
         $usageRequests = AiTokenUsage::count();
-        $topConsumers = AiTokenUsage::query()
-            ->whereNotNull('user_id')
-            ->selectRaw('user_id, SUM(total_tokens) as total_tokens, COUNT(*) as requests')
-            ->with('user:id,name,email')
-            ->groupBy('user_id')
-            ->orderByDesc('total_tokens')
-            ->limit(10)
-            ->get();
+        $aiToday = app(AiPulseService::class)->summary(1440);
 
-        return view('admin.dashboard', compact('totalUsers', 'latestUsers', 'tokenBudget', 'tokensUsed', 'tokensAvailable', 'usageRequests', 'topConsumers'));
+        return view('admin.dashboard', compact('totalUsers', 'latestUsers', 'tokenBudget', 'tokensUsed', 'tokensAvailable', 'usageRequests', 'aiToday'));
     }
 }

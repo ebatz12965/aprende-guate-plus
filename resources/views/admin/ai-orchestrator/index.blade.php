@@ -21,6 +21,28 @@
         @endforeach
     </div>
 </section>
+<section id="precios" class="mt-8 scroll-mt-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-100 px-5 py-4 sm:px-6"><h2 class="font-bold text-slate-950">Precios por modelo</h2><p class="mt-1 text-sm text-slate-600">Dólares por millón de tokens, según la página de precios de cada proveedor. El tablero de IA los usa para estimar el costo; un modelo sin precio no suma costo.</p></div>
+    <form method="POST" action="{{ route('admin.ai-orchestrator.prices') }}" class="px-5 py-4 sm:px-6">@csrf @method('PUT')
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead class="text-xs font-bold text-slate-600"><tr><th class="py-2 pr-4">Modelo</th><th class="py-2 pr-4">Entrada (US$ / 1 M)</th><th class="py-2">Salida (US$ / 1 M)</th></tr></thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse ($priceModels as $index => $model)
+                        <tr>
+                            <td class="py-2 pr-4 font-semibold text-slate-900">{{ $model }}<input type="hidden" name="prices[{{ $index }}][model]" value="{{ $model }}"></td>
+                            <td class="py-2 pr-4"><label class="sr-only" for="price-in-{{ $index }}">Precio de entrada de {{ $model }}</label><input id="price-in-{{ $index }}" type="number" step="0.0001" min="0" max="1000" name="prices[{{ $index }}][input]" value="{{ $prices[$model]['input'] ?? '' }}" placeholder="0.00" class="w-32 rounded-xl border-slate-200 text-sm tabular-nums"></td>
+                            <td class="py-2"><label class="sr-only" for="price-out-{{ $index }}">Precio de salida de {{ $model }}</label><input id="price-out-{{ $index }}" type="number" step="0.0001" min="0" max="1000" name="prices[{{ $index }}][output]" value="{{ $prices[$model]['output'] ?? '' }}" placeholder="0.00" class="w-32 rounded-xl border-slate-200 text-sm tabular-nums"></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="3" class="py-3 text-slate-600">Aún no hay modelos en uso.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if ($priceModels)<button class="mt-4 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800">Guardar precios</button>@endif
+    </form>
+</section>
 <div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b border-slate-100 px-5 py-4 sm:px-6"><h2 class="font-bold text-slate-950">Agentes especializados</h2><p class="mt-1 text-sm text-slate-500">Cada agente tiene alcance, límite de respuesta y telemetría independientes. Puedes activar o desactivar cada agente y ajustar su modelo o límite de tokens; los que aún no tienen un módulo de producto no se pueden activar.</p></div><div class="divide-y divide-slate-100">@foreach ($agents as $agent)
 <div class="px-5 py-5 sm:px-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

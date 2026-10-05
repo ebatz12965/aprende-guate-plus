@@ -20,6 +20,6 @@ class AdminDashboardTest extends TestCase
         $users = User::factory()->count(6)->create();
         PlatformSetting::setInteger('ai_token_budget', 1000);
         AiTokenUsage::create(['user_id' => $users->first()->id, 'operation' => 'tutor_reply', 'model' => 'test', 'prompt_tokens' => 100, 'completion_tokens' => 150, 'total_tokens' => 250, 'successful' => true]);
-        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk()->assertSee('Usuarios registrados')->assertSee('Tokens disponibles')->assertSee('750')->assertSee('Usuarios con mayor consumo IA')->assertSee($users->first()->name);
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk()->assertSee('Usuarios registrados')->assertSee('Tokens disponibles')->assertSee('750')->assertSee('Inteligencia artificial hoy')->assertSee('Abrir el tablero de IA');
     }
 }
