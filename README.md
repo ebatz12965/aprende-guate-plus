@@ -1,4 +1,4 @@
-# Aprende Guate Plus
+# Aprende Guate
 
 Plataforma de aprendizaje adaptativo con IA. Cada estudiante responde un diagnóstico, recibe una ruta personalizada por fases y temas, genera lecciones y prácticas bajo demanda, resuelve retos evaluados por IA y puede solicitar mentorías con personas instructoras.
 
