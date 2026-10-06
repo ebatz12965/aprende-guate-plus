@@ -29,3 +29,6 @@ Thumbs.db
 
 # Capturas e instantáneas del MCP de Playwright
 /.playwright-mcp
+
+# Informes de seguridad (pueden contener secretos): docs/seguridad/README.md
+/docs/seguridad/informes

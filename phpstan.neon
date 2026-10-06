@@ -1,0 +1,12 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    # Hallazgos que ya existían al activar Larastan: se van corrigiendo y se regeneran con
+    # `vendor/bin/phpstan analyse --generate-baseline`. El CI solo falla con hallazgos nuevos.
+    - phpstan-baseline.neon
+
+parameters:
+    paths:
+        - app
+        - routes
+        - database
+    level: 5
