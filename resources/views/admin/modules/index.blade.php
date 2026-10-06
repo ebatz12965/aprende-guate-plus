@@ -72,15 +72,35 @@
                         </div>
                     </fieldset>
 
-                    <div x-show="status === 'maintenance'" x-cloak class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_16rem]">
+                    @php
+                        $mine = old('module') === $module['key'];
+                        // Al editar un mantenimiento con hora de regreso, se conserva esa hora como "fecha elegida".
+                        $keepsUntil = $state['status'] === Modules::MAINTENANCE && $state['until'] && $state['until']->isFuture();
+                        $duration = $mine ? old('duration', 'none') : ($keepsUntil ? 'custom' : 'none');
+                        $untilValue = $mine ? old('until') : ($keepsUntil ? $state['until']->format('Y-m-d\TH:i') : '');
+                    @endphp
+                    <div x-show="status === 'maintenance'" x-cloak class="space-y-4" x-data="{ duration: '{{ $duration }}' }">
                         <div>
                             <label for="message-{{ $module['key'] }}" class="block text-sm font-semibold text-slate-700">Aviso para las personas <span class="font-normal text-slate-500">(opcional)</span></label>
-                            <textarea id="message-{{ $module['key'] }}" name="message" rows="2" maxlength="500" class="{{ $field }}" placeholder="Estamos mejorando {{ Str::lower($module['label']) }}. Vuelve en un rato.">{{ old('module') === $module['key'] ? old('message') : $state['message'] }}</textarea>
+                            <textarea id="message-{{ $module['key'] }}" name="message" rows="2" maxlength="500" class="{{ $field }}" placeholder="Estamos haciendo mejoras en «{{ $module['label'] }}». Vuelve en un rato.">{{ $mine ? old('message') : $state['message'] }}</textarea>
                         </div>
-                        <div>
-                            <label for="until-{{ $module['key'] }}" class="block text-sm font-semibold text-slate-700">Reactivar solo <span class="font-normal text-slate-500">(opcional)</span></label>
-                            <input id="until-{{ $module['key'] }}" type="datetime-local" name="until" min="{{ now()->addMinutes(5)->format('Y-m-d\TH:i') }}"
-                                value="{{ old('module') === $module['key'] ? old('until') : ($state['status'] === Modules::MAINTENANCE ? $state['until']?->format('Y-m-d\TH:i') : '') }}" class="{{ $field }}">
+                        <fieldset>
+                            <legend class="text-sm font-semibold text-slate-700">Reactivar solo</legend>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @foreach (['none' => 'No, lo activo yo', '1' => 'En 1 hora', '2' => 'En 2 horas', '4' => 'En 4 horas', '8' => 'En 8 horas', 'custom' => 'Elegir fecha y hora'] as $value => $label)
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="duration" value="{{ $value }}" x-model="duration" class="peer sr-only">
+                                        <span class="inline-flex min-h-10 items-center rounded-xl border border-slate-200 px-3 text-sm font-semibold text-slate-700 peer-checked:border-amber-300 peer-checked:bg-amber-50 peer-checked:text-amber-900 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500">{{ $label }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="mt-2 text-sm text-slate-500" x-show="['1', '2', '4', '8'].includes(duration)">La hora se cuenta desde que guardas.</p>
+                        </fieldset>
+                        {{-- Sin "min": el selector de Chrome bloquea el día de hoy si el mínimo cae dentro del mismo día. Valida el servidor. --}}
+                        <div x-show="duration === 'custom'" x-cloak class="max-w-xs">
+                            <label for="until-{{ $module['key'] }}" class="block text-sm font-semibold text-slate-700">Fecha y hora de regreso</label>
+                            <input id="until-{{ $module['key'] }}" type="datetime-local" name="until" value="{{ $untilValue }}" class="{{ $field }}" :required="duration === 'custom'" :disabled="duration !== 'custom'">
+                            <p class="mt-1 text-xs text-slate-500">Hora de Guatemala. Ahora son las {{ now()->format('H:i') }} del {{ now()->format('d/m/Y') }}.</p>
                         </div>
                     </div>
 
@@ -99,7 +119,7 @@
                     </fieldset>
 
                     @if (old('module') === $module['key'])
-                        @foreach (['status', 'message', 'until', 'preview_roles'] as $errorKey)
+                        @foreach (['status', 'message', 'duration', 'until', 'preview_roles'] as $errorKey)
                             @error($errorKey)<p class="text-sm font-medium text-rose-700">{{ $message }}</p>@enderror
                         @endforeach
                     @endif

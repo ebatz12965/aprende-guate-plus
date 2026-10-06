@@ -90,7 +90,7 @@
                     </div>
                     <div><label for="mentor-preferred-at" class="text-sm font-bold text-slate-700">Horario que prefieres <span
                                 class="font-normal text-slate-500">(opcional)</span></label><input id="mentor-preferred-at" type="datetime-local"
-                            name="preferred_at" min="{{ now()->format('Y-m-d\\TH:i') }}" class="mt-2 w-full rounded-xl border-slate-200 text-sm">
+                            name="preferred_at" class="mt-2 w-full rounded-xl border-slate-200 text-sm">
                         <p class="mt-2 text-xs text-slate-500">El mentor confirmará la hora final según su disponibilidad.</p>
                     </div>
                     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button type="button" @click="close()"

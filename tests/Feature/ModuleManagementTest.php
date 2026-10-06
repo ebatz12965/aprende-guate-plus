@@ -66,6 +66,27 @@ class ModuleManagementTest extends TestCase
         $this->actingAs($student)->get(route('adaptive.challenges'))->assertOk();
     }
 
+    public function test_short_maintenance_windows_and_same_day_times(): void
+    {
+        $this->travelTo(now()->setTime(12, 40));
+        $modules = app(Modules::class);
+
+        // "En 2 horas": se cuenta desde que se guarda.
+        $this->setModule('tutor', 'maintenance', ['duration' => '2']);
+        $this->assertSame('14:40', $modules->state('tutor')['until']->format('H:i'));
+        $this->assertTrue($modules->state('tutor')['until']->isToday());
+
+        // Una hora del mismo día, más tarde, también vale.
+        $this->setModule('retos', 'maintenance', ['duration' => 'custom', 'until' => now()->format('Y-m-d').'T15:30']);
+        $this->assertSame(now()->format('Y-m-d').' 15:30', $modules->state('retos')['until']->format('Y-m-d H:i'));
+
+        // Una hora que ya pasó se rechaza con un mensaje claro; "lo activo yo" no deja hora de regreso.
+        $this->actingAs($this->superAdmin())->put(route('admin.modules.update', 'perfil'), ['status' => 'maintenance', 'duration' => 'custom', 'until' => now()->format('Y-m-d').'T09:00'])
+            ->assertSessionHasErrors(['until' => 'La hora de regreso ya pasó. Elige una hora posterior a la actual ('.now()->format('d/m/Y H:i').').']);
+        $this->setModule('perfil', 'maintenance', ['duration' => 'none']);
+        $this->assertNull($modules->state('perfil')['until']);
+    }
+
     public function test_preview_hides_the_module_except_for_chosen_roles(): void
     {
         Role::findOrCreate('Probadores', 'web');

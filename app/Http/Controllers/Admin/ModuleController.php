@@ -40,11 +40,21 @@ class ModuleController extends Controller
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(Modules::STATUSES))],
             'message' => ['nullable', 'string', 'max:500'],
-            'until' => ['nullable', 'date', 'after:now'],
+            // Ventanas cortas (horas) o una fecha y hora concretas; las horas se cuentan al guardar.
+            'duration' => ['nullable', Rule::in(['none', '1', '2', '4', '8', 'custom'])],
+            'until' => ['nullable', 'required_if:duration,custom', 'date', 'after:now'],
             'preview_roles' => ['array'],
             'preview_roles.*' => ['string', Rule::exists('roles', 'name'), Rule::notIn([AdminAccess::SUPER_ROLE])],
+        ], [
+            'until.after' => 'La hora de regreso ya pasó. Elige una hora posterior a la actual ('.now()->format('d/m/Y H:i').').',
+            'until.required_if' => 'Elige la fecha y hora de regreso.',
         ]);
-        $until = filled($data['until'] ?? null) ? Carbon::parse($data['until']) : null;
+        $duration = $data['duration'] ?? null;
+        $until = match (true) {
+            in_array($duration, ['1', '2', '4', '8'], true) => now()->addHours((int) $duration)->startOfMinute(),
+            $duration === 'none' => null,
+            default => filled($data['until'] ?? null) ? Carbon::parse($data['until']) : null,
+        };
         $this->modules->update($request->user(), $module, $data['status'], $data['message'] ?? null, $until, $data['preview_roles'] ?? []);
 
         $label = Modules::CATALOG[$module]['label'];
