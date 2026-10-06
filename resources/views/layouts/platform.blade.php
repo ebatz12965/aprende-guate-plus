@@ -112,7 +112,7 @@
                                         href="{{ route('adaptive.tutor') }}" class="platform-menu-link">Tutor IA<x-module-badge module="tutor" /></a>@endmodule @module('mentoria')<a href="{{ route('adaptive.mentorship') }}"
                                         class="platform-menu-link">Mentoría profesional<x-module-badge module="mentoria" /></a>@endmodule @module('postulacion_mentor')<a href="{{ route('mentor-application.create') }}"
                                         class="platform-menu-link">Solicitar ser mentor<x-module-badge module="postulacion_mentor" /></a>@endmodule</div>
-                            </div>@module('retos')<a href="{{ route('adaptive.challenges') }}" data-tour="retos" class="platform-nav-link">Retos<x-module-badge module="retos" /></a>@endmodule @module('perfil')<a
+                            </div>@module('retos')<a href="{{ route('adaptive.challenges') }}" data-tour="retos" class="platform-nav-link">Retos<x-module-badge module="retos" /></a>@endmodule @module('entrevistas')<a href="{{ route('adaptive.interviews') }}" data-tour="retos" class="platform-nav-link">Entrevistas<x-module-badge module="entrevistas" /></a>@endmodule @module('perfil')<a
                                 href="{{ route('adaptive.career') }}" data-tour="perfil" class="platform-nav-link">Perfil<x-module-badge module="perfil" /></a>@endmodule
                         @endif
                     @else
@@ -176,7 +176,7 @@
                             class="platform-mobile-link flex w-full items-center justify-between text-left">Aprendizaje y apoyo <span>⌄</span></button>
                         <div x-show="supportOpen" x-cloak class="ml-3 border-l border-blue-100 pl-3">@module('tutor')<a href="{{ route('adaptive.tutor') }}"
                                 class="platform-mobile-link">Tutor IA<x-module-badge module="tutor" /></a>@endmodule @module('mentoria')<a href="{{ route('adaptive.mentorship') }}" class="platform-mobile-link">Mentoría
-                                profesional<x-module-badge module="mentoria" /></a>@endmodule</div>@module('retos')<a href="{{ route('adaptive.challenges') }}" class="platform-mobile-link">Retos<x-module-badge module="retos" /></a>@endmodule @module('perfil')<a
+                                profesional<x-module-badge module="mentoria" /></a>@endmodule</div>@module('retos')<a href="{{ route('adaptive.challenges') }}" class="platform-mobile-link">Retos<x-module-badge module="retos" /></a>@endmodule @module('entrevistas')<a href="{{ route('adaptive.interviews') }}" class="platform-mobile-link">Entrevistas<x-module-badge module="entrevistas" /></a>@endmodule @module('perfil')<a
                             href="{{ route('adaptive.career') }}" class="platform-mobile-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule
                     @endif
                     <a href="{{ route('workspace.switch') }}" class="hidden">
@@ -242,7 +242,8 @@
                         class="{{ $studentNavClass('adaptive.tutor') }}">Tutor IA<x-module-badge module="tutor" /></a>@endmodule @module('mentoria')<a href="{{ route('adaptive.mentorship') }}"
                         class="{{ $studentNavClass('adaptive.mentorship') }}">Mentoría profesional<x-module-badge module="mentoria" /></a>@endmodule @module('postulacion_mentor')<a href="{{ route('mentor-application.create') }}"
                         class="{{ $studentNavClass('mentor-application.*') }}">Solicitar ser mentor<x-module-badge module="postulacion_mentor" /></a>@endmodule</div>@module('retos')<a
-                    href="{{ route('adaptive.challenges') }}" class="{{ $studentNavClass('adaptive.challenges') }}">Retos<x-module-badge module="retos" /></a>@endmodule @module('perfil')<a
+                    href="{{ route('adaptive.challenges') }}" class="{{ $studentNavClass('adaptive.challenges') }}">Retos<x-module-badge module="retos" /></a>@endmodule @module('entrevistas')<a
+                    href="{{ route('adaptive.interviews') }}" class="{{ $studentNavClass('adaptive.interviews*') }}">Entrevistas<x-module-badge module="entrevistas" /></a>@endmodule @module('perfil')<a
                     href="{{ route('adaptive.career') }}" class="{{ $studentNavClass('adaptive.career') }}">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule
             @endif
         @else

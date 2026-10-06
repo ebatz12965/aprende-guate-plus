@@ -12,7 +12,7 @@ Los proveedores de video y voz no se han activado: Veo y Sora requieren sus prop
 
 ## Agentes registrados
 
-`config/ai.php` define catorce agentes. Ocho están en uso: perfilador profesional (`career_profiler`), diseñador de rutas (`learning_path`), clasificador de contenido, generador de teoría, generador de ejercicios, evaluador de evidencias y prácticas (`evaluator`), tutor y generador de cuestionarios de mentoría. Los otros seis (currículo, guion tutorial, archivos, entrevista, evaluación de entrevista y empleabilidad) están marcados como `planned`: no tienen un módulo que los invoque y no pueden activarse.
+`config/ai.php` define diecisiete agentes. Los que están marcados como `planned` (currículo, guion tutorial, archivos, evaluación de entrevista y empleabilidad) todavía no tienen un módulo que los invoque y no pueden activarse. El **Entrevistador** (`interviewer`) diseña el proceso de selección simulado del módulo de entrevistas (`App\Services\Interviews\InterviewPlanService`): solo personaliza cuatro etapas fijas, cada sección inválida se completa con una plantilla del área y se descartan los temas discriminatorios.
 
 ### Configuración desde administración
 

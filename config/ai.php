@@ -83,6 +83,8 @@ return [
     'architecture_max_tokens' => (int) env('AI_ARCHITECTURE_MAX_TOKENS', 5000),
     'analysis_max_tokens' => (int) env('AI_ANALYSIS_MAX_TOKENS', 2500),
     'diagnostic_max_tokens' => (int) env('AI_DIAGNOSTIC_MAX_TOKENS', 5000),
+    // Simulaciones de entrevista que una persona puede crear por día (cada una consume varias llamadas a la IA).
+    'interview_daily_limit' => (int) env('AI_INTERVIEW_DAILY_LIMIT', 3),
     'lesson_max_tokens' => (int) env('AI_LESSON_MAX_TOKENS', 3200),
     'practice_max_tokens' => (int) env('AI_PRACTICE_MAX_TOKENS', 2400),
     'evaluation_max_tokens' => (int) env('AI_EVALUATION_MAX_TOKENS', 900),
@@ -102,7 +104,7 @@ return [
         'file_generator' => $agent('Especificador de archivos', 'Describe archivos a generar por el backend; nunca produce binarios.', 600, false, true),
         'evaluator' => $agent('Evaluador de evidencias', 'Evalúa contra rúbricas y explica mejoras sin revelar soluciones.', 900, true, false, 'reasoning'),
         'tutor' => $agent('Tutor IA', 'Da pistas progresivas y orientación contextual al estudiante.', 300, true, false, 'fast'),
-        'interviewer' => $agent('Entrevistador', 'Conduce entrevistas escritas por estados y preguntas adaptativas.', 700, false, true),
+        'interviewer' => $agent('Entrevistador', 'Diseña el proceso de selección simulado y conduce entrevistas escritas con repreguntas.', 1400, true, false, 'writing'),
         'interview_evaluator' => $agent('Evaluador de entrevista', 'Califica entrevistas separadamente mediante rúbricas.', 900, false, true),
         'employability' => $agent('Agente de empleabilidad', 'Relaciona vacantes, perfil, evidencias y brechas.', 800, false, true),
         'mentor_application_assessor' => $agent('Generador de cuestionarios de mentoría', 'Genera un cuestionario pedagógico según la especialidad y las áreas de apoyo declaradas, sin evaluar ni recibir respuestas personales.', 900, true, false, 'writing'),
