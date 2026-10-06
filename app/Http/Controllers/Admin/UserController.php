@@ -135,7 +135,7 @@ class UserController extends Controller
         $assignable = $this->administration->assignableRoles($actor)->pluck('name');
 
         return Role::orderBy('name')->pluck('name')
-            ->sortBy(fn (string $role) => [! AdminAccess::isSystemRole($role), array_search($role, [AdminAccess::BASE_ROLE, AdminAccess::MENTOR_ROLE, AdminAccess::SUPER_ROLE], true)])
+            ->sortBy(fn (string $role) => AdminAccess::sortKey($role))
             ->mapWithKeys(fn (string $role) => [$role => $assignable->contains($role)])
             ->all();
     }

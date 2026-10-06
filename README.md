@@ -88,7 +88,7 @@ La aplicación tiene tres espacios de trabajo según el rol: **aprendizaje** (to
 ### Administración y permisos
 
 - El rol `Admin` es el **super administrador**: tiene todos los permisos del panel.
-- En **Administración → Roles** puede crear roles personalizados (por ejemplo, "Soporte") con permisos delegables: usuarios, suspensiones, asignar roles, solicitudes de mentor, avisos, tablero y consumo de IA, y bitácora. El catálogo está en `app/Support/AdminAccess.php`.
+- El rol **Administrador** (creado de fábrica) está un nivel debajo: empieza con todos los permisos delegables y el super administrador decide cuáles conserva. En **Administración → Roles** también puede crear otros roles personalizados (por ejemplo, "Soporte") con permisos delegables: usuarios, suspensiones, asignar roles, solicitudes de mentor, avisos, tablero y consumo de IA, y bitácora. El catálogo está en `app/Support/AdminAccess.php`.
 - Nunca se delegan: eliminar cuentas, gestionar roles, límites y presupuesto de IA, orquestador y correo saliente.
 - Quien asigna roles solo puede dar roles cuyos permisos también tenga. Un administrador delegado no puede modificar cuentas con permisos de administración, y siempre queda al menos un super administrador activo.
 - Las cuentas se **suspenden** (temporal o indefinidamente, con motivo) en lugar de eliminarse. Al suspender una cuenta:

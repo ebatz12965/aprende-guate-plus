@@ -26,6 +26,9 @@
                         </div>
                         @if ($system)
                             <p class="mt-1 text-sm leading-6 text-slate-600">{{ AdminAccess::roleDescription($role->name) }}</p>
+                            @if ($role->name === AdminAccess::SUPER_ROLE)
+                                <p class="mt-1 text-sm leading-6 text-slate-600">Sus accesos no se editan. Para dar accesos limitados, asigna «{{ AdminAccess::ADMIN_ROLE }}» u otro rol personalizado.</p>
+                            @endif
                         @else
                             <ul class="mt-2 flex flex-wrap gap-1.5">
                                 @foreach ($role->permissions as $permission)

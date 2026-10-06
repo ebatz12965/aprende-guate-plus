@@ -235,6 +235,27 @@ class AdminUserManagementTest extends TestCase
         $this->actingAs($admin)->get(route('admin.dashboard'))->assertRedirect(route('profile.edit', ['section' => 'security']));
     }
 
+    public function test_administrador_role_sits_below_super_admin_and_is_editable(): void
+    {
+        $role = Role::findByName(AdminAccess::ADMIN_ROLE, 'web');
+        $this->assertEqualsCanonicalizing(AdminAccess::delegable(), $role->permissions->pluck('name')->all());
+
+        $manager = User::factory()->create();
+        $manager->assignRole(['Student', AdminAccess::ADMIN_ROLE]);
+        $this->assertFalse($manager->isSuperAdmin());
+        $this->actingAs($manager)->get(route('admin.users.index'))->assertOk();
+        foreach (['admin.ai-orchestrator.index', 'admin.mail-settings.edit', 'admin.ai-settings.edit', 'admin.roles.create'] as $route) {
+            $this->actingAs($manager)->get(route($route))->assertForbidden();
+        }
+        // No puede dar el rol de super administrador.
+        $this->actingAs($manager)->put(route('admin.users.roles', $this->student()), ['roles' => ['Admin']])->assertSessionHasErrors('roles');
+
+        // El super administrador decide qué conserva: aquí le quita el consumo de IA.
+        $this->actingAs($this->superAdmin())->put(route('admin.roles.update', $role), ['name' => AdminAccess::ADMIN_ROLE, 'permissions' => array_values(array_diff(AdminAccess::delegable(), ['ia.consumo']))])
+            ->assertRedirect(route('admin.roles.index'));
+        $this->actingAs($manager->fresh())->get(route('admin.ai-usage.index'))->assertForbidden();
+    }
+
     public function test_console_command_recovers_a_super_admin(): void
     {
         $user = $this->student();

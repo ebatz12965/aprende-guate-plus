@@ -17,7 +17,7 @@ class RoleController extends Controller
     public function index(): View
     {
         $roles = Role::with('permissions')->withCount('users')->orderBy('name')->get()
-            ->sortBy(fn (Role $role) => AdminAccess::isSystemRole($role->name) ? array_search($role->name, AdminAccess::SYSTEM_ROLES, true) : 10)
+            ->sortBy(fn (Role $role) => AdminAccess::sortKey($role->name))
             ->values();
 
         return view('admin.roles.index', ['roles' => $roles]);

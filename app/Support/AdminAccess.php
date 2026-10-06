@@ -22,6 +22,9 @@ final class AdminAccess
 
     public const SYSTEM_ROLES = [self::SUPER_ROLE, self::MENTOR_ROLE, self::BASE_ROLE];
 
+    /** Rol personalizado que se crea de fábrica: un nivel debajo del super administrador, con permisos editables. */
+    public const ADMIN_ROLE = 'Administrador';
+
     /** @var array<string, array{0: string, 1: string}> permiso => [grupo, descripción] */
     public const DELEGABLE = [
         'usuarios.ver' => ['Usuarios', 'Ver la lista de usuarios y el historial de cada cuenta'],
@@ -58,6 +61,15 @@ final class AdminAccess
     public static function isSystemRole(string $role): bool
     {
         return in_array($role, self::SYSTEM_ROLES, true);
+    }
+
+    /** Orden de presentación: super administrador, administrador, mentor, estudiante y luego los personalizados. */
+    public static function sortKey(string $role): string
+    {
+        $order = [self::SUPER_ROLE, self::ADMIN_ROLE, self::MENTOR_ROLE, self::BASE_ROLE];
+        $position = array_search($role, $order, true);
+
+        return ($position === false ? '9' : (string) $position).mb_strtolower($role);
     }
 
     /** Nombre visible de un rol: los del sistema conservan su nombre técnico en la base. */
