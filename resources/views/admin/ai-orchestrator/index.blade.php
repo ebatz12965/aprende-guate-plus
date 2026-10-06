@@ -53,7 +53,7 @@
                 @if ($agent['customized'])<span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">Personalizado</span>@endif
             </div>
             <p class="mt-1 text-sm leading-6 text-slate-600">{{ $agent['description'] }}</p>
-            <p class="mt-2 text-xs font-medium text-slate-500">{{ $providers[$agent['provider']]['name'] ?? $agent['provider'] }} · {{ $agent['model'] }} · {{ ['reasoning' => 'tarea de razonamiento', 'writing' => 'tarea de redacción', 'fast' => 'tarea rápida'][$agent['task']] ?? '' }} · {{ $agent['max_tokens_override'] ? 'máximo '.number_format($agent['max_tokens_override']).' tokens' : 'límite de tokens según cada operación' }}</p>
+            <p class="mt-2 text-xs font-medium text-slate-500">{{ $providers[$agent['provider']]['name'] ?? $agent['provider'] }} · {{ $agent['model'] }} · {{ ['reasoning' => 'tarea de razonamiento', 'writing' => 'tarea de redacción', 'fast' => 'tarea rápida', 'realtime' => 'voz en tiempo real'][$agent['task']] ?? '' }} · {{ $agent['max_tokens_override'] ? 'máximo '.number_format($agent['max_tokens_override']).' tokens' : 'límite de tokens según cada operación' }}</p>
         </div>
         <div class="grid grid-cols-3 gap-5 text-right text-sm">
             <div><p class="text-slate-500">Solicitudes</p><strong class="text-slate-900">{{ number_format($agent['requests']) }}</strong></div>
@@ -68,13 +68,16 @@
             @csrf @method('PUT')
             <input type="hidden" name="agent" value="{{ $agent['slug'] }}">
             <label class="flex items-center gap-2 text-sm font-bold text-slate-700 sm:col-span-3"><input type="hidden" name="enabled" value="0"><input type="checkbox" name="enabled" value="1" class="rounded border-slate-300 text-blue-600" @checked(old('agent') === $agent['slug'] ? old('enabled') : $agent['enabled'])> Agente activo <span class="font-normal text-slate-500">— desactivado, la plataforma usa el contenido de respaldo</span></label>
+            @php($realtime = $agent['task'] === 'realtime')
+            @php($agentModels = $realtime ? ['openai' => config('ai.voice.models')] : $models)
             @php($currentProvider = old('agent') === $agent['slug'] ? (old('provider') ?: $agent['provider']) : $agent['provider'])
             @php($currentModel = old('agent') === $agent['slug'] ? old('model') : ($agent['model'] === $agent['default_model'] && $agent['provider'] === $agent['default_provider'] ? '' : $agent['model']))
-            <div class="grid gap-4 sm:col-span-2 sm:grid-cols-2" x-data="{ provider: @js($currentProvider), model: @js($currentModel), models: @js($models), custom: false,
+            <div class="grid gap-4 sm:col-span-2 sm:grid-cols-2" x-data="{ provider: @js($currentProvider), model: @js($currentModel), models: @js($agentModels), custom: false,
                     init() { this.custom = this.model !== '' && ! (this.models[this.provider] || []).includes(this.model); } }">
                 <label class="block text-sm font-bold text-slate-700">Proveedor
                     <select name="provider" x-model="provider" @change="model = ''; custom = ! (models[provider] || []).length" class="mt-1 block w-full rounded-xl border-slate-200 text-sm">
                         @foreach ($providers as $slug => $provider)
+                            @continue($realtime && $slug !== 'openai')
                             <option value="{{ $slug }}" @disabled(! $provider['configured'])>{{ $provider['name'] }}{{ $provider['configured'] ? '' : ' (sin API key)' }}</option>
                         @endforeach
                     </select>

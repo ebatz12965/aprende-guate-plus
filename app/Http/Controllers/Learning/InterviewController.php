@@ -13,6 +13,7 @@ use App\Models\InterviewStage;
 use App\Services\Interviews\InterviewConversation;
 use App\Services\Interviews\PracticalTestService;
 use App\Services\Interviews\ReasoningTestService;
+use App\Services\Interviews\VoiceInterviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,7 +88,7 @@ class InterviewController extends Controller
         return redirect()->route('adaptive.interviews.show', $simulation);
     }
 
-    public function stage(InterviewSimulation $simulation, InterviewStage $stage): View|RedirectResponse
+    public function stage(Request $request, InterviewSimulation $simulation, InterviewStage $stage, VoiceInterviewService $voice): View|RedirectResponse
     {
         $this->ensureStage($simulation, $stage);
         if ($stage->status === 'locked') {
@@ -105,21 +106,75 @@ class InterviewController extends Controller
             'turns' => $stage->turns->map(fn ($turn) => $turn->toChat())->values(),
             'next' => $next && $next->status !== 'locked' ? $next : null,
             // Durante una prueba con tiempo la sesión no se cierra por inactividad antes de su hora límite.
-            'idleHoldUntil' => $stage->isTest() && $stage->status === 'in_progress' ? $stage->deadline()?->toIso8601String() : null,
+            'idleHoldUntil' => match (true) {
+                $stage->isTest() && $stage->status === 'in_progress' => $stage->deadline()?->toIso8601String(),
+                // En una llamada la persona habla sin tocar el teclado: no se cierra la sesión mientras dure.
+                $stage->status === 'in_progress' && ($stage->content['mode'] ?? null) === 'voice' => now()->addSeconds((int) config('ai.voice.max_seconds') + 300)->toIso8601String(),
+                default => null,
+            },
+            'voiceUnavailable' => $stage->type === 'hr_interview' && $stage->status === 'available' ? $voice->unavailableReason($request->user(), $stage) : null,
+            'voiceMaxMinutes' => (int) ceil(config('ai.voice.max_seconds') / 60),
         ]);
     }
 
-    /** Comienza una etapa: en la cola se prepara el banco de preguntas o la prueba. */
-    public function start(InterviewSimulation $simulation, InterviewStage $stage): RedirectResponse
+    /** Comienza una etapa: en la cola se prepara el banco de preguntas o la prueba. La de RR. HH. puede ser por voz. */
+    public function start(Request $request, InterviewSimulation $simulation, InterviewStage $stage, VoiceInterviewService $voice): RedirectResponse
     {
         $this->ensureStage($simulation, $stage);
         abort_unless($stage->status === 'available', 422);
-        $stage->update(['status' => 'preparing', 'content' => null]);
+        $mode = $request->input('mode') === 'voice' && $stage->type === 'hr_interview' ? 'voice' : 'chat';
+        if ($mode === 'voice' && ($reason = $voice->unavailableReason($request->user(), $stage))) {
+            return back()->with('error', $reason);
+        }
+        $stage->update(['status' => 'preparing', 'content' => $stage->isTest() ? null : ['mode' => $mode]]);
         $stage->isTest()
             ? GenerateInterviewTestJob::dispatch($stage->id)->onQueue('ai')
             : GenerateInterviewQuestionsJob::dispatch($stage->id)->onQueue('ai');
 
         return redirect()->route('adaptive.interviews.stage', [$simulation, $stage]);
+    }
+
+    /** Clave temporal para que el navegador se conecte a la llamada de voz. */
+    public function voiceSession(Request $request, InterviewSimulation $simulation, InterviewStage $stage, VoiceInterviewService $voice): JsonResponse
+    {
+        $this->ensureVoiceCall($simulation, $stage);
+
+        return response()->json($voice->createCall($request->user(), $stage));
+    }
+
+    /** Al colgar: transcripción y consumo de la llamada. */
+    public function voiceFinish(Request $request, InterviewSimulation $simulation, InterviewStage $stage, VoiceInterviewService $voice): JsonResponse
+    {
+        $this->ensureVoiceCall($simulation, $stage);
+        $data = $request->validate([
+            'transcript' => ['required', 'array', 'max:60'],
+            'transcript.*.role' => ['required', 'in:interviewer,candidate'],
+            'transcript.*.text' => ['nullable', 'string', 'max:4000'],
+            'usage' => ['array'],
+            'usage.input_tokens' => ['nullable', 'integer', 'min:0'],
+            'usage.output_tokens' => ['nullable', 'integer', 'min:0'],
+            'seconds' => ['required', 'integer', 'min:0', 'max:3600'],
+        ]);
+        $voice->finish($stage, $data['transcript'], $data['usage'] ?? [], $data['seconds']);
+
+        return response()->json(['redirect' => route('adaptive.interviews.stage', [$simulation, $stage])]);
+    }
+
+    /** Si la voz falla o la persona prefiere escribir, la misma entrevista sigue por chat. */
+    public function switchToChat(InterviewSimulation $simulation, InterviewStage $stage, InterviewConversation $conversation): RedirectResponse
+    {
+        $this->ensureVoiceCall($simulation, $stage);
+        $stage->turns()->delete();
+        $stage->update(['content' => ['mode' => 'chat'] + ($stage->content ?? [])]);
+        $conversation->begin($stage->refresh());
+
+        return redirect()->route('adaptive.interviews.stage', [$simulation, $stage]);
+    }
+
+    private function ensureVoiceCall(InterviewSimulation $simulation, InterviewStage $stage): void
+    {
+        $this->ensureStage($simulation, $stage);
+        abort_unless($stage->type === 'hr_interview' && $stage->status === 'in_progress' && ($stage->content['mode'] ?? null) === 'voice', 409, 'Esta entrevista ya no está en modo de voz.');
     }
 
     /** Estado para las pantallas de espera (preparando preguntas o evaluando). */
@@ -133,6 +188,7 @@ class InterviewController extends Controller
     public function answer(Request $request, InterviewSimulation $simulation, InterviewStage $stage, InterviewConversation $conversation): JsonResponse
     {
         $this->ensureStage($simulation, $stage);
+        abort_if(($stage->content['mode'] ?? null) === 'voice', 409, 'Esta entrevista se está haciendo por voz.');
         $data = $request->validate(['answer' => ['required', 'string', 'min:2', 'max:'.InterviewConversation::MAX_ANSWER]]);
         $turns = $conversation->answer($stage, $data['answer']);
         $stage->refresh();

@@ -64,6 +64,9 @@ class InterviewEvaluationService
             };
         })->filter()->implode("\n");
         $criteria = collect($rubric)->map(fn (string $description, string $name) => "- {$name}: {$description}")->implode("\n");
+        if (($stage->content['mode'] ?? null) === 'voice') {
+            $criteria .= "\nLa entrevista fue por voz y la transcripción es automática: no penalices ortografía, puntuación ni palabras mal transcritas; evalúa el contenido.";
+        }
 
         return "Evalúa de forma formativa una entrevista de trabajo SIMULADA para practicar.\nPuesto: {$simulation->job_title} ({$simulation->areaLabel()}, {$simulation->seniorityLabel()}). "
             ."Entrevista: {$stage->title}.\nCriterios (califica cada uno de 0 a 100 considerando el nivel del puesto):\n{$criteria}"

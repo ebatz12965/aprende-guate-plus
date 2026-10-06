@@ -35,11 +35,12 @@ class GenerateInterviewQuestionsJob implements ShouldQueue
             return;
         }
 
+        $mode = $stage->content['mode'] ?? 'chat';
         $bank = $questions->bank($stage->simulation, $stage);
-        DB::transaction(function () use ($stage, $bank, $conversation) {
+        DB::transaction(function () use ($stage, $bank, $mode, $conversation) {
             $stage->turns()->delete();
-            $stage->update(['content' => $bank]);
-            $conversation->begin($stage->refresh());
+            $stage->update(['content' => $bank + ['mode' => $mode]]);
+            $this->open($stage, $mode, $conversation);
             if ($stage->simulation->status === 'ready') {
                 $stage->simulation->update(['status' => 'in_progress']);
             }
@@ -53,8 +54,17 @@ class GenerateInterviewQuestionsJob implements ShouldQueue
         if (! $stage || $stage->status !== 'preparing') {
             return;
         }
+        $mode = $stage->content['mode'] ?? 'chat';
         $stage->turns()->delete();
-        $stage->update(['content' => app(InterviewQuestionService::class)->fallback($stage->simulation, $stage) + ['source' => 'plantilla']]);
-        app(InterviewConversation::class)->begin($stage->refresh());
+        $stage->update(['content' => app(InterviewQuestionService::class)->fallback($stage->simulation, $stage) + ['source' => 'plantilla', 'mode' => $mode]]);
+        $this->open($stage, $mode, app(InterviewConversation::class));
+    }
+
+    /** Por voz, la conversación sucede en la llamada; por chat, se abre con el saludo y la primera pregunta. */
+    private function open(InterviewStage $stage, string $mode, InterviewConversation $conversation): void
+    {
+        $mode === 'voice'
+            ? $stage->update(['status' => 'in_progress', 'started_at' => now()])
+            : $conversation->begin($stage->refresh());
     }
 }

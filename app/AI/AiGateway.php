@@ -84,7 +84,7 @@ class AiGateway
     }
 
     /** Un presupuesto de 0 significa sin límite. */
-    private function budgetExhausted(): bool
+    public function budgetExhausted(): bool
     {
         $budget = PlatformSetting::aiTokenBudget();
 

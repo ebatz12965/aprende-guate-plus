@@ -13,7 +13,7 @@ use Throwable;
  */
 class AgentCatalog
 {
-    public const AGENTS = ['goal_analyst', 'diagnostic_designer', 'career_profiler', 'learning_path', 'curriculum', 'content_classifier', 'theory_content', 'tutorial_script', 'exercise_generator', 'content_reviewer', 'file_generator', 'evaluator', 'tutor', 'interviewer', 'interview_evaluator', 'employability', 'mentor_application_assessor'];
+    public const AGENTS = ['goal_analyst', 'diagnostic_designer', 'career_profiler', 'learning_path', 'curriculum', 'content_classifier', 'theory_content', 'tutorial_script', 'exercise_generator', 'content_reviewer', 'file_generator', 'evaluator', 'tutor', 'interviewer', 'voice_interviewer', 'interview_evaluator', 'employability', 'mentor_application_assessor'];
 
     private const CACHE_KEY = 'ai.agent_overrides';
 

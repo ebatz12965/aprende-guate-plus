@@ -54,6 +54,20 @@
             <div class="mt-8 border-t border-slate-100 pt-6">
                 @if ($stage->status === 'skipped')
                     <p class="text-slate-600">Saltaste esta etapa en una versión anterior del simulador.</p>
+                @elseif ($stage->type === 'hr_interview')
+                    <h2 class="font-extrabold text-slate-900">¿Cómo quieres hacerla?</h2>
+                    <form method="POST" action="{{ route('adaptive.interviews.stage.start', [$simulation, $stage]) }}" class="mt-3 grid gap-3 sm:grid-cols-2">
+                        @csrf
+                        <button name="mode" value="chat" class="rounded-2xl border-2 border-slate-200 p-4 text-left hover:border-blue-500 hover:bg-blue-50 focus-visible:border-blue-600">
+                            <span class="block font-extrabold text-slate-900">Por chat</span>
+                            <span class="mt-1 block text-sm leading-6 text-slate-600">Respondes por escrito, una pregunta a la vez y a tu ritmo.</span>
+                        </button>
+                        <button name="mode" value="voice" @disabled($voiceUnavailable) class="rounded-2xl border-2 border-slate-200 p-4 text-left hover:border-blue-500 hover:bg-blue-50 focus-visible:border-blue-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-slate-200 disabled:hover:bg-transparent">
+                            <span class="block font-extrabold text-slate-900">Por voz <span class="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800">corta</span></span>
+                            <span class="mt-1 block text-sm leading-6 text-slate-600">Una llamada de hasta {{ $voiceMaxMinutes }} minutos y {{ config('ai.voice.questions') }} preguntas. Necesitas micrófono y audífonos o bocinas.</span>
+                        </button>
+                    </form>
+                    @if ($voiceUnavailable)<p class="mt-3 text-sm font-medium text-slate-600">{{ $voiceUnavailable }}</p>@endif
                 @else
                     <form method="POST" action="{{ route('adaptive.interviews.stage.start', [$simulation, $stage]) }}" class="flex flex-wrap items-center gap-3">
                         @csrf
@@ -81,6 +95,8 @@
         @include('interviews.partials.reasoning-test')
     @elseif ($stage->status === 'in_progress' && $stage->type === 'practical_test')
         @include('interviews.partials.practical-test')
+    @elseif ($stage->status === 'in_progress' && ($stage->content['mode'] ?? null) === 'voice')
+        @include('interviews.partials.voice-call')
     @elseif ($stage->status === 'in_progress')
         @php $content = $stage->content; @endphp
         <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"

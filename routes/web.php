@@ -109,6 +109,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/empleabilidad/{simulation}/etapas/{stage}/estado', [InterviewController::class, 'stageStatus'])->name('adaptive.interviews.stage.status');
     Route::post('/empleabilidad/{simulation}/etapas/{stage}/respuestas', [InterviewController::class, 'answer'])->middleware('throttle:ai-tutor')->name('adaptive.interviews.stage.answer');
     Route::post('/empleabilidad/{simulation}/etapas/{stage}/reintentar-evaluacion', [InterviewController::class, 'retryEvaluation'])->middleware('throttle:ai-generation')->name('adaptive.interviews.stage.retry');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/voz/sesion', [InterviewController::class, 'voiceSession'])->middleware('throttle:10,1')->name('adaptive.interviews.stage.voice.session');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/voz/terminar', [InterviewController::class, 'voiceFinish'])->middleware('throttle:10,1')->name('adaptive.interviews.stage.voice.finish');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/continuar-por-chat', [InterviewController::class, 'switchToChat'])->middleware('throttle:ai-generation')->name('adaptive.interviews.stage.to-chat');
     Route::post('/empleabilidad/{simulation}/etapas/{stage}/entregar', [InterviewController::class, 'submitTest'])->middleware('throttle:ai-generation')->name('adaptive.interviews.stage.submit');
     Route::get('/empleabilidad/{simulation}/etapas/{stage}/archivo', [InterviewController::class, 'attachment'])->name('adaptive.interviews.stage.attachment');
     Route::delete('/empleabilidad/{simulation}', [InterviewController::class, 'destroy'])->name('adaptive.interviews.destroy');
