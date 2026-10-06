@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateMailSettingsRequest;
 use App\Models\PlatformSetting;
 use App\Services\MailConfigurationService;
+use App\Support\Audit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -65,6 +66,8 @@ class MailSettingsController extends Controller
         }
 
         $mailConfiguration->apply();
+        // Sin valores: el usuario SMTP y la contraseña no deben quedar en la bitácora.
+        Audit::log('configuracion', 'Actualizó el correo saliente', null, ['activo' => $request->boolean('enabled'), 'contraseña' => $request->filled('password') ? 'cambiada' : 'sin cambios']);
 
         return back()->with('success', 'La configuración de correo saliente fue actualizada. La contraseña de aplicación permanece cifrada.');
     }

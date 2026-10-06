@@ -11,6 +11,8 @@ class MentorProfilePolicy
     /** Solo se pueden solicitar sesiones a perfiles cuyo usuario conserva el rol Instructor. */
     public function requestSession(User $user, MentorProfile $profile): Response
     {
-        return $profile->user?->hasRole('Instructor') ? Response::allow() : Response::denyAsNotFound();
+        $mentor = $profile->user;
+
+        return $mentor?->hasRole('Instructor') && ! $mentor->isSuspended() ? Response::allow() : Response::denyAsNotFound();
     }
 }

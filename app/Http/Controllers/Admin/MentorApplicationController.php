@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MentorApplication;
 use App\Models\MentorProfile;
 use App\Notifications\PlatformAlertNotification;
+use App\Support\Audit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -32,6 +33,7 @@ class MentorApplicationController extends Controller
         // La aprobación agrega capacidades de mentor sin retirar su experiencia como estudiante o administrador.
         $application->user->assignMentorRole();
         MentorProfile::updateOrCreate(['user_id' => $application->user_id], ['headline' => $application->professional_title, 'specialties' => $application->specialties, 'about' => $application->professional_background, 'session_duration_minutes' => $application->session_duration_minutes, 'availability' => $application->availability ?? []]);
+        Audit::log('mentores', 'Aprobó la solicitud de mentor', $application->user, ['título' => $application->professional_title]);
         $application->update(['status' => 'approved', 'admin_notes' => $data['admin_notes'] ?? null, 'reviewed_by' => $request->user()->id, 'reviewed_at' => now()]);
         $application->user->notify(new PlatformAlertNotification(category: 'platform', title: 'Tu solicitud de mentor fue aprobada', body: 'Tu perfil de mentor ya está habilitado. Puedes comenzar a configurar tu disponibilidad y recibir solicitudes.', url: route('mentor.dashboard'), actionLabel: 'Abrir panel mentor'));
 
@@ -42,6 +44,7 @@ class MentorApplicationController extends Controller
     {
         abort_unless($application->status === 'pending_review', 422);
         $data = $request->validate(['admin_notes' => ['required', 'string', 'min:10', 'max:3000']]);
+        Audit::log('mentores', 'Rechazó la solicitud de mentor', $application->user, ['notas' => $data['admin_notes']]);
         $application->update(['status' => 'rejected', 'admin_notes' => $data['admin_notes'], 'reviewed_by' => $request->user()->id, 'reviewed_at' => now()]);
         $application->user->notify(new PlatformAlertNotification(category: 'platform', title: 'Tu solicitud de mentor fue revisada', body: 'El administrador registró observaciones sobre tu solicitud. Consulta el detalle desde tu configuración.', url: route('mentor-application.create'), actionLabel: 'Ver solicitud'));
 

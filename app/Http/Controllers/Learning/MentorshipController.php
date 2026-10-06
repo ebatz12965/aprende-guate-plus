@@ -17,7 +17,7 @@ class MentorshipController extends Controller
     {
         // Solo se ofrecen mentores con rol Instructor vigente; nunca el propio usuario.
         $mentors = MentorProfile::with('user')
-            ->whereHas('user', fn ($query) => $query->role('Instructor'))
+            ->whereHas('user', fn ($query) => $query->role('Instructor')->notSuspended())
             ->where('user_id', '!=', $request->user()->id)
             ->get();
 

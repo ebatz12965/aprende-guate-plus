@@ -24,8 +24,11 @@
         $studentNavClass = fn(string $pattern) => request()->routeIs($pattern) ? 'student-sidebar-link student-sidebar-link-active' : 'student-sidebar-link';
         $unreadNotifications = auth()->check() ? auth()->user()->unreadNotifications()->count() : 0;
         $twoFactorPending = auth()->check() && !auth()->user()->hasTwoFactorEnabled();
+        // Espacios disponibles: mentor para Instructor o super administrador; administración con cualquier permiso del panel.
+        $canMentorSpace = auth()->check() && (auth()->user()->hasRole('Instructor') || auth()->user()->isSuperAdmin());
+        $canAdminSpace = auth()->check() && auth()->user()->canAccessAdmin();
         $activeSpace = auth()->check()
-            ? session('active_space', auth()->user()->hasRole('Admin') ? 'admin' : (auth()->user()->hasRole('Instructor') ? 'mentor' : 'learning'))
+            ? session('active_space', $canAdminSpace ? 'admin' : ($canMentorSpace ? 'mentor' : 'learning'))
             : 'learning';
         $guideTours = auth()->check() ? app(\App\Services\PlatformGuideService::class)->tours(auth()->user()->hasRole('Instructor')) : [];
     @endphp
@@ -84,12 +87,12 @@
                 </a>
                 <div class="hidden items-center gap-1 md:flex">
                     @auth
-                        @if ($activeSpace === 'admin' && auth()->user()->hasRole('Admin'))
+                        @if ($activeSpace === 'admin' && $canAdminSpace)
                             <a href="{{ route('admin.dashboard') }}" class="platform-nav-link">Panel</a><a href="{{ route('adaptive.dashboard') }}"
-                                class="platform-nav-link">Experiencia estudiante</a><a href="{{ route('admin.users.index') }}"
-                                class="platform-nav-link">Usuarios</a><a href="{{ route('admin.ai-settings.edit') }}" class="platform-nav-link">Límites IA</a><a
-                                href="{{ route('admin.mail-settings.edit') }}" class="platform-nav-link">Correo</a>
-                        @elseif($activeSpace === 'mentor' && (auth()->user()->hasRole('Instructor') || auth()->user()->hasRole('Admin')))
+                                class="platform-nav-link">Experiencia estudiante</a>@can('usuarios.ver')<a href="{{ route('admin.users.index') }}"
+                                class="platform-nav-link">Usuarios</a>@endcan @can('ia.configuracion')<a href="{{ route('admin.ai-settings.edit') }}" class="platform-nav-link">Límites IA</a>@endcan @can('correo.configurar')<a
+                                href="{{ route('admin.mail-settings.edit') }}" class="platform-nav-link">Correo</a>@endcan
+                        @elseif($activeSpace === 'mentor' && $canMentorSpace)
                             <a href="{{ route('mentor.dashboard') }}" class="platform-nav-link">Panel mentor</a><a href="{{ route('mentor.calendar') }}"
                                 class="platform-nav-link">Calendario</a><a href="{{ route('mentor.sessions') }}" class="platform-nav-link">Sesiones y chats</a><a
                                 href="{{ route('mentor.settings') }}" class="platform-nav-link">Perfil de mentor</a>
@@ -111,7 +114,7 @@
                     @endauth
                 </div>
                 <div class="hidden items-center gap-3 md:flex">
-                    @if (auth()->check() && (auth()->user()->hasRole('Instructor') || auth()->user()->hasRole('Admin')))
+                    @if ($canMentorSpace || $canAdminSpace)
                         <div class="relative" x-data="{ spacesOpen: false }"><button @click="spacesOpen = !spacesOpen" @click.outside="spacesOpen = false"
                                 class="platform-nav-link inline-flex items-center gap-2" aria-label="Cambiar espacio"><span
                                     class="grid h-7 w-7 place-items-center rounded-lg bg-blue-100 text-blue-700">⇄</span><span
@@ -121,10 +124,10 @@
                                 @if ($activeSpace !== 'learning')
                                     <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space"
                                             value="learning"><button class="platform-menu-link w-full text-left">Mi aprendizaje</button></form>
-                                    @endif @if ($activeSpace !== 'mentor')
+                                    @endif @if ($canMentorSpace && $activeSpace !== 'mentor')
                                         <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space"
                                                 value="mentor"><button class="platform-menu-link w-full text-left">Espacio mentor</button></form>
-                                        @endif @if (auth()->user()->hasRole('Admin') && $activeSpace !== 'admin')
+                                        @endif @if ($canAdminSpace && $activeSpace !== 'admin')
                                             <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space"
                                                     value="admin"><button class="platform-menu-link w-full text-left">Administración</button></form>
                                         @endif
@@ -175,10 +178,10 @@
             </nav>
             <div x-cloak x-show="menuOpen" x-transition
                 class="border-t border-slate-100 bg-white px-4 py-3 md:hidden dark:border-slate-800 dark:bg-slate-900">
-                <div class="flex flex-col gap-1">@auth @if ($activeSpace === 'admin' && auth()->user()->hasRole('Admin'))
+                <div class="flex flex-col gap-1">@auth @if ($activeSpace === 'admin' && $canAdminSpace)
                         <a href="{{ route('admin.dashboard') }}" class="platform-mobile-link">Administración</a><a href="{{ route('adaptive.dashboard') }}"
                             class="platform-mobile-link">Mi aprendizaje</a>
-                    @elseif($activeSpace === 'mentor' && (auth()->user()->hasRole('Instructor') || auth()->user()->hasRole('Admin')))
+                    @elseif($activeSpace === 'mentor' && $canMentorSpace)
                         <a href="{{ route('mentor.dashboard') }}" class="platform-mobile-link">Panel mentor · Solicitudes</a><a
                             href="{{ route('mentor.calendar') }}" class="platform-mobile-link">Calendario</a><a href="{{ route('mentor.sessions') }}"
                             class="platform-mobile-link">Sesiones y chats</a><a href="{{ route('mentor.settings') }}" class="platform-mobile-link">Perfil de
@@ -197,12 +200,12 @@
                     @if ($activeSpace !== 'learning')
                         <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space" value="learning"><button
                                 class="platform-mobile-link w-full text-left">Mi aprendizaje</button></form>
-                        @endif @if (auth()->user()->hasRole('Instructor') || auth()->user()->hasRole('Admin'))
+                        @endif @if ($canMentorSpace)
                             @if ($activeSpace !== 'mentor')
                                 <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space"
                                         value="mentor"><button class="platform-mobile-link w-full text-left">Espacio mentor</button></form>
                             @endif
-                            @endif @if (auth()->user()->hasRole('Admin') && $activeSpace !== 'admin')
+                            @endif @if ($canAdminSpace && $activeSpace !== 'admin')
                                 <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space"
                                         value="admin"><button class="platform-mobile-link w-full text-left">Administración</button></form>
                             @endif
@@ -228,14 +231,14 @@
             class="rounded-lg p-2.5 text-slate-600 hover:bg-blue-50 lg:hidden" aria-label="Cerrar menú">×</button></div>
     <nav class="flex-1 overflow-y-auto px-4 py-6">
         @auth
-            @if ($activeSpace === 'admin' && auth()->user()->hasRole('Admin'))
+            @if ($activeSpace === 'admin' && $canAdminSpace)
                 <p class="student-sidebar-label">ADMINISTRACIÓN</p><a href="{{ route('admin.dashboard') }}"
                     class="{{ $studentNavClass('admin.dashboard') }}">Panel administrativo</a><a href="{{ route('adaptive.dashboard') }}"
-                    class="{{ $studentNavClass('adaptive.*') }}">Experiencia estudiante</a><a href="{{ route('admin.users.index') }}"
-                    class="{{ $studentNavClass('admin.users.*') }}">Usuarios</a><a href="{{ route('admin.ai-settings.edit') }}"
-                    class="{{ $studentNavClass('admin.ai-settings.*') }}">Límites de IA</a><a href="{{ route('admin.mail-settings.edit') }}"
-                    class="{{ $studentNavClass('admin.mail-settings.*') }}">Correo saliente</a>
-            @elseif($activeSpace === 'mentor' && (auth()->user()->hasRole('Instructor') || auth()->user()->hasRole('Admin')))
+                    class="{{ $studentNavClass('adaptive.*') }}">Experiencia estudiante</a>@can('usuarios.ver')<a href="{{ route('admin.users.index') }}"
+                    class="{{ $studentNavClass('admin.users.*') }}">Usuarios</a>@endcan @can('ia.configuracion')<a href="{{ route('admin.ai-settings.edit') }}"
+                    class="{{ $studentNavClass('admin.ai-settings.*') }}">Límites de IA</a>@endcan @can('correo.configurar')<a href="{{ route('admin.mail-settings.edit') }}"
+                    class="{{ $studentNavClass('admin.mail-settings.*') }}">Correo saliente</a>@endcan
+            @elseif($activeSpace === 'mentor' && $canMentorSpace)
                 <p class="student-sidebar-label">PANEL DE INSTRUCTOR</p><a href="{{ route('mentor.dashboard') }}"
                     class="{{ $studentNavClass('mentor.dashboard') }}">Solicitudes</a><a href="{{ route('mentor.calendar') }}"
                     class="{{ $studentNavClass('mentor.calendar') }}">Calendario</a><a href="{{ route('mentor.sessions') }}"

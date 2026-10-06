@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AiPulseController;
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\AiUsageController;
 use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\Admin\MentorApplicationController as AdminMentorApplicationController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
@@ -37,7 +38,7 @@ Route::get('/perfil/{slug}', [CareerProfileController::class, 'show'])->where('s
 
 Route::get('/dashboard', function () {
     $space = session('active_space');
-    if ($space === 'admin' && auth()->user()->hasRole('Admin')) {
+    if ($space === 'admin' && auth()->user()->canAccessAdmin()) {
         return redirect()->route('admin.dashboard');
     }
 
@@ -45,7 +46,7 @@ Route::get('/dashboard', function () {
         return redirect()->route('mentor.dashboard');
     }
 
-    if (! $space && auth()->user()->hasRole('Admin')) {
+    if (! $space && auth()->user()->canAccessAdmin()) {
         return redirect()->route('admin.dashboard');
     }
     if (! $space && auth()->user()->hasRole('Instructor')) {
@@ -125,30 +126,63 @@ Route::middleware(['auth', 'verified', 'role:Instructor|Admin'])->group(function
     Route::post('/mentor/solicitudes/{session}/rechazar', [MentorController::class, 'reject'])->name('mentor.sessions.reject');
 });
 
-Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'role:Admin'])->group(function () {
+Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'admin'])->group(function () {
+    // Cada sección exige su permiso; el super administrador los tiene todos (ver App\Support\AdminAccess).
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('ia', [AiPulseController::class, 'index'])->name('ai-pulse.index');
-    Route::get('ia/datos', [AiPulseController::class, 'data'])->name('ai-pulse.data');
-    Route::get('ia/detalle', [AiPulseController::class, 'detail'])->name('ai-pulse.detail');
-    Route::put('orquestador-ia/precios', [AiPulseController::class, 'savePrices'])->name('ai-orchestrator.prices');
-    Route::resource('users', AdminUserController::class);
-    Route::get('roles', [AdminRoleController::class, 'index'])->name('roles.index');
-    Route::get('configuracion-ia', [AiSettingsController::class, 'edit'])->name('ai-settings.edit');
-    Route::put('configuracion-ia', [AiSettingsController::class, 'update'])->name('ai-settings.update');
-    Route::get('consumo-ia', [AiUsageController::class, 'index'])->name('ai-usage.index');
-    Route::get('orquestador-ia', [AiOrchestratorController::class, 'index'])->name('ai-orchestrator.index');
-    Route::post('orquestador-ia/modelos', [AiOrchestratorController::class, 'refreshModels'])->name('ai-orchestrator.models.refresh');
-    Route::put('orquestador-ia/{agent}', [AiOrchestratorController::class, 'update'])->name('ai-orchestrator.update');
-    Route::delete('orquestador-ia/{agent}', [AiOrchestratorController::class, 'reset'])->name('ai-orchestrator.reset');
-    Route::get('configuracion-correo', [MailSettingsController::class, 'edit'])->name('mail-settings.edit');
-    Route::put('configuracion-correo', [MailSettingsController::class, 'update'])->name('mail-settings.update');
-    Route::post('configuracion-correo/probar', [MailSettingsController::class, 'sendTest'])->name('mail-settings.test');
-    Route::get('avisos', [AnnouncementController::class, 'index'])->name('announcements.index');
-    Route::post('avisos', [AnnouncementController::class, 'store'])->name('announcements.store');
-    Route::post('avisos/{announcement}/publicar', [AnnouncementController::class, 'publish'])->name('announcements.publish');
-    Route::delete('avisos/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
-    Route::get('solicitudes-mentor', [AdminMentorApplicationController::class, 'index'])->name('mentor-applications.index');
-    Route::get('solicitudes-mentor/{application}', [AdminMentorApplicationController::class, 'show'])->name('mentor-applications.show');
-    Route::post('solicitudes-mentor/{application}/aprobar', [AdminMentorApplicationController::class, 'approve'])->name('mentor-applications.approve');
-    Route::post('solicitudes-mentor/{application}/rechazar', [AdminMentorApplicationController::class, 'reject'])->name('mentor-applications.reject');
+    Route::middleware('can:ia.tablero')->group(function () {
+        Route::get('ia', [AiPulseController::class, 'index'])->name('ai-pulse.index');
+        Route::get('ia/datos', [AiPulseController::class, 'data'])->name('ai-pulse.data');
+        Route::get('ia/detalle', [AiPulseController::class, 'detail'])->name('ai-pulse.detail');
+    });
+
+    Route::get('usuarios', [AdminUserController::class, 'index'])->middleware('can:usuarios.ver')->name('users.index');
+    Route::get('usuarios/crear', [AdminUserController::class, 'create'])->middleware('can:usuarios.gestionar')->name('users.create');
+    Route::post('usuarios', [AdminUserController::class, 'store'])->middleware('can:usuarios.gestionar')->name('users.store');
+    Route::get('usuarios/{user}', [AdminUserController::class, 'edit'])->middleware('can:usuarios.ver')->name('users.edit');
+    Route::put('usuarios/{user}', [AdminUserController::class, 'update'])->middleware('can:usuarios.gestionar')->name('users.update');
+    Route::put('usuarios/{user}/roles', [AdminUserController::class, 'updateRoles'])->middleware('can:roles.asignar')->name('users.roles');
+    Route::post('usuarios/{user}/suspension', [AdminUserController::class, 'suspend'])->middleware('can:usuarios.suspender')->name('users.suspend');
+    Route::delete('usuarios/{user}/suspension', [AdminUserController::class, 'reactivate'])->middleware('can:usuarios.suspender')->name('users.reactivate');
+    Route::delete('usuarios/{user}', [AdminUserController::class, 'destroy'])->middleware('can:usuarios.eliminar')->name('users.destroy');
+
+    Route::get('roles', [AdminRoleController::class, 'index'])->middleware('can:roles.ver')->name('roles.index');
+    Route::middleware('can:roles.gestionar')->group(function () {
+        Route::get('roles/crear', [AdminRoleController::class, 'create'])->name('roles.create');
+        Route::post('roles', [AdminRoleController::class, 'store'])->name('roles.store');
+        Route::get('roles/{role}', [AdminRoleController::class, 'edit'])->name('roles.edit');
+        Route::put('roles/{role}', [AdminRoleController::class, 'update'])->name('roles.update');
+        Route::delete('roles/{role}', [AdminRoleController::class, 'destroy'])->name('roles.destroy');
+    });
+
+    Route::get('bitacora', [AuditLogController::class, 'index'])->middleware('can:bitacora.ver')->name('audit.index');
+
+    Route::middleware('can:ia.configuracion')->group(function () {
+        Route::get('configuracion-ia', [AiSettingsController::class, 'edit'])->name('ai-settings.edit');
+        Route::put('configuracion-ia', [AiSettingsController::class, 'update'])->name('ai-settings.update');
+    });
+    Route::get('consumo-ia', [AiUsageController::class, 'index'])->middleware('can:ia.consumo')->name('ai-usage.index');
+    Route::middleware('can:ia.orquestador')->group(function () {
+        Route::get('orquestador-ia', [AiOrchestratorController::class, 'index'])->name('ai-orchestrator.index');
+        Route::post('orquestador-ia/modelos', [AiOrchestratorController::class, 'refreshModels'])->name('ai-orchestrator.models.refresh');
+        Route::put('orquestador-ia/precios', [AiPulseController::class, 'savePrices'])->name('ai-orchestrator.prices');
+        Route::put('orquestador-ia/{agent}', [AiOrchestratorController::class, 'update'])->name('ai-orchestrator.update');
+        Route::delete('orquestador-ia/{agent}', [AiOrchestratorController::class, 'reset'])->name('ai-orchestrator.reset');
+    });
+    Route::middleware('can:correo.configurar')->group(function () {
+        Route::get('configuracion-correo', [MailSettingsController::class, 'edit'])->name('mail-settings.edit');
+        Route::put('configuracion-correo', [MailSettingsController::class, 'update'])->name('mail-settings.update');
+        Route::post('configuracion-correo/probar', [MailSettingsController::class, 'sendTest'])->name('mail-settings.test');
+    });
+    Route::middleware('can:avisos.publicar')->group(function () {
+        Route::get('avisos', [AnnouncementController::class, 'index'])->name('announcements.index');
+        Route::post('avisos', [AnnouncementController::class, 'store'])->name('announcements.store');
+        Route::post('avisos/{announcement}/publicar', [AnnouncementController::class, 'publish'])->name('announcements.publish');
+        Route::delete('avisos/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    });
+    Route::middleware('can:mentores.revisar')->group(function () {
+        Route::get('solicitudes-mentor', [AdminMentorApplicationController::class, 'index'])->name('mentor-applications.index');
+        Route::get('solicitudes-mentor/{application}', [AdminMentorApplicationController::class, 'show'])->name('mentor-applications.show');
+        Route::post('solicitudes-mentor/{application}/aprobar', [AdminMentorApplicationController::class, 'approve'])->name('mentor-applications.approve');
+        Route::post('solicitudes-mentor/{application}/rechazar', [AdminMentorApplicationController::class, 'reject'])->name('mentor-applications.reject');
+    });
 });

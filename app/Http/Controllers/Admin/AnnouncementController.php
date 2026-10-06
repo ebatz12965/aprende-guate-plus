@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PlatformAnnouncement;
 use App\Models\User;
 use App\Notifications\PlatformAlertNotification;
+use App\Support\Audit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -38,6 +39,8 @@ class AnnouncementController extends Controller
             'send_email' => $request->boolean('send_email'),
         ]);
 
+        Audit::log('avisos', 'Creó el aviso «'.$announcement->title.'»', $announcement, ['audiencia' => $announcement->audience, 'por correo' => $announcement->send_email]);
+
         if ($request->boolean('publish_now')) {
             $this->publishAnnouncement($announcement);
 
@@ -58,6 +61,7 @@ class AnnouncementController extends Controller
     public function destroy(PlatformAnnouncement $announcement): RedirectResponse
     {
         abort_if($announcement->is_published, 422, 'Los avisos publicados se conservan como historial de comunicación.');
+        Audit::log('avisos', 'Eliminó el borrador «'.$announcement->title.'»');
         $announcement->delete();
 
         return back()->with('success', 'Borrador eliminado.');
@@ -66,6 +70,7 @@ class AnnouncementController extends Controller
     private function publishAnnouncement(PlatformAnnouncement $announcement): void
     {
         $announcement->update(['is_published' => true, 'published_at' => now()]);
+        Audit::log('avisos', 'Publicó el aviso «'.$announcement->title.'»', $announcement);
 
         $this->recipients($announcement->audience)->each(function (User $user) use ($announcement): void {
             $user->notify(new PlatformAlertNotification(

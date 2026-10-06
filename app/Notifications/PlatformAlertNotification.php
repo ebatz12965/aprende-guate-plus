@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\NotificationPreference;
+use App\Models\User;
 use App\Services\MailConfigurationService;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -21,6 +22,11 @@ class PlatformAlertNotification extends Notification
 
     public function via(object $notifiable): array
     {
+        // Una cuenta suspendida no recibe avisos ni correos mientras dure la suspensión.
+        if ($notifiable instanceof User && $notifiable->isSuspended()) {
+            return [];
+        }
+
         $preferences = NotificationPreference::forUser($notifiable);
         $channels = [];
 

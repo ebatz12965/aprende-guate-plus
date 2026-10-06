@@ -7,12 +7,6 @@ parameters:
 			path: app/Console/Commands/AiDemoData.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Console/Commands/SendMentorshipReminders.php
-
-		-
 			message: '#^Cannot call method format\(\) on string\.$#'
 			identifier: method.nonObject
 			count: 1
@@ -35,12 +29,6 @@ parameters:
 			identifier: instanceof.alwaysTrue
 			count: 1
 			path: app/Http/Controllers/Auth/AuthenticatedSessionController.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:learningPaths\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Http/Controllers/Learning/CareerProfileController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
@@ -127,18 +115,6 @@ parameters:
 			path: app/Http/Controllers/Learning/LearningPathController.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:role\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Http/Controllers/Learning/MentorshipController.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Http/Controllers/Learning/MentorshipController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
 			identifier: property.notFound
 			count: 2
@@ -187,18 +163,6 @@ parameters:
 			path: app/Http/Controllers/Learning/TutorController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/MentorController.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
-			identifier: method.notFound
-			count: 3
-			path: app/Http/Controllers/MentorController.php
-
-		-
 			message: '#^Cannot call method format\(\) on string\.$#'
 			identifier: method.nonObject
 			count: 1
@@ -241,20 +205,8 @@ parameters:
 			path: app/Http/Controllers/MentorshipConversationController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/MentorshipConversationController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sender_id\.$#'
 			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/MentorshipConversationController.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
-			identifier: method.notFound
 			count: 2
 			path: app/Http/Controllers/MentorshipConversationController.php
 
@@ -267,12 +219,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/MentorshipConversationController.php
-
-		-
-			message: '#^Parameter \#1 \$user of static method App\\Models\\NotificationPreference\:\:forUser\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/MentorshipConversationController.php
 
@@ -377,12 +323,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: app/Policies/LearningPathTopicPolicy.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasRole\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Policies/MentorProfilePolicy.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
