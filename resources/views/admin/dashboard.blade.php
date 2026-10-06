@@ -4,18 +4,52 @@
 <div class="max-w-[1500px]">
     <div class="mb-6">
         <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Panel administrativo</h1>
-        <p class="mt-2 text-slate-600">Controla usuarios, consumo de inteligencia artificial y servicios de Aprende Guate.</p>
+        <p class="mt-2 text-slate-600">{{ auth()->user()->isSuperAdmin() ? 'Controla usuarios, consumo de inteligencia artificial y servicios de Aprende Guate.' : 'Estas son las secciones que tienes a cargo.' }}</p>
     </div>
-    @include('admin.partials.dashboard-tabs')
+    @can('ia.tablero')
+        @include('admin.partials.dashboard-tabs')
+    @endcan
+
+    @unless (auth()->user()->isSuperAdmin())
+        @php
+            $sections = array_filter([
+                'usuarios.ver' => ['admin.users.index', 'Usuarios', 'Buscar cuentas, revisar su historial y, según tus permisos, editarlas o suspenderlas.'],
+                'mentores.revisar' => ['admin.mentor-applications.index', 'Solicitudes de mentor', 'Aprobar o rechazar a quienes se postulan como mentores.'],
+                'roles.ver' => ['admin.roles.index', 'Roles', 'Consultar qué permite cada rol.'],
+                'avisos.publicar' => ['admin.announcements.index', 'Avisos', 'Redactar y publicar avisos para la plataforma.'],
+                'ia.consumo' => ['admin.ai-usage.index', 'Consumo de IA', 'Ver cuántos tokens usa cada persona.'],
+                'bitacora.ver' => ['admin.audit.index', 'Bitácora', 'Revisar quién hizo cada cambio administrativo.'],
+            ], fn ($section, $ability) => auth()->user()->can($ability), ARRAY_FILTER_USE_BOTH);
+        @endphp
+        @if ($sections)
+            <section class="mb-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Tus secciones">
+                @foreach ($sections as [$route, $title, $text])
+                    <a href="{{ route($route) }}" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-300">
+                        <p class="font-extrabold text-slate-900">{{ $title }}</p>
+                        <p class="mt-1 text-sm leading-6 text-slate-600">{{ $text }}</p>
+                    </a>
+                @endforeach
+            </section>
+        @endif
+    @endunless
 
     <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        @can('usuarios.ver')
         <section class="admin-stat-card"><p>Usuarios registrados</p><strong>{{ number_format($totalUsers) }}</strong><span>Personas con una cuenta en la plataforma</span><a href="#usuarios-recientes" class="mt-3 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ver últimos registros ↓</a></section>
+        @endcan
+        @can('ia.consumo')
         <section class="admin-stat-card"><p>Tokens consumidos</p><strong>{{ number_format($tokensUsed) }}</strong><span>{{ number_format($usageRequests) }} solicitudes IA registradas</span><a href="{{ route('admin.ai-usage.index') }}" class="mt-3 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Ver consumo detallado →</a></section>
+        @endcan
+        @can('ia.configuracion')
         <section class="admin-stat-card"><p>Tokens disponibles</p>@if($tokensAvailable !== null)<strong>{{ number_format($tokensAvailable) }}</strong><span>de {{ number_format($tokenBudget) }} configurados como límite</span>@else<strong class="text-2xl">Sin límite</strong><span>Configura un presupuesto para calcular disponibilidad</span>@endif<a href="{{ route('admin.ai-settings.edit') }}" class="mt-3 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Configurar límites →</a></section>
+        @endcan
     </div>
 
     <div class="mt-7 grid gap-6 xl:grid-cols-2">
+        @can('usuarios.ver')
         <section id="usuarios-recientes" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6"><div><h2 class="font-extrabold text-slate-900">Últimos usuarios registrados</h2><p class="mt-1 text-sm text-slate-500">Muestra hasta cinco registros recientes.</p></div><a href="{{ route('admin.users.index') }}" class="text-sm font-bold text-blue-700 hover:text-blue-900">Ver todos →</a></div><div class="divide-y divide-slate-100">@forelse($latestUsers as $user)<div class="flex items-center gap-3 px-5 py-4 sm:px-6"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-100 font-extrabold text-blue-800">{{ Str::upper(Str::substr($user->name, 0, 1)) }}</span><div class="min-w-0 flex-1"><p class="truncate font-bold text-slate-900">{{ $user->name }}</p><p class="truncate text-sm text-slate-500">{{ $user->email }}</p></div><div class="text-right text-xs text-slate-500"><p>{{ $user->created_at->format('d/m/Y') }}</p><p class="mt-1 font-semibold {{ $user->email_verified_at ? 'text-emerald-700' : 'text-amber-700' }}">{{ $user->email_verified_at ? 'Verificado' : 'Pendiente' }}</p></div></div>@empty<div class="px-5 py-8 text-center text-sm text-slate-500">Aún no hay usuarios registrados.</div>@endforelse</div></section>
+        @endcan
+        @can('ia.tablero')
 
         <section class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div class="flex items-start justify-between gap-3">
@@ -32,8 +66,11 @@
             @endif
             <a href="{{ route('admin.ai-pulse.index') }}" class="mt-auto inline-flex min-h-11 items-center self-start pt-4 text-sm font-bold text-blue-700 hover:text-blue-900">Abrir el tablero de IA →</a>
         </section>
+        @endcan
     </div>
 
+    @if (auth()->user()->isSuperAdmin())
     <div class="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="text-sm font-bold text-slate-900">Configuración operativa</p><p class="mt-1 text-sm leading-6 text-slate-600">Gestiona los límites de IA, el orquestador de agentes y el correo saliente desde un mismo espacio.</p><div class="mt-4 flex flex-wrap gap-3"><a href="{{ route('admin.ai-settings.edit') }}" class="admin-secondary-button">Límites de IA</a><a href="{{ route('admin.ai-orchestrator.index') }}" class="admin-secondary-button">Orquestador IA</a><a href="{{ route('admin.mail-settings.edit') }}" class="admin-secondary-button">Correo saliente</a></div></div>
+    @endif
 </div>
 @endsection

@@ -55,6 +55,7 @@ class StudentProfile extends Model
         $this->forceFill(['public_slug' => static::newPublicSlug()])->save();
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

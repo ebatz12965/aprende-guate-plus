@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\UpdateAiAgentRequest;
 use App\Models\AiRequest;
 use App\Models\AiTokenUsage;
 use App\Services\AiPulseService;
+use App\Support\Audit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -51,6 +52,12 @@ class AiOrchestratorController extends Controller
     {
         $data = $request->validated();
         $catalog->saveOverride($agent, $request->boolean('enabled'), $data['model'] ?? null, $data['max_tokens'] ?? null, $request->user()->id, $data['provider'] ?? null);
+        Audit::log('configuracion', 'Ajustó el agente de IA «'.config("ai.agents.{$agent}.name").'»', null, array_filter([
+            'activo' => $request->boolean('enabled'),
+            'proveedor' => $data['provider'] ?? null,
+            'modelo' => $data['model'] ?? null,
+            'tokens máximos' => $data['max_tokens'] ?? null,
+        ], fn ($value) => $value !== null));
 
         return redirect()->route('admin.ai-orchestrator.index')->with('success', 'Configuración del agente «'.config("ai.agents.{$agent}.name").'» actualizada.');
     }
@@ -68,6 +75,7 @@ class AiOrchestratorController extends Controller
     {
         abort_unless(in_array($agent, AgentCatalog::AGENTS, true), 404);
         $catalog->resetOverride($agent);
+        Audit::log('configuracion', 'Restableció el agente de IA «'.config("ai.agents.{$agent}.name").'»');
 
         return redirect()->route('admin.ai-orchestrator.index')->with('success', 'El agente «'.config("ai.agents.{$agent}.name").'» volvió a los valores de config/ai.php.');
     }

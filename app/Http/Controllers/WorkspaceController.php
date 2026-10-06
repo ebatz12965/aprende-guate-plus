@@ -14,8 +14,8 @@ class WorkspaceController extends Controller
 
         abort_unless(match ($space) {
             'learning' => true,
-            'mentor' => $user->hasRole('Instructor') || $user->hasRole('Admin'),
-            'admin' => $user->hasRole('Admin'),
+            'mentor' => $user->hasRole('Instructor') || $user->isSuperAdmin(),
+            'admin' => $user->canAccessAdmin(),
         }, 403);
 
         $request->session()->put('active_space', $space);

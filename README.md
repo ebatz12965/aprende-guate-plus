@@ -7,7 +7,8 @@ Plataforma de aprendizaje adaptativo con IA. Cada estudiante responde un diagnó
 - **Backend:** Laravel 13 (PHP 8.3+), colas en base de datos, scheduler.
 - **Frontend:** Blade, Tailwind CSS 3, Alpine.js y Vite.
 - **Autenticación:** Laravel Breeze, verificación de correo, verificación en dos pasos (TOTP) e inicio de sesión con Google (Socialite).
-- **Roles:** `spatie/laravel-permission` con los roles `Admin`, `Instructor` y `Student`.
+- **Roles y permisos:** `spatie/laravel-permission`. Cada cuenta puede tener varios roles: `Student` (base de todas), `Instructor` (mentor), `Admin` (super administrador) y roles personalizados con permisos delegados.
+- **Bitácora:** `spatie/laravel-activitylog` registra quién hizo cada cambio administrativo.
 - **IA:** proveedor compatible con la API de OpenAI mediante `App\AI\AiGateway` (ver [docs/ai-orchestration.md](docs/ai-orchestration.md)).
 
 ## Requisitos
@@ -82,7 +83,22 @@ config/ai.php            Proveedores, agentes y límites de tokens
 config/office_curriculum.php  Ruta predefinida para metas de ofimática
 ```
 
-La aplicación tiene tres espacios de trabajo según el rol: **aprendizaje** (todas las personas), **mentor** (`Instructor`) y **administración** (`Admin`). Se alternan desde el menú de perfil.
+La aplicación tiene tres espacios de trabajo según el rol: **aprendizaje** (todas las personas), **mentor** (`Instructor`) y **administración**. Se alternan desde el menú de perfil.
+
+### Administración y permisos
+
+- El rol `Admin` es el **super administrador**: tiene todos los permisos del panel.
+- El rol **Administrador** (creado de fábrica) está un nivel debajo: empieza con todos los permisos delegables y el super administrador decide cuáles conserva. En **Administración → Roles** también puede crear otros roles personalizados (por ejemplo, "Soporte") con permisos delegables: usuarios, suspensiones, asignar roles, solicitudes de mentor, avisos, tablero y consumo de IA, y bitácora. El catálogo está en `app/Support/AdminAccess.php`.
+- Nunca se delegan: eliminar cuentas, gestionar roles, límites y presupuesto de IA, orquestador y correo saliente.
+- Quien asigna roles solo puede dar roles cuyos permisos también tenga. Un administrador delegado no puede modificar cuentas con permisos de administración, y siempre queda al menos un super administrador activo.
+- Las cuentas se **suspenden** (temporal o indefinidamente, con motivo) en lugar de eliminarse. Al suspender una cuenta:
+  - se cierra su sesión;
+  - no puede entrar, tampoco con Google;
+  - deja de recibir avisos;
+  - se oculta su perfil público;
+  - se cancelan sus mentorías abiertas.
+- Con `ADMIN_REQUIRE_TWO_FACTOR=true` se exige verificación en dos pasos para entrar al panel. En producción se exige por defecto.
+- Recuperación desde el servidor: `php artisan admin:super correo@dominio.com` asigna el rol de super administrador y levanta la suspensión de esa cuenta; con `--quitar` se lo retira.
 
 ## Pruebas
 

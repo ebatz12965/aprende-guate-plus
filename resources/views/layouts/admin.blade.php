@@ -46,36 +46,62 @@
                 <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Panel
             </a>
 
-            @role('Admin')
+            @canany(['usuarios.ver', 'mentores.revisar', 'roles.ver', 'bitacora.ver'])
                 <p class="admin-sidebar-label mt-7">GESTIÓN</p>
+            @endcanany
+            @can('usuarios.ver')
                 <a href="{{ route('admin.users.index') }}" class="{{ $navItemClass('admin.users.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Usuarios
                 </a>
+            @endcan
+            @can('mentores.revisar')
                 <a href="{{ route('admin.mentor-applications.index') }}" class="{{ $navItemClass('admin.mentor-applications.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6m3-3h-6"/></svg>Solicitudes de mentor
                 </a>
+            @endcan
+            @can('roles.ver')
                 <a href="{{ route('admin.roles.index') }}" class="{{ $navItemClass('admin.roles.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15.5 7.5 18l1.2-5-3.8-3.2 5-.4L12 4.7l2.1 4.7 5 .4-3.8 3.2 1.2 5z"/></svg>Roles
                 </a>
+            @endcan
+            @can('bitacora.ver')
+                <a href="{{ route('admin.audit.index') }}" class="{{ $navItemClass('admin.audit.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>Bitácora
+                </a>
+            @endcan
 
+            @canany(['ia.configuracion', 'ia.consumo', 'ia.orquestador'])
                 <p class="admin-sidebar-label mt-7">INTELIGENCIA ARTIFICIAL</p>
+            @endcanany
+            @can('ia.configuracion')
                 <a href="{{ route('admin.ai-settings.edit') }}" class="{{ $navItemClass('admin.ai-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 9h.01M9 15h6"/></svg>Límites de IA
                 </a>
+            @endcan
+            @can('ia.consumo')
                 <a href="{{ route('admin.ai-usage.index') }}" class="{{ $navItemClass('admin.ai-usage.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5m5 14V9m5 10V3m5 16v-7"/></svg>Consumo de IA
                 </a>
+            @endcan
+            @can('ia.orquestador')
                 <a href="{{ route('admin.ai-orchestrator.index') }}" class="{{ $navItemClass('admin.ai-orchestrator.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Orquestador IA
                 </a>
+            @endcan
 
+            @canany(['correo.configurar', 'avisos.publicar'])
                 <p class="admin-sidebar-label mt-7">CONFIGURACIÓN</p>
+            @endcanany
+            @can('correo.configurar')
                 <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Correo saliente
-                </a>                <a href="{{ route('admin.announcements.index') }}" class="{{ $navItemClass('admin.announcements.*') }}">
+                </a>
+            @endcan
+            @can('avisos.publicar')
+                <a href="{{ route('admin.announcements.index') }}" class="{{ $navItemClass('admin.announcements.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>Avisos
                 </a>
-            @endrole
+            @endcan
         </nav>
 
         <div class="border-t border-slate-100 p-4">
@@ -110,7 +136,7 @@
                     <button @click="profileOpen = !profileOpen" @keydown.escape.window="profileOpen = false" :aria-expanded="profileOpen" aria-haspopup="menu" class="flex items-center gap-2 rounded-xl p-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
                         <span class="grid h-9 w-9 place-items-center rounded-lg bg-blue-100 text-blue-800">{{ Str::upper(Str::substr(auth()->user()->name, 0, 1)) }}</span>
                         @if($twoFactorPending)<span class="h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-white" title="Verificación en dos pasos pendiente"></span>@endif
-                        <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
+                        <span class="hidden max-w-40 text-left sm:block"><span class="block truncate">{{ auth()->user()->name }}</span><span class="block truncate text-xs font-medium text-slate-500">{{ auth()->user()->isSuperAdmin() ? 'Super administrador' : auth()->user()->getRoleNames()->reject(fn ($r) => \App\Support\AdminAccess::isSystemRole($r))->implode(', ') }}</span></span>
                         <svg class="hidden h-4 w-4 text-slate-500 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                     <div x-cloak x-show="profileOpen" @click.outside="profileOpen = false" x-transition class="absolute right-0 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10" role="menu">

@@ -37,11 +37,13 @@ class MentorshipSession extends Model
         ];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function mentor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'mentor_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');

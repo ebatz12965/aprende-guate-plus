@@ -1,0 +1,115 @@
+name: Seguridad
+
+on:
+  push:
+    branches: [main, 'edwing7/**']
+  pull_request:
+  schedule:
+    # Cada lunes: aparecen avisos nuevos de dependencias aunque el código no cambie.
+    - cron: '0 12 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITLEAKS_VERSION: 8.30.1
+
+jobs:
+  secrets:
+    name: Secretos (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Todo el historial: un secreto borrado en un commit posterior sigue expuesto.
+          fetch-depth: 0
+
+      - name: Instalar gitleaks
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz gitleaks
+          ./gitleaks version
+
+      - name: Revisar el historial
+        run: |
+          mkdir -p informes
+          ./gitleaks git --no-banner --redact --report-format sarif --report-path informes/gitleaks.sarif . || status=$?
+          ./gitleaks git --no-banner --redact --report-format json --report-path informes/gitleaks.json . > /dev/null 2>&1 || true
+          exit ${status:-0}
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: informe-gitleaks
+          path: informes/
+          retention-days: 90
+
+  code:
+    name: Dependencias y análisis estático
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, sqlite3, zip, xml, dom, fileinfo, gd
+          coverage: none
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Caché de Composer
+        uses: actions/cache@v6
+        with:
+          path: ~/.composer/cache/files
+          key: composer-8.3-${{ hashFiles('composer.lock') }}
+
+      - name: Instalar dependencias
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci --ignore-scripts
+
+      # Cada paso guarda su informe y anota si falló; el último paso decide el resultado,
+      # así siempre se suben todos los informes.
+      - name: Auditoría de Composer
+        id: composer
+        continue-on-error: true
+        run: |
+          mkdir -p informes
+          composer audit --locked --format=json > informes/composer-audit.json || { composer audit --locked; exit 1; }
+
+      - name: Auditoría de npm
+        id: npm
+        continue-on-error: true
+        run: |
+          # El informe incluye las herramientas de compilación; solo bloquea lo que llega al navegador.
+          npm audit --json > informes/npm-audit.json || true
+          npm audit --omit=dev --audit-level=high
+
+      - name: Larastan
+        id: larastan
+        continue-on-error: true
+        run: |
+          vendor/bin/phpstan analyse --memory-limit=1G --no-progress --error-format=json > informes/larastan.json || true
+          vendor/bin/phpstan analyse --memory-limit=1G --no-progress --error-format=github
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: informes-dependencias-y-larastan
+          path: informes/
+          retention-days: 90
+
+      - name: Resultado
+        if: always()
+        run: |
+          echo "Composer: ${{ steps.composer.outcome }} · npm: ${{ steps.npm.outcome }} · Larastan: ${{ steps.larastan.outcome }}"
+          test "${{ steps.composer.outcome }}" = success
+          test "${{ steps.npm.outcome }}" = success
+          test "${{ steps.larastan.outcome }}" = success

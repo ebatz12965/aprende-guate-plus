@@ -81,6 +81,11 @@ class TwoFactorAuthenticationController extends Controller
         $data = $request->validate(['code' => ['required', 'string', 'max:20']]);
         $user = User::find($request->session()->get('two_factor.login_user_id'));
         abort_unless($user?->hasTwoFactorEnabled(), 403);
+        if ($user->isSuspended()) {
+            $request->session()->forget(['two_factor.login_user_id', 'two_factor.remember']);
+
+            return redirect()->route('login')->withErrors(['email' => $user->suspensionMessage()]);
+        }
 
         $isAuthenticatorCode = $twoFactor->verify($user->two_factor_secret, $data['code']);
         if (! $isAuthenticatorCode && ! $twoFactor->consumeRecoveryCode($user, $data['code'])) {

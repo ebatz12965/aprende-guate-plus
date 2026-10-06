@@ -1,0 +1,21 @@
+# Configuración de gitleaks: reglas por defecto + exclusiones de lo que nunca se sube al repositorio.
+# Uso: docs/seguridad/README.md
+
+title = "Aprende Guate"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Dependencias, compilados y archivos locales que están en .gitignore"
+paths = [
+    '''^(vendor|node_modules|storage)[\\/]''',
+    '''^public[\\/](build|storage)[\\/]''',
+    '''^\.env$''',
+    '''^docs[\\/]seguridad[\\/]informes[\\/]''',
+]
+
+[[allowlists]]
+description = "Claves ficticias usadas en las pruebas"
+paths = ['''^tests[\\/]''']
+regexes = ['''test-key''', '''sk-abcdefghijklmnopqrstuvwxyz1234567890''']

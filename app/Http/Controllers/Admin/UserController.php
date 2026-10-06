@@ -5,77 +5,138 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaveUserRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use App\Services\Admin\UserAdministration;
+use App\Support\AdminAccess;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index()
+    public function __construct(private readonly UserAdministration $administration) {}
+
+    public function index(Request $request): View
     {
-        $users = User::with('roles')->latest()->paginate(25);
-
-        return view('admin.users.index', compact('users'));
-    }
-
-    public function create()
-    {
-        $roles = Role::orderBy('name')->get();
-
-        return view('admin.users.create', compact('roles'));
-    }
-
-    public function store(SaveUserRequest $request)
-    {
-        $validated = $request->validated();
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'estado' => ['nullable', 'in:activas,suspendidas'],
+            'rol' => ['nullable', 'string', 'max:120'],
         ]);
-        $user->syncRoles([$validated['role']]);
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario creado correctamente.');
+        $users = User::with('roles')
+            ->when($filters['q'] ?? null, fn ($query, $q) => $query->where(fn ($inner) => $inner->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%")))
+            ->when(($filters['estado'] ?? null) === 'activas', fn ($query) => $query->notSuspended())
+            ->when(($filters['estado'] ?? null) === 'suspendidas', fn ($query) => $query->suspended())
+            ->when($filters['rol'] ?? null, fn ($query, $role) => $query->whereHas('roles', fn ($inner) => $inner->where('name', $role)))
+            ->latest()
+            ->paginate(25)
+            ->withQueryString();
+
+        return view('admin.users.index', [
+            'users' => $users,
+            'filters' => $filters,
+            'roles' => Role::orderBy('name')->pluck('name'),
+            'suspendedCount' => User::suspended()->count(),
+        ]);
     }
 
-    public function show(User $user)
+    public function create(Request $request): View
     {
-        return redirect()->route('admin.users.edit', $user);
+        return view('admin.users.create', ['assignable' => $this->assignableFor($request->user())]);
     }
 
-    public function edit(User $user)
+    public function store(SaveUserRequest $request): RedirectResponse
     {
-        $roles = Role::orderBy('name')->get();
+        $data = $request->validated();
+        $roles = $request->user()->can('roles.asignar') ? ($data['roles'] ?? []) : [];
+        $user = $this->administration->create($request->user(), $data, $roles);
 
-        return view('admin.users.edit', compact('user', 'roles'));
+        return redirect()->route('admin.users.edit', $user)->with('success', 'Cuenta creada correctamente.');
     }
 
-    public function update(SaveUserRequest $request, User $user)
+    public function edit(Request $request, User $user): View
     {
-        $validated = $request->validated();
+        $actor = $request->user();
+        $user->load('roles', 'suspendedBy');
 
-        if ($user->is(auth()->user()) && $validated['role'] !== 'Admin') {
-            return back()->withInput()->withErrors(['role' => 'No puedes retirar el rol de administrador de tu propia cuenta.']);
+        return view('admin.users.edit', [
+            'user' => $user,
+            'protection' => $this->administration->protection($actor, $user),
+            'assignable' => $this->assignableFor($actor),
+            'allRoles' => Role::orderBy('name')->get(),
+            'history' => Activity::with('causer')->where('subject_type', $user->getMorphClass())->where('subject_id', $user->id)->latest()->take(15)->get(),
+        ]);
+    }
+
+    public function update(SaveUserRequest $request, User $user): RedirectResponse
+    {
+        $this->administration->updateDetails($request->user(), $user, $request->validated());
+
+        return redirect()->route('admin.users.edit', $user)->with('success', 'Datos actualizados.');
+    }
+
+    public function updateRoles(Request $request, User $user): RedirectResponse
+    {
+        $data = $request->validate(['roles' => ['array'], 'roles.*' => ['string', Rule::exists('roles', 'name')]]);
+        $this->administration->syncRoles($request->user(), $user, $data['roles'] ?? []);
+
+        return redirect()->route('admin.users.edit', $user)->with('success', 'Roles actualizados.');
+    }
+
+    public function suspend(Request $request, User $user): RedirectResponse
+    {
+        $data = $request->validate([
+            'duration' => ['required', 'in:1,3,7,30,custom,permanent'],
+            'until' => ['nullable', 'required_if:duration,custom', 'date', 'after:now'],
+            'reason' => ['required', 'string', 'min:5', 'max:500'],
+        ]);
+        $until = match ($data['duration']) {
+            'permanent' => null,
+            'custom' => Carbon::parse($data['until']),
+            default => now()->addDays((int) $data['duration']),
+        };
+        $cancelled = $this->administration->suspend($request->user(), $user, $until, $data['reason']);
+
+        $message = 'Cuenta suspendida '.($until ? 'hasta el '.$until->format('d/m/Y H:i') : 'de forma indefinida').'.';
+        if ($cancelled > 0) {
+            $message .= " Se cancelaron {$cancelled} ".($cancelled === 1 ? 'mentoría abierta' : 'mentorías abiertas').' y se avisó a la otra persona.';
         }
 
-        $user->fill(['name' => $validated['name'], 'email' => $validated['email']]);
-        if (! empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
-        }
-        $user->save();
-        $user->syncRoles([$validated['role']]);
-
-        return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado correctamente.');
+        return redirect()->route('admin.users.edit', $user)->with('success', $message);
     }
 
-    public function destroy(User $user)
+    public function reactivate(Request $request, User $user): RedirectResponse
     {
-        if ($user->is(auth()->user())) {
-            return back()->with('error', 'No puedes eliminar tu propia cuenta de administrador.');
+        $this->administration->reactivate($request->user(), $user);
+
+        return redirect()->route('admin.users.edit', $user)->with('success', 'La cuenta fue reactivada.');
+    }
+
+    public function destroy(Request $request, User $user): RedirectResponse
+    {
+        $request->validate(['confirm_email' => ['required', 'string', Rule::in([$user->email])]], [
+            'confirm_email.in' => 'Escribe el correo exacto de la cuenta para confirmar.',
+        ]);
+        $this->administration->delete($request->user(), $user);
+
+        return redirect()->route('admin.users.index')->with('success', 'La cuenta y sus datos fueron eliminados.');
+    }
+
+    /** @return array<string, bool> rol => ¿puede asignarlo este actor? */
+    private function assignableFor(User $actor): array
+    {
+        if (! $actor->can('roles.asignar')) {
+            return [];
         }
+        $assignable = $this->administration->assignableRoles($actor)->pluck('name');
 
-        $user->delete();
-
-        return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado correctamente.');
+        return Role::orderBy('name')->pluck('name')
+            ->sortBy(fn (string $role) => AdminAccess::sortKey($role))
+            ->mapWithKeys(fn (string $role) => [$role => $assignable->contains($role)])
+            ->all();
     }
 }

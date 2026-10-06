@@ -64,6 +64,8 @@ class CareerProfileController extends Controller
     {
         $profile = StudentProfile::with('user')->where('public_slug', $slug)->where('is_public', true)->firstOrFail();
         $user = $profile->user;
+        // El perfil de una cuenta suspendida no se muestra mientras dure la suspensión.
+        abort_if($user->isSuspended(), 404);
 
         return view('adaptive.public-profile', [
             'user' => $user,

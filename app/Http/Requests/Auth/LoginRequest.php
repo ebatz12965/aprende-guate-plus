@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use App\Models\User;
+use App\Support\Audit;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -36,7 +37,14 @@ class LoginRequest extends FormRequest
 
         RateLimiter::clear($this->throttleKey());
 
-        return User::query()->where('email', $this->input('email'))->firstOrFail();
+        $user = User::query()->where('email', $this->input('email'))->firstOrFail();
+        // Se informa solo después de validar la contraseña, para no revelar qué correos existen.
+        if ($user->isSuspended()) {
+            Audit::log('acceso', 'Intento de inicio de sesión con la cuenta suspendida', $user, [], $user);
+            throw ValidationException::withMessages(['email' => $user->suspensionMessage()]);
+        }
+
+        return $user;
     }
 
     public function ensureIsNotRateLimited(): void

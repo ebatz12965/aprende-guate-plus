@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\AiPulseService;
+use App\Support\Audit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,8 @@ class AiPulseController extends Controller
             'prices.*.output' => ['nullable', 'numeric', 'min:0', 'max:1000'],
         ]);
         $pulse->savePrices(collect($data['prices'] ?? [])->mapWithKeys(fn ($row) => [$row['model'] => ['input' => $row['input'] ?? 0, 'output' => $row['output'] ?? 0]])->all());
+
+        Audit::log('configuracion', 'Actualizó los precios de los modelos de IA', null, ['modelos' => count($data['prices'] ?? [])]);
 
         return redirect()->route('admin.ai-orchestrator.index')->with('success', 'Precios por modelo guardados. El tablero de IA ya calcula el costo estimado con ellos.');
     }

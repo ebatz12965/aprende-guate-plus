@@ -33,6 +33,10 @@ class SocialiteController extends Controller
                 ]);
             }
 
+            if ($user->isSuspended()) {
+                return redirect()->route('login')->withErrors(['email' => $user->suspensionMessage()]);
+            }
+
             if (! $user->hasVerifiedEmail()) {
                 // Google entrega un correo autenticado en el flujo OAuth; no bloqueamos esta vía de acceso.
                 $user->forceFill(['email_verified_at' => now()])->save();

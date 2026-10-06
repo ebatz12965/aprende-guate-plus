@@ -3,10 +3,13 @@
 namespace App\Providers;
 
 use App\Models\PlatformSetting;
+use App\Models\User;
+use App\Support\AdminAccess;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Telescope\TelescopeServiceProvider;
 
@@ -50,8 +53,13 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
-        // Sin Gate::before para Admin: las policies protegen datos personales (diagnósticos,
-        // evidencias, conversaciones) y no deben omitirse por rol. El acceso administrativo
-        // se controla con el middleware role:Admin.
+        // El super administrador recibe solo las habilidades del catálogo de administración. No hay un
+        // Gate::before general: las policies protegen datos personales (diagnósticos, evidencias,
+        // conversaciones) y no deben omitirse por rol.
+        Gate::before(fn (User $user, string $ability) => AdminAccess::isAdminAbility($ability) && $user->isSuperAdmin() ? true : null);
+        foreach (array_keys(AdminAccess::SUPER_ONLY) as $ability) {
+            Gate::define($ability, fn () => false);
+        }
+        Gate::define('roles.ver', fn (User $user) => $user->can('roles.gestionar') || $user->can('roles.asignar'));
     }
 }
