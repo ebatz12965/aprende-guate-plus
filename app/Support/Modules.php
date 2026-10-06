@@ -76,8 +76,8 @@ class Modules
             'default' => self::ACTIVE,
         ],
         'entrevistas' => [
-            'label' => 'Entrevistas',
-            'description' => 'Simulador de postulación: entrevistas y pruebas con IA.',
+            'label' => 'Empleabilidad',
+            'description' => 'Simulador de postulación: entrevistas y pruebas con IA para prepararse antes de aplicar a un empleo.',
             'routes' => ['adaptive.interviews', 'adaptive.interviews.*'],
             'default' => self::PREVIEW,
         ],

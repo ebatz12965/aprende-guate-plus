@@ -151,6 +151,6 @@ class InterviewSimulationTest extends TestCase
 
         $this->actingAs($this->student())->get(route('adaptive.interviews'))->assertNotFound();
         $this->actingAs($this->student())->get(route('adaptive.dashboard'))->assertDontSee(route('adaptive.interviews'));
-        $this->actingAs($admin)->get(route('adaptive.interviews'))->assertOk()->assertSee('Simulador de postulación');
+        $this->actingAs($admin)->get(route('adaptive.interviews'))->assertOk()->assertSee('Empleabilidad');
     }
 }

@@ -13,7 +13,7 @@
     };
 @endphp
 <div class="mx-auto max-w-5xl">
-    <a href="{{ route('adaptive.interviews') }}" class="inline-flex min-h-10 items-center text-sm font-bold text-blue-700 hover:text-blue-900">← Simulador de postulación</a>
+    <a href="{{ route('adaptive.interviews') }}" class="inline-flex min-h-10 items-center text-sm font-bold text-blue-700 hover:text-blue-900">← Empleabilidad</a>
 
     @if ($simulation->status === 'generating')
         <section class="mt-4 rounded-3xl border border-blue-100 bg-white p-8 text-center shadow-sm"

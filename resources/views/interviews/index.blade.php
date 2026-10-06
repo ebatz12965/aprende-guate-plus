@@ -8,8 +8,8 @@
     <section class="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-8 text-white shadow-xl sm:px-9">
         <div class="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-blue-400/20 blur-3xl" aria-hidden="true"></div>
         <div class="relative max-w-3xl">
-            <h1 class="text-3xl font-extrabold">Simulador de postulación</h1>
-            <p class="mt-2 leading-7 text-slate-300">Practica el proceso de selección de un puesto antes de vivirlo: una entrevista con Recursos Humanos, una prueba de razonamiento, una entrevista con quien dirige el área y una prueba práctica. Al final sabrás qué reforzar.</p>
+            <h1 class="text-3xl font-extrabold">Empleabilidad</h1>
+            <p class="mt-2 leading-7 text-slate-300">Simulador de postulación: practica el proceso de selección de un puesto antes de vivirlo: una entrevista con Recursos Humanos, una prueba de razonamiento, una entrevista con quien dirige el área y una prueba práctica. Al final sabrás qué reforzar.</p>
         </div>
     </section>
 

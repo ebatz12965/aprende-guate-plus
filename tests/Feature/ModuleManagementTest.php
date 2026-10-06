@@ -131,7 +131,7 @@ class ModuleManagementTest extends TestCase
         $this->actingAs($manager)->put(route('admin.modules.update', 'tutor'), ['status' => 'maintenance'])->assertForbidden();
 
         $admin = $this->superAdmin();
-        $this->actingAs($admin)->get(route('admin.modules.index'))->assertOk()->assertSee('Tutor IA')->assertSee('Entrevistas');
+        $this->actingAs($admin)->get(route('admin.modules.index'))->assertOk()->assertSee('Tutor IA')->assertSee('Empleabilidad');
         $this->actingAs($admin)->put(route('admin.modules.update', 'tutor'), ['status' => 'maintenance', 'message' => 'Ajustes al tutor'])->assertRedirect();
         $this->actingAs($admin)->put(route('admin.modules.update', 'no-existe'), ['status' => 'active'])->assertNotFound();
         $this->actingAs($admin)->put(route('admin.modules.update', 'tutor'), ['status' => 'preview', 'preview_roles' => ['Admin']])->assertSessionHasErrors('preview_roles.0');
