@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Learning;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\EvaluateInterviewStageJob;
 use App\Jobs\GenerateInterviewPlanJob;
+use App\Jobs\GenerateInterviewQuestionsJob;
 use App\Models\DiagnosticAttempt;
 use App\Models\InterviewSimulation;
 use App\Models\InterviewStage;
+use App\Services\Interviews\InterviewConversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +25,7 @@ class InterviewController extends Controller
 
         return view('interviews.index', [
             'simulations' => InterviewSimulation::where('user_id', $user->id)->withCount([
-                'stages', 'stages as finished_stages_count' => fn ($query) => $query->whereIn('status', ['submitted', 'evaluated']),
+                'stages', 'stages as finished_stages_count' => fn ($query) => $query->whereIn('status', InterviewStage::FINISHED),
             ])->latest()->get(),
             'suggestedTitle' => $this->suggestedTitle($user->id),
             'remainingToday' => $this->remainingToday($user->id),
@@ -80,13 +83,82 @@ class InterviewController extends Controller
 
     public function stage(InterviewSimulation $simulation, InterviewStage $stage): View|RedirectResponse
     {
-        $this->authorize('view', $simulation);
-        abort_unless($stage->interview_simulation_id === $simulation->id, 404);
+        $this->ensureStage($simulation, $stage);
         if ($stage->status === 'locked') {
             return redirect()->route('adaptive.interviews.show', $simulation)->with('info', 'Completa primero la etapa anterior.');
         }
+        $next = $simulation->stages()->where('position', $stage->position + 1)->first();
 
-        return view('interviews.stage', ['simulation' => $simulation, 'stage' => $stage]);
+        return view('interviews.stage', [
+            'simulation' => $simulation,
+            'stage' => $stage,
+            'turns' => $stage->turns->map(fn ($turn) => $turn->toChat())->values(),
+            'next' => $next && $next->status !== 'locked' ? $next : null,
+        ]);
+    }
+
+    /** Comienza una entrevista: se prepara su banco de preguntas en la cola. */
+    public function start(InterviewSimulation $simulation, InterviewStage $stage): RedirectResponse
+    {
+        $this->ensureStage($simulation, $stage);
+        abort_unless($stage->isPlayable() && $stage->status === 'available', 422);
+        $stage->update(['status' => 'preparing']);
+        GenerateInterviewQuestionsJob::dispatch($stage->id)->onQueue('ai');
+
+        return redirect()->route('adaptive.interviews.stage', [$simulation, $stage]);
+    }
+
+    /** Estado para las pantallas de espera (preparando preguntas o evaluando). */
+    public function stageStatus(InterviewSimulation $simulation, InterviewStage $stage): JsonResponse
+    {
+        $this->ensureStage($simulation, $stage);
+
+        return response()->json(['status' => $stage->status, 'evaluation' => $stage->content['evaluation_status'] ?? null]);
+    }
+
+    public function answer(Request $request, InterviewSimulation $simulation, InterviewStage $stage, InterviewConversation $conversation): JsonResponse
+    {
+        $this->ensureStage($simulation, $stage);
+        $data = $request->validate(['answer' => ['required', 'string', 'min:2', 'max:'.InterviewConversation::MAX_ANSWER]]);
+        $turns = $conversation->answer($stage, $data['answer']);
+        $stage->refresh();
+
+        return response()->json([
+            'turns' => $turns,
+            'status' => $stage->status,
+            'question' => ($stage->content['current'] ?? 0) + 1,
+            'total' => count($stage->content['questions'] ?? []),
+        ]);
+    }
+
+    public function retryEvaluation(InterviewSimulation $simulation, InterviewStage $stage): RedirectResponse
+    {
+        $this->ensureStage($simulation, $stage);
+        abort_unless($stage->status === 'submitted' && ($stage->content['evaluation_status'] ?? null) === 'failed', 422);
+        $stage->update(['content' => ['evaluation_status' => 'queued'] + $stage->content]);
+        EvaluateInterviewStageJob::dispatch($stage->id)->onQueue('ai');
+
+        return redirect()->route('adaptive.interviews.stage', [$simulation, $stage]);
+    }
+
+    /** Las pruebas que todavía no existen se pueden saltar para seguir con el proceso. */
+    public function skip(InterviewSimulation $simulation, InterviewStage $stage): RedirectResponse
+    {
+        $this->ensureStage($simulation, $stage);
+        abort_unless(! $stage->isPlayable() && $stage->status === 'available', 422);
+        $stage->update(['status' => 'skipped']);
+        $stage->finishAndUnlockNext();
+        $next = $simulation->stages()->where('position', $stage->position + 1)->first();
+
+        return $next
+            ? redirect()->route('adaptive.interviews.stage', [$simulation, $next])
+            : redirect()->route('adaptive.interviews.show', $simulation);
+    }
+
+    private function ensureStage(InterviewSimulation $simulation, InterviewStage $stage): void
+    {
+        $this->authorize('view', $simulation);
+        abort_unless($stage->interview_simulation_id === $simulation->id, 404);
     }
 
     public function destroy(InterviewSimulation $simulation): RedirectResponse

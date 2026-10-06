@@ -105,7 +105,7 @@ return [
         'evaluator' => $agent('Evaluador de evidencias', 'Evalúa contra rúbricas y explica mejoras sin revelar soluciones.', 900, true, false, 'reasoning'),
         'tutor' => $agent('Tutor IA', 'Da pistas progresivas y orientación contextual al estudiante.', 300, true, false, 'fast'),
         'interviewer' => $agent('Entrevistador', 'Diseña el proceso de selección simulado y conduce entrevistas escritas con repreguntas.', 1400, true, false, 'writing'),
-        'interview_evaluator' => $agent('Evaluador de entrevista', 'Califica entrevistas separadamente mediante rúbricas.', 900, false, true),
+        'interview_evaluator' => $agent('Evaluador de entrevista', 'Califica las entrevistas simuladas con una rúbrica y da retroalimentación por pregunta.', 2200, true, false, 'reasoning'),
         'employability' => $agent('Agente de empleabilidad', 'Relaciona vacantes, perfil, evidencias y brechas.', 800, false, true),
         'mentor_application_assessor' => $agent('Generador de cuestionarios de mentoría', 'Genera un cuestionario pedagógico según la especialidad y las áreas de apoyo declaradas, sin evaluar ni recibir respuestas personales.', 900, true, false, 'writing'),
     ],

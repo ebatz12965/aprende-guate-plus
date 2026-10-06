@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * Proceso de selección simulado para un puesto: empresa ficticia, entrevistadores y etapas.
@@ -20,6 +21,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $status
  * @property string|null $generated_by
  * @property string|null $generation_error
+ * @property int|null $overall_score
+ * @property array<string, mixed>|null $report
+ * @property Carbon|null $completed_at
  */
 class InterviewSimulation extends Model
 {

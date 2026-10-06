@@ -8,6 +8,7 @@
         'available' => 'bg-blue-50 text-blue-800 ring-blue-200',
         'in_progress' => 'bg-amber-50 text-amber-800 ring-amber-200',
         'submitted', 'evaluated' => 'bg-emerald-50 text-emerald-800 ring-emerald-200',
+        'preparing' => 'bg-blue-50 text-blue-800 ring-blue-200',
         default => 'bg-slate-100 text-slate-600 ring-slate-200',
     };
 @endphp
@@ -36,7 +37,7 @@
                     <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">{{ $simulation->job_title }}</h1>
                     <p class="mt-1 text-slate-600">{{ $simulation->areaLabel() }} · {{ $simulation->seniorityLabel() }}</p>
                 </div>
-                @php($done = $simulation->stages->whereIn('status', ['submitted', 'evaluated'])->count())
+                @php $done = $simulation->stages->whereIn('status', InterviewStage::FINISHED)->count(); @endphp
                 <div class="shrink-0 text-left sm:text-right">
                     <p class="text-sm font-semibold text-slate-600">Avance</p>
                     <p class="text-2xl font-extrabold tabular-nums text-slate-900">{{ $done }} de {{ $simulation->stages->count() }}</p>
@@ -56,7 +57,7 @@
 
         <ol class="mt-6 space-y-4" aria-label="Etapas del proceso">
             @foreach ($simulation->stages as $stage)
-                @php($locked = $stage->status === 'locked')
+                @php $locked = $stage->status === 'locked'; @endphp
                 <li class="rounded-2xl border bg-white p-5 shadow-sm sm:p-6 {{ $locked ? 'border-slate-200 opacity-80' : 'border-blue-200' }}">
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
                         <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-sm font-extrabold {{ $locked ? 'bg-slate-100 text-slate-500' : 'bg-blue-700 text-white' }}">{{ $stage->position }}</span>
@@ -85,7 +86,13 @@
                             @if ($locked)
                                 <span class="inline-flex min-h-11 items-center text-sm text-slate-500">Se abre al terminar la etapa {{ $stage->position - 1 }}</span>
                             @else
-                                <a href="{{ route('adaptive.interviews.stage', [$simulation, $stage]) }}" class="inline-flex min-h-11 items-center rounded-xl bg-blue-700 px-5 text-sm font-bold text-white hover:bg-blue-800">Ver la etapa</a>
+                                @if ($stage->score !== null)<p class="mb-2 text-right text-sm font-bold tabular-nums text-slate-700">{{ $stage->score }} de 100</p>@endif
+                                <a href="{{ route('adaptive.interviews.stage', [$simulation, $stage]) }}" class="inline-flex min-h-11 items-center rounded-xl px-5 text-sm font-bold {{ $stage->isFinished() ? 'border border-slate-300 bg-white text-slate-700 hover:border-blue-400' : 'bg-blue-700 text-white hover:bg-blue-800' }}">{{ match ($stage->status) {
+                                    'in_progress', 'preparing' => 'Continuar',
+                                    'submitted', 'evaluated' => 'Ver resultado',
+                                    'skipped' => 'Ver la etapa',
+                                    default => 'Empezar',
+                                } }}</a>
                             @endif
                         </div>
                     </div>
