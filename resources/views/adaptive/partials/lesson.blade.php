@@ -54,18 +54,52 @@
         $order[] = 'end';
     @endphp
 
-    <div x-data="lessonDeck(@js($deck), @js($order), 'ag-lesson-{{ $lesson->id }}')" x-init="init()" @keydown.window="keys($event)" class="text-slate-700">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+    @php
+        $saved = data_get($topic ?? null, 'metadata.lesson_progress');
+        $saved = $saved && (int) ($saved['lesson_id'] ?? 0) === $lesson->id ? $saved : null;
+        $labels = collect($order)->map(fn ($slide) => match (true) {
+            $slide === 'cover' => 'Portada',
+            $slide === 'hub' => 'Elige por dónde empezar',
+            $slide === 'section' => $sections[0]['heading'] ?? 'Contenido',
+            $slide === 'concepts' => 'Conceptos clave',
+            $slide === 'worked' => 'Ejemplo resuelto',
+            $slide === 'mistakes' => 'Errores frecuentes',
+            $slide === 'decision' => '¿Qué harías?',
+            str_starts_with($slide, 'q') => 'Pregunta '.((int) substr($slide, 1) + 1).' de '.count($questions),
+            default => 'Cierre',
+        })->all();
+    @endphp
+    <div x-data="lessonDeck(@js($deck), @js($order), 'ag-lesson-{{ $lesson->id }}', { lessonId: {{ $lesson->id }}, saved: @js($saved), labels: @js($labels), url: @js(isset($topic) ? route('adaptive.topic.lesson.progress', $topic) : null) })"
+        x-init="init()" @keydown.window="keys($event)" class="text-slate-700">
+        {{-- Al volver a una lección empezada: continuar o empezar de nuevo. --}}
+        <section x-show="prompt" x-cloak class="rounded-2xl border border-blue-200 bg-blue-50/60 p-5 sm:p-8 dark:bg-blue-950/30" aria-labelledby="resume-title-{{ $lesson->id }}">
+            <h3 id="resume-title-{{ $lesson->id }}" tabindex="-1" data-resume-title class="text-balance text-2xl font-extrabold text-slate-900 outline-none"
+                x-text="finished ? 'Ya completaste esta lección' : 'Tienes esta lección a medias'"></h3>
+            <p class="mt-2 leading-7 text-slate-700" x-show="! finished">Te quedaste en la diapositiva <span class="font-bold tabular-nums" x-text="(i + 1) + ' de ' + order.length"></span>: <span class="font-bold" x-text="labels[i]"></span>.</p>
+            <p class="mt-2 leading-7 text-slate-700" x-show="finished && deck.questions.length" x-text="'Acertaste ' + score() + ' de ' + deck.questions.length + ' preguntas.'"></p>
+            <div class="mt-4 h-2 max-w-md rounded-full bg-white dark:bg-slate-800" role="progressbar" aria-label="Avance de la lección" aria-valuemin="1" :aria-valuemax="order.length" :aria-valuenow="i + 1">
+                <div class="h-full rounded-full bg-blue-500" :style="'width:' + ((i + 1) / order.length * 100) + '%'"></div>
+            </div>
+            <div class="mt-6 flex flex-wrap gap-3">
+                <button type="button" @click="resume()" class="inline-flex min-h-11 items-center rounded-xl bg-blue-600 px-5 text-sm font-bold text-white transition hover:bg-blue-700"
+                    x-text="finished ? 'Ver el cierre' : 'Continuar donde lo dejé'"></button>
+                <button type="button" @click="startOver()" class="inline-flex min-h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:border-blue-400"
+                    x-text="finished ? 'Repasar desde el inicio' : 'Empezar desde el inicio'"></button>
+            </div>
+            <p class="mt-3 text-sm text-slate-600" x-show="! finished">Empezar de nuevo borra tus respuestas de esta lección.</p>
+        </section>
+
+        <div x-show="! prompt" class="flex flex-wrap items-center justify-between gap-3">
             <p class="text-sm font-semibold tabular-nums text-slate-600" aria-live="polite"><span x-text="'Diapositiva ' + (i + 1) + ' de ' + order.length"></span></p>
             <button type="button" @click="asText = ! asText; save()" class="inline-flex min-h-11 items-center text-sm font-bold text-blue-700 underline-offset-4 hover:underline"
                 x-text="asText ? 'Ver como diapositivas' : 'Ver como texto'">Ver como texto</button>
         </div>
-        <div class="mt-2 h-1.5 rounded-full bg-slate-100" aria-hidden="true"><div class="h-full rounded-full bg-blue-500 transition-[width] duration-300 ease-out" :style="'width:' + ((i + 1) / order.length * 100) + '%'"></div></div>
+        <div x-show="! prompt" class="mt-2 h-1.5 rounded-full bg-slate-100" aria-hidden="true"><div class="h-full rounded-full bg-blue-500 transition-[width] duration-300 ease-out" :style="'width:' + ((i + 1) / order.length * 100) + '%'"></div></div>
 
         {{-- Versión en texto: la misma lección completa en una sola página. --}}
-        <div x-show="asText" x-cloak class="mt-6">@include('adaptive.partials.lesson-document', ['lesson' => $lesson, 'practiceType' => $practiceType ?? null])</div>
+        <div x-show="asText && ! prompt" x-cloak class="mt-6">@include('adaptive.partials.lesson-document', ['lesson' => $lesson, 'practiceType' => $practiceType ?? null])</div>
 
-        <div x-show="! asText" class="mt-6 min-h-[24rem] rounded-2xl border border-slate-200 bg-slate-50/60 p-5 sm:p-8">
+        <div x-show="! asText && ! prompt" class="mt-6 min-h-[24rem] rounded-2xl border border-slate-200 bg-slate-50/60 p-5 sm:p-8">
             {{-- Portada --}}
             <section x-show="slide === 'cover'" x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="translate-y-1 opacity-0">
                 <h3 tabindex="-1" data-slide-title class="text-balance text-2xl font-extrabold text-slate-900 outline-none">{{ $topicTitle ?? 'Lección' }}</h3>
@@ -249,7 +283,7 @@
         </div>
 
         {{-- Navegación --}}
-        <div x-show="! asText && ! (slide === 'hub' && open !== null)" class="mt-4 flex items-center justify-between gap-3">
+        <div x-show="! asText && ! prompt && ! (slide === 'hub' && open !== null)" class="mt-4 flex items-center justify-between gap-3">
             <button type="button" @click="go(i - 1)" :disabled="i === 0" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:border-blue-400 disabled:cursor-not-allowed disabled:opacity-40">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Anterior</button>
             <p x-show="! canNext()" class="hidden text-center text-sm text-slate-600 sm:block" x-text="slide === 'hub' ? 'Explora todas las partes para continuar' : 'Responde para continuar'"></p>
@@ -260,22 +294,46 @@
 
     @once
         <script>
-            function lessonDeck(deck, order, storageKey) {
+            function lessonDeck(deck, order, storageKey, sync = {}) {
                 return {
                     deck, order, storageKey, rootEl: null, i: 0, open: null, current: 0, visited: [], examples: [], flipped: [], fixes: [], steps: 0, decision: null, picked: {}, asText: false,
+                    labels: sync.labels || [], prompt: false, timer: null,
+                    get finished() { return this.i === this.order.length - 1; },
                     get slide() { return this.order[this.i]; },
                     init() {
                         this.rootEl = this.$el;
-                        try {
-                            const saved = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
-                            ['visited', 'examples', 'flipped', 'fixes', 'picked'].forEach((key) => { if (saved[key]) this[key] = saved[key]; });
-                            this.steps = saved.steps || 0; this.decision = saved.decision ?? null; this.asText = !! saved.asText;
-                            this.i = Math.min(Math.max(0, saved.i || 0), this.order.length - 1);
-                        } catch (error) {}
+                        // El avance más reciente gana: el del servidor (cualquier dispositivo) o el de este navegador.
+                        let local = {};
+                        try { local = JSON.parse(localStorage.getItem(this.storageKey) || '{}'); } catch (error) {}
+                        const server = sync.saved || {};
+                        const saved = (server.saved_at || 0) >= (local.saved_at || 0) ? server : local;
+                        ['visited', 'examples', 'flipped', 'fixes'].forEach((key) => { if (Array.isArray(saved[key])) this[key] = saved[key]; });
+                        if (saved.picked && typeof saved.picked === 'object') this.picked = { ...saved.picked };
+                        this.steps = saved.steps || 0; this.decision = saved.decision ?? null; this.asText = !! saved.asText;
+                        this.i = Math.min(Math.max(0, saved.i || 0), this.order.length - 1);
                         if (this.slide === 'section') this.current = 0;
+                        // Si ya avanzó, se pregunta si continuar o empezar de nuevo.
+                        this.prompt = this.i > 0;
+                        if (this.prompt) this.$nextTick(() => this.rootEl.querySelector('[data-resume-title]')?.focus({ preventScroll: true }));
+                    },
+                    snapshot() {
+                        return { lesson_id: sync.lessonId, i: this.i, visited: this.visited, examples: this.examples, flipped: this.flipped, fixes: this.fixes, steps: this.steps, decision: this.decision, picked: this.picked, asText: this.asText, saved_at: Date.now() };
                     },
                     save() {
-                        try { localStorage.setItem(this.storageKey, JSON.stringify({ i: this.i, visited: this.visited, examples: this.examples, flipped: this.flipped, fixes: this.fixes, steps: this.steps, decision: this.decision, picked: this.picked, asText: this.asText })); } catch (error) {}
+                        const state = this.snapshot();
+                        try { localStorage.setItem(this.storageKey, JSON.stringify(state)); } catch (error) {}
+                        // Al servidor con una pausa corta, para no enviar una petición por cada clic.
+                        if (! sync.url) return;
+                        clearTimeout(this.timer);
+                        this.timer = setTimeout(() => {
+                            const { saved_at, ...body } = state;
+                            fetch(sync.url, { method: 'PUT', keepalive: true, headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content }, body: JSON.stringify(body) }).catch(() => {});
+                        }, 800);
+                    },
+                    resume() { this.prompt = false; if (this.slide === 'section') this.current = 0; this.focus(); },
+                    startOver() {
+                        Object.assign(this, { visited: [], examples: [], flipped: [], fixes: [], steps: 0, decision: null, picked: {}, open: null, current: 0, i: 0, prompt: false });
+                        this.save(); this.focus();
                     },
                     canNext() {
                         if (this.slide === 'hub') return this.visited.length >= this.deck.sections.length;
@@ -294,14 +352,14 @@
                     toggle(key, index) { this[key] = this[key].includes(index) ? this[key].filter((item) => item !== index) : [...this[key], index]; this.save(); },
                     answer(question, option) { if (this.picked[question] === undefined) { this.picked = { ...this.picked, [question]: option }; this.save(); } },
                     score() { return Object.entries(this.picked).filter(([question, option]) => this.deck.questions[question]?.answer === option).length; },
-                    restart() { this.picked = {}; this.decision = null; this.steps = 0; this.go(0); },
+                    restart() { this.startOver(); },
                     focus() { this.$nextTick(() => [...this.rootEl.querySelectorAll('[data-slide-title]')].find((title) => title.offsetParent !== null)?.focus({ preventScroll: true })); },
                     keys(event) {
                         // Las flechas solo navegan si el foco está en la lección (o en ninguna parte) y no en un campo de texto.
                         const focused = document.activeElement;
                         const inDeck = focused === document.body || this.rootEl.contains(focused);
                         // Tampoco si la pestaña de la lección está oculta.
-                        if (this.asText || ! inDeck || this.rootEl.offsetParent === null || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+                        if (this.asText || this.prompt || ! inDeck || this.rootEl.offsetParent === null || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
                         if (event.key === 'ArrowRight') this.go(this.i + 1);
                         if (event.key === 'ArrowLeft') this.go(this.i - 1);
                     },

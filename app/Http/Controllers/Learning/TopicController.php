@@ -77,6 +77,34 @@ class TopicController extends Controller
         return redirect()->to(route('adaptive.topic.show', $topic).'#practica')->with('success', 'Práctica enviada. El evaluador IA está revisando tu entrega; la retroalimentación aparecerá aquí en unos momentos.');
     }
 
+    /**
+     * Guarda en qué diapositiva va la persona y qué ya respondió, para continuar en cualquier dispositivo.
+     * Se guarda junto al tema (cada tema pertenece a la ruta de una sola persona).
+     */
+    public function saveLessonProgress(Request $request, LearningPathTopic $topic): JsonResponse
+    {
+        $this->authorize('view', $topic);
+        abort_unless($topic->lesson, 404);
+        $data = $request->validate([
+            'lesson_id' => ['required', 'integer'],
+            'i' => ['required', 'integer', 'min:0', 'max:60'],
+            'visited' => ['array', 'max:20'], 'visited.*' => ['integer', 'min:0', 'max:20'],
+            'examples' => ['array', 'max:20'], 'examples.*' => ['integer', 'min:0', 'max:20'],
+            'flipped' => ['array', 'max:20'], 'flipped.*' => ['integer', 'min:0', 'max:20'],
+            'fixes' => ['array', 'max:20'], 'fixes.*' => ['integer', 'min:0', 'max:20'],
+            'steps' => ['integer', 'min:0', 'max:20'],
+            'decision' => ['nullable', 'integer', 'min:0', 'max:5'],
+            'picked' => ['array', 'max:10'], 'picked.*' => ['integer', 'min:0', 'max:5'],
+            'asText' => ['boolean'],
+        ]);
+        // Una lección regenerada no hereda el avance de la anterior.
+        abort_unless((int) $data['lesson_id'] === $topic->lesson->id, 409);
+
+        $topic->update(['metadata' => array_merge($topic->metadata ?? [], ['lesson_progress' => $data + ['saved_at' => now()->getTimestampMs()]])]);
+
+        return response()->json(['saved' => true]);
+    }
+
     public function downloadPractice(LearningPathTopic $topic): Response
     {
         $this->authorize('view', $topic);

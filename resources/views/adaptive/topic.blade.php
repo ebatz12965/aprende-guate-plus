@@ -41,7 +41,7 @@
         <section id="panel-leccion" role="tabpanel" aria-labelledby="tab-leccion" x-show="tab === 'leccion'" class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <h2 class="sr-only">Lección</h2>
             @if ($topic->lesson)
-                <div class="mt-5">@include('adaptive.partials.lesson', ['lesson' => $topic->lesson, 'practiceType' => $topic->practice_type, 'topicTitle' => $topic->title])</div>
+                <div class="mt-5">@include('adaptive.partials.lesson', ['lesson' => $topic->lesson, 'practiceType' => $topic->practice_type, 'topicTitle' => $topic->title, 'topic' => $topic])</div>
             @elseif($lessonPending)
                 <p class="ag-soft-pulse mt-3 flex items-center gap-2 text-sm leading-6 text-blue-700"><span class="ag-spinner"></span>Escribiendo la lección y revisando que todo sea correcto…</p>
             @else

@@ -83,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/mi-ruta/temas/{topic}/leccion', [TopicController::class, 'generateLesson'])->middleware('throttle:ai-generation')->name('adaptive.topic.lesson');
     Route::post('/mi-ruta/temas/{topic}/practica', [TopicController::class, 'generatePractice'])->middleware('throttle:ai-generation')->name('adaptive.topic.practice');
     Route::get('/mi-ruta/temas/{topic}/generacion', [TopicController::class, 'generationStatus'])->name('adaptive.topic.generation.status');
+    Route::put('/mi-ruta/temas/{topic}/leccion/progreso', [TopicController::class, 'saveLessonProgress'])->middleware('throttle:120,1')->name('adaptive.topic.lesson.progress');
     Route::post('/mi-ruta/temas/{topic}/practica/entregar', [TopicController::class, 'submitPractice'])->middleware('throttle:ai-generation')->name('adaptive.topic.practice.submit');
     Route::get('/mi-ruta/temas/{topic}/practica/descargar', [TopicController::class, 'downloadPractice'])->name('adaptive.topic.practice.download');
     Route::get('/tutor-ia', [TutorController::class, 'show'])->name('adaptive.tutor');
