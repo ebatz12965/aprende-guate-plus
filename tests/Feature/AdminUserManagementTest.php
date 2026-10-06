@@ -256,6 +256,20 @@ class AdminUserManagementTest extends TestCase
         $this->actingAs($manager->fresh())->get(route('admin.ai-usage.index'))->assertForbidden();
     }
 
+    public function test_space_switcher_is_available_in_both_navigation_modes(): void
+    {
+        $manager = User::factory()->create();
+        $manager->assignRole(['Student', AdminAccess::ADMIN_ROLE]);
+
+        $html = $this->actingAs($manager)->get(route('adaptive.dashboard'))->assertOk()->getContent();
+        // Barra superior y barra del menú lateral: el modo se elige en el navegador, así que ambas lo incluyen.
+        $this->assertSame(2, substr_count($html, 'aria-label="Cambiar espacio"'));
+        $this->assertStringNotContainsString('value="mentor"', $html);
+
+        $html = $this->actingAs($this->student())->get(route('adaptive.dashboard'))->getContent();
+        $this->assertStringNotContainsString('aria-label="Cambiar espacio"', $html);
+    }
+
     public function test_console_command_recovers_a_super_admin(): void
     {
         $user = $this->student();

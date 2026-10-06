@@ -30,6 +30,11 @@
         $activeSpace = auth()->check()
             ? session('active_space', $canAdminSpace ? 'admin' : ($canMentorSpace ? 'mentor' : 'learning'))
             : 'learning';
+        [$spaceTitle, $spaceHeading, $spaceSubtitle] = match ($activeSpace) {
+            'admin' => ['Administración', 'Administración', 'Gestión de la plataforma'],
+            'mentor' => ['Espacio mentor', 'Espacio mentor', 'Solicitudes, agenda y conversaciones'],
+            default => ['Mi aprendizaje', 'Mi espacio de aprendizaje', 'Ruta, práctica y crecimiento profesional'],
+        };
         $guideTours = auth()->check() ? app(\App\Services\PlatformGuideService::class)->tours(auth()->user()->hasRole('Instructor')) : [];
     @endphp
     <div x-data="{
@@ -114,26 +119,7 @@
                     @endauth
                 </div>
                 <div class="hidden items-center gap-3 md:flex">
-                    @if ($canMentorSpace || $canAdminSpace)
-                        <div class="relative" x-data="{ spacesOpen: false }"><button @click="spacesOpen = !spacesOpen" @click.outside="spacesOpen = false"
-                                class="platform-nav-link inline-flex items-center gap-2" aria-label="Cambiar espacio"><span
-                                    class="grid h-7 w-7 place-items-center rounded-lg bg-blue-100 text-blue-700">⇄</span><span
-                                    class="hidden lg:inline">{{ $activeSpace === 'admin' ? 'Administración' : ($activeSpace === 'mentor' ? 'Espacio mentor' : 'Mi aprendizaje') }}</span></button>
-                            <div x-cloak x-show="spacesOpen" x-transition
-                                class="absolute right-0 top-full z-40 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-                                @if ($activeSpace !== 'learning')
-                                    <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space"
-                                            value="learning"><button class="platform-menu-link w-full text-left">Mi aprendizaje</button></form>
-                                    @endif @if ($canMentorSpace && $activeSpace !== 'mentor')
-                                        <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space"
-                                                value="mentor"><button class="platform-menu-link w-full text-left">Espacio mentor</button></form>
-                                        @endif @if ($canAdminSpace && $activeSpace !== 'admin')
-                                            <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space"
-                                                    value="admin"><button class="platform-menu-link w-full text-left">Administración</button></form>
-                                        @endif
-                            </div>
-                        </div>
-                    @endif
+                    @include('layouts.partials.space-switcher')
                     @auth
                         <div class="relative"><button data-tour="cuenta" @click="profileOpen = !profileOpen"
                                 class="flex items-center gap-2 rounded-xl p-1.5 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-slate-800"><span
@@ -227,7 +213,7 @@
     <div class="flex h-20 items-center justify-between border-b border-slate-100 px-6"><a href="{{ route('home') }}"
             class="flex items-center gap-3 text-blue-950"><img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt=""
                 class="ag-brand-icon"><span><span class="block text-base font-extrabold tracking-tight">Aprende Guate</span><span
-                    class="block text-xs font-medium text-blue-700">Mi aprendizaje</span></span></a><button @click="sidebarOpen = false"
+                    class="block text-xs font-medium text-blue-700">{{ $spaceTitle }}</span></span></a><button @click="sidebarOpen = false"
             class="rounded-lg p-2.5 text-slate-600 hover:bg-blue-50 lg:hidden" aria-label="Cerrar menú">×</button></div>
     <nav class="flex-1 overflow-y-auto px-4 py-6">
         @auth
@@ -288,10 +274,10 @@
                     <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg></button>
             <div>
-                <p class="text-sm font-semibold text-slate-900">Mi espacio de aprendizaje</p>
-                <p class="hidden text-xs text-slate-500 sm:block">Ruta, práctica y crecimiento profesional</p>
+                <p class="text-sm font-semibold text-slate-900">{{ $spaceHeading }}</p>
+                <p class="hidden text-xs text-slate-500 sm:block">{{ $spaceSubtitle }}</p>
             </div>
-        </div>@auth<div class="relative"><button data-tour="cuenta" @click="profileOpen = !profileOpen"
+        </div>@auth<div class="flex items-center gap-2 sm:gap-3">@include('layouts.partials.space-switcher')<div class="relative"><button data-tour="cuenta" @click="profileOpen = !profileOpen"
                     class="flex items-center gap-2 rounded-xl p-1.5 text-sm font-semibold text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-slate-800"><span
                         class="grid h-9 w-9 place-items-center rounded-lg bg-blue-100 text-blue-800">{{ Str::upper(Str::substr(auth()->user()->name, 0, 1)) }}</span>
                     @if ($twoFactorPending)
@@ -317,7 +303,7 @@
                     <form method="POST" action="{{ route('logout') }}">@csrf<button class="platform-menu-link w-full text-left">Cerrar sesión</button>
                     </form>
                 </div>
-        </div>@endauth
+        </div></div>@endauth
     </header>
     <main class="student-content w-full px-4 py-8 sm:px-6 lg:px-8 lg:py-10 2xl:px-12">
         @if (session('two_factor_reminder'))
