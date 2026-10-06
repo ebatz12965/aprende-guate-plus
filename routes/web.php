@@ -27,6 +27,7 @@ use App\Http\Controllers\MentorshipConversationController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PlatformGuideController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SessionActivityController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
@@ -71,6 +72,8 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/espacio/cambiar', [WorkspaceController::class, 'switch'])->name('workspace.switch');
+    Route::post('/sesion/actividad', [SessionActivityController::class, 'ping'])->middleware('throttle:30,1')->name('session.ping');
+    Route::post('/sesion/inactividad', [SessionActivityController::class, 'expire'])->name('session.expire');
     Route::get('/mi-panel', LearningDashboardController::class)->name('adaptive.dashboard');
     Route::get('/mi-panel/estado', [LearningDashboardController::class, 'status'])->name('adaptive.dashboard.status');
     Route::get('/diagnostico', [DiagnosticController::class, 'show'])->name('adaptive.diagnostic');

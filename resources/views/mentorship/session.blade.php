@@ -38,7 +38,7 @@ function mentorshipChat() {
         },
         async fetchNewMessages() {
             try {
-                const response = await fetch('{{ route('mentorship.sessions.messages', $session) }}?after_id=' + this.lastMessageId, {headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}});
+                const response = await fetch('{{ route('mentorship.sessions.messages', $session) }}?after_id=' + this.lastMessageId, {headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Background-Request': '1'}});
                 if (!response.ok) return;
                 const data = await response.json();
                 data.messages.forEach((message) => this.appendMessage(message));

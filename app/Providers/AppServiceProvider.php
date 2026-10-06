@@ -6,11 +6,13 @@ use App\Models\PlatformSetting;
 use App\Models\User;
 use App\Support\AdminAccess;
 use App\Support\Modules;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Telescope\TelescopeServiceProvider;
@@ -66,6 +68,25 @@ class AppServiceProvider extends ServiceProvider
             Gate::define($ability, fn () => false);
         }
         Gate::define('roles.ver', fn (User $user) => $user->can('roles.gestionar') || $user->can('roles.asignar'));
+
+        // Al iniciar sesión (contraseña, Google, 2FA o «recordarme») se reabre el último espacio, si sigue permitido,
+        // y el contador de inactividad empieza de cero.
+        Event::listen(Login::class, function (Login $event) {
+            if (! $event->user instanceof User) {
+                return;
+            }
+            $user = $event->user;
+            $allowed = match ($user->last_space) {
+                'admin' => $user->canAccessAdmin(),
+                'mentor' => $user->hasRole('Instructor') || $user->isSuperAdmin(),
+                'learning' => true,
+                default => false,
+            };
+            if ($allowed) {
+                session()->put('active_space', $user->last_space);
+            }
+            session()->put('idle.last_activity', now()->timestamp);
+        });
 
         // @module('tutor') … @endmodule: muestra el enlace si el módulo no está oculto en vista previa para esta persona.
         Blade::if('module', fn (string $key) => app(Modules::class)->visibleTo(auth()->user(), $key));

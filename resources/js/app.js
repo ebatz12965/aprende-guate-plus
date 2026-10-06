@@ -67,7 +67,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const remaining = [];
         for (const task of tasks) {
             try {
-                const response = await fetch(task.statusUrl, {headers: {Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, cache: 'no-store'});
+                const response = await fetch(task.statusUrl, {headers: {Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Background-Request': '1'}, cache: 'no-store'});
                 if (!response.ok) { remaining.push(task); continue; }
                 const data = await response.json();
                 const status = data[`${task.kind}_status`];

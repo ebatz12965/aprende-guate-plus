@@ -17,7 +17,7 @@
 
     @if ($simulation->status === 'generating')
         <section class="mt-4 rounded-3xl border border-blue-100 bg-white p-8 text-center shadow-sm"
-            x-data="{ async check() { try { const r = await fetch('{{ route('adaptive.interviews.status', $simulation) }}', { headers: { Accept: 'application/json' } }); if (r.ok && (await r.json()).status !== 'generating') window.location.reload(); } catch (e) {} setTimeout(() => this.check(), 3000); } }"
+            x-data="{ async check() { try { const r = await fetch('{{ route('adaptive.interviews.status', $simulation) }}', { headers: { Accept: 'application/json', 'X-Background-Request': '1' } }); if (r.ok && (await r.json()).status !== 'generating') window.location.reload(); } catch (e) {} setTimeout(() => this.check(), 3000); } }"
             x-init="setTimeout(() => check(), 3000)">
             <span class="ag-soft-pulse ag-brand-loading mx-auto grid h-14 w-14 place-items-center rounded-2xl p-2"><img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt=""></span>
             <h1 class="mt-6 text-2xl font-black text-slate-900">Estamos preparando tu proceso para «{{ $simulation->job_title }}»</h1>

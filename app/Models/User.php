@@ -22,6 +22,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $suspended_until
  * @property string|null $suspension_reason
  * @property int|null $suspended_by
+ * @property string|null $last_space
  */
 class User extends Authenticatable implements MustVerifyEmail
 {

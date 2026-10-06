@@ -167,5 +167,6 @@
         @include('components.platform-footer')
     </div>
 </div>
+@include('partials.idle-watch')
 </body>
 </html>

@@ -24,15 +24,21 @@ class AuthenticatedSessionController extends Controller
 
         if ($user->hasTwoFactorEnabled()) {
             $request->session()->put('two_factor.login_user_id', $user->id);
-            $request->session()->put('two_factor.remember', $request->boolean('remember'));
+            $request->session()->put('two_factor.remember', $this->remember($request, $user));
 
             return redirect()->route('two-factor.challenge');
         }
 
-        Auth::login($user, $request->boolean('remember'));
+        Auth::login($user, $this->remember($request, $user));
         $request->session()->regenerate();
 
         return $this->completeLogin($request, $user);
+    }
+
+    /** «Recordar mi sesión» no aplica a cuentas con permisos de administración: deben escribir su contraseña cada vez. */
+    private function remember(Request $request, User $user): bool
+    {
+        return $request->boolean('remember') && ! $user->canAccessAdmin();
     }
 
     public function completeLogin(Request $request, User $user): RedirectResponse

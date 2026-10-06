@@ -6,7 +6,7 @@
 {{-- Mientras algo se genera, el panel consulta su estado y solo recarga cuando cambia. --}}
 <div class="space-y-6 pb-20"
     @if ($polling) x-data="{ key: @js($pollKey) }"
-        x-init="setInterval(async () => { try { const response = await fetch(@js(route('adaptive.dashboard.status')), { headers: { Accept: 'application/json' } }); if ((await response.json()).key !== key) window.location.reload(); } catch (error) {} }, 5000)" @endif>
+        x-init="setInterval(async () => { try { const response = await fetch(@js(route('adaptive.dashboard.status')), { headers: { Accept: 'application/json', 'X-Background-Request': '1' } }); if ((await response.json()).key !== key) window.location.reload(); } catch (error) {} }, 5000)" @endif>
     @if ($path && $pendingAttempt)
         <div class="flex flex-col gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-900 dark:border-blue-900/60 dark:text-blue-50 sm:flex-row sm:items-center sm:justify-between">
             @if ($pendingAttempt->status === 'generating')

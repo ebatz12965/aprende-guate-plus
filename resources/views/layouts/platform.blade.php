@@ -601,7 +601,9 @@
                     const response = await fetch('{{ route('mentorship.widget') }}', {
                         headers: {
                             'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
+                            'X-Requested-With': 'XMLHttpRequest',
+                            // Consulta de fondo: no cuenta como actividad para el cierre por inactividad.
+                            'X-Background-Request': '1'
                         }
                     });
                     if (!response.ok) return;
@@ -662,6 +664,7 @@
     }
 </script>
 @endif
+@include('partials.idle-watch')
 </body>
 
 </html>

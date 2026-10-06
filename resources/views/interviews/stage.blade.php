@@ -11,7 +11,7 @@
         'technical_interview' => ['Explica cómo llegas a tu respuesta, no solo la respuesta.', 'Si no sabes algo, dilo y explica cómo lo averiguarías: eso también cuenta.', 'Usa ejemplos de tus prácticas o de trabajos anteriores.'],
         default => ['Lee el caso y el entregable completos antes de empezar.', 'Organiza tu respuesta en pasos y justifica tus decisiones.', 'Revisa tu entrega antes de enviarla: cuenta como en una prueba real.'],
     };
-    $poll = fn (string $until) => "{ async check() { try { const r = await fetch('".route('adaptive.interviews.stage.status', [$simulation, $stage])."', { headers: { Accept: 'application/json' } }); if (r.ok) { const s = await r.json(); if ({$until}) { window.location.reload(); return; } } } catch (e) {} setTimeout(() => this.check(), 3000); } }";
+    $poll = fn (string $until) => "{ async check() { try { const r = await fetch('".route('adaptive.interviews.stage.status', [$simulation, $stage])."', { headers: { Accept: 'application/json', 'X-Background-Request': '1' } }); if (r.ok) { const s = await r.json(); if ({$until}) { window.location.reload(); return; } } } catch (e) {} setTimeout(() => this.check(), 3000); } }";
 @endphp
 <div class="mx-auto max-w-3xl">
     <a href="{{ route('adaptive.interviews.show', $simulation) }}" class="inline-flex min-h-10 items-center text-sm font-bold text-blue-700 hover:text-blue-900">← {{ $simulation->job_title }}</a>

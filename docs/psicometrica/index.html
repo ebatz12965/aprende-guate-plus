@@ -14,6 +14,25 @@
     @page{size:A4;margin:16mm}
     @media print{body{background:white;font-size:10pt;color:#172a42}.shell{max-width:none;padding:0}.topbar .shell{min-height:52px}.topbar{border-bottom:1px solid #bac8db}.brand-mark{background:white;color:#142e50;border:1px solid #142e50}.session-tag,.no-print,body>footer{display:none!important}main{padding:20px 0 0}.report-head{margin-bottom:18px}.report-head h1{font-size:22pt}.card{box-shadow:none;border-radius:8px;padding:17px}.report-identity{grid-template-columns:1fr 1fr 1fr;gap:14px}.report-layout{display:block;margin-top:18px}.report-layout>.card,.report-layout>div{margin-bottom:18px}.interpretation{background:white;color:#172a42;border:1px solid #bac8db;break-inside:avoid}.interpretation .eyebrow,.interpretation .caption{color:#435a76}.metric{margin-top:13px;break-inside:avoid}.metric-track{border:1px solid #c1cede;background:#eff3f8;print-color-adjust:exact;-webkit-print-color-adjust:exact}.metric-fill{background:#235fd5;print-color-adjust:exact;-webkit-print-color-adjust:exact}.interview{break-inside:avoid;margin-top:18px}.methodology{margin-top:18px}.methodology summary{list-style:none}.method-body{font-size:9pt}.method-body table{font-size:8pt}.method-body tr{break-inside:avoid}.note{background:white;border:1px solid #bac8db}.report-end{font-size:9pt;break-inside:avoid}h2,h3{break-after:avoid}.report-head,.report-identity{break-inside:avoid}}
     main.shell{padding-top:48px;padding-bottom:56px}
+    .review-heading{max-width:780px;margin-bottom:30px}
+    .review-heading h1{font-size:clamp(2rem,4vw,2.8rem);margin-bottom:16px}
+    .review-layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;align-items:start}
+    .review-index{position:sticky;top:24px;padding:22px}
+    .review-section-link{display:block;color:var(--ink);text-decoration:none;padding:10px 0;font-size:.85rem;font-weight:700}
+    .review-section-link:hover{color:var(--blue)}
+    .review-map{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
+    .review-map a{display:grid;place-items:center;min-width:39px;min-height:39px;padding:6px;border:1px solid var(--line);border-radius:8px;text-decoration:none;font-size:.77rem;font-weight:650}
+    .review-map a:hover{background:var(--blue-light);border-color:var(--blue)}
+    #review a:focus-visible{outline:3px solid #80aaff;outline-offset:3px}
+    .review-group{margin-bottom:36px;scroll-margin-top:24px}
+    .review-group>h2{font-size:1.35rem;margin-bottom:8px}
+    .review-question{margin-top:20px;scroll-margin-top:24px}
+    .review-question:target{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-light)}
+    .review-options{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+    .review-options li{display:flex;gap:10px;padding:13px 15px;border:1px solid var(--line);border-radius:10px;font-size:.88rem}
+    .review-options .option-key{flex:0 0 19px;margin:0}
+    @media(max-width:700px){.review-layout{grid-template-columns:1fr;gap:24px}.review-index{position:static}.review-heading{margin-bottom:24px}}
+    @media print{.review-layout{display:block}.review-index{display:none}.review-question{break-inside:avoid}.review-options li{padding:7px 10px}.review-heading h1{font-size:22pt}}
     @media(max-width:700px){main.shell{padding-top:26px}}
     @media print{main.shell{padding:20px 0 0}}
   </style>
@@ -22,7 +41,11 @@
   <header class="topbar"><div class="shell"><div class="brand"><span class="brand-mark" aria-hidden="true">n</span><div><div class="brand-name">nexo<span style="color:var(--blue)">.</span></div><div class="brand-sub">Talento &amp; competencias</div></div></div><span class="session-tag"><span class="dot" aria-hidden="true"></span>Evaluación individual</span></div></header>
   <main class="shell">
     <noscript><div class="note">Activa JavaScript en tu navegador para completar esta evaluación.</div></noscript>
-    <section id="welcome" aria-labelledby="welcome-title">
+    <section id="review" aria-labelledby="review-title">
+      <div class="review-heading"><p class="eyebrow">Modo revisión · Acceso completo</p><h1 id="review-title">Banco de preguntas</h1><p class="muted">Las 24 preguntas y sus opciones están disponibles desde el inicio. Recorre el contenido o salta directamente a cualquier pregunta; no necesitas ingresar datos ni responder.</p></div>
+      <div class="review-layout"><nav class="card review-index" aria-label="Índice de todas las preguntas"><p class="side-title">EXPLORA EL CONTENIDO</p><div id="review-sections"></div><div id="review-map" class="review-map"></div></nav><div id="review-content"></div></div>
+    </section>
+    <section id="welcome" hidden aria-labelledby="welcome-title">
       <div class="intro-grid">
         <div class="intro-copy">
           <div class="pill">DESARROLLO &amp; SELECCIÓN DE TALENTO</div>
@@ -73,6 +96,8 @@
   <footer class="footer"><div class="shell"><span>NEXO · Evaluación de competencias corporativas</span><span>Instrumento exploratorio · Versión 1.0</span></div></footer>
   <script>
     'use strict';
+    // Cambiar a false restaura el flujo de evaluación individual cuando se implemente.
+    const REVIEW_MODE = true;
     const sections = [
       { id:'A', title:'Razonamiento', full:'Razonamiento y análisis crítico', start:0, count:6 },
       { id:'B', title:'Estilo de trabajo', full:'Personalidad y estilo de trabajo', start:6, count:15 },
@@ -148,8 +173,37 @@
     let lastScores = null;
     let methodWasOpen = false;
 
+    function renderReview(){
+      $('review-sections').replaceChildren();$('review-map').replaceChildren();$('review-content').replaceChildren();
+      sections.forEach((section,index)=>{
+        const sectionId=`review-section-${section.id}`;
+        const link=document.createElement('a');link.href=`#${sectionId}`;link.className='review-section-link';link.textContent=`${section.id}. ${section.title} · ${section.count}`;$('review-sections').append(link);
+        const group=document.createElement('section');group.id=sectionId;group.className='review-group';group.setAttribute('aria-labelledby',`${sectionId}-title`);
+        const heading=document.createElement('h2');heading.id=`${sectionId}-title`;heading.tabIndex=-1;heading.textContent=`${section.id}. ${section.full}`;
+        const description=document.createElement('p');description.className='muted small';description.textContent=index===1?'15 afirmaciones · Escala de acuerdo de 1 a 5':`${section.count} preguntas · Cuatro opciones por pregunta`;
+        group.append(heading,description);
+        questions.filter(q=>q.section===index).forEach(q=>{
+          const questionId=`review-${q.id}`;
+          const shortcut=document.createElement('a');shortcut.href=`#${questionId}`;shortcut.textContent=q.id;shortcut.setAttribute('aria-label',`Ver pregunta ${q.id}: ${q.title}`);$('review-map').append(shortcut);
+          const article=document.createElement('article');article.id=questionId;article.className='card review-question';article.tabIndex=-1;article.setAttribute('aria-labelledby',`${questionId}-title`);
+          const meta=document.createElement('p');meta.className='eyebrow';meta.textContent=`Pregunta ${q.id} · ${q.type==='personality'?'Escala Likert':q.type==='cognitive'?'Razonamiento':'Juicio situacional'}`;
+          const title=document.createElement('h3');title.id=`${questionId}-title`;title.className='question-title';title.textContent=q.title;
+          const context=document.createElement('p');context.className='context';context.textContent=q.context;
+          const options=document.createElement('ol');options.className='review-options';options.setAttribute('aria-label',`Opciones de la pregunta ${q.id}`);
+          q.options.forEach((option,i)=>{
+            const item=document.createElement('li');const key=document.createElement('span');key.className='option-key';key.textContent=q.type==='personality'?String(i+1):String.fromCharCode(65+i)+'.';
+            const text=document.createElement('span');text.textContent=typeof option==='string'?option:option.text;item.append(key,text);options.append(item);
+          });
+          article.append(meta,title,context,options);group.append(article);
+        });
+        $('review-content').append(group);
+      });
+      document.querySelector('.session-tag').lastChild.textContent='Modo revisión';
+      document.title='Nexo · Revisión del banco de preguntas';
+      showScreen('review');
+    }
     function showScreen(id){
-      ['welcome','assessment','report'].forEach(screen=>{$(screen).hidden=screen!==id;});
+      ['review','welcome','assessment','report'].forEach(screen=>{$(screen).hidden=screen!==id;});
       window.scrollTo({top:0,behavior:'instant'});
     }
     function showError(id,text){$(id).textContent=text;$(id).hidden=false;}
@@ -264,6 +318,7 @@
       showScreen('welcome');$('candidate-name').focus();
     });
     window.addEventListener('beforeunload',event=>{if(started&&!completed){event.preventDefault();event.returnValue='';}});
+    if(REVIEW_MODE){renderReview();}else{showScreen('welcome');}
   </script>
 </body>
 </html>

@@ -104,6 +104,8 @@ class InterviewController extends Controller
             'stage' => $stage,
             'turns' => $stage->turns->map(fn ($turn) => $turn->toChat())->values(),
             'next' => $next && $next->status !== 'locked' ? $next : null,
+            // Durante una prueba con tiempo la sesión no se cierra por inactividad antes de su hora límite.
+            'idleHoldUntil' => $stage->isTest() && $stage->status === 'in_progress' ? $stage->deadline()?->toIso8601String() : null,
         ]);
     }
 

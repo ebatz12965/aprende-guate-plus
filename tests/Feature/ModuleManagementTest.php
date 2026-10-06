@@ -63,7 +63,8 @@ class ModuleManagementTest extends TestCase
         $this->travel(61)->minutes();
         app(Modules::class)->flush();
         $this->assertSame(Modules::ACTIVE, app(Modules::class)->state('retos')['status']);
-        $this->actingAs($student)->get(route('adaptive.challenges'))->assertOk();
+        // Pasó más de media hora: se simula actividad reciente para que no cierre la sesión por inactividad.
+        $this->actingAs($student)->withSession(['idle.last_activity' => now()->timestamp])->get(route('adaptive.challenges'))->assertOk();
     }
 
     public function test_short_maintenance_windows_and_same_day_times(): void
