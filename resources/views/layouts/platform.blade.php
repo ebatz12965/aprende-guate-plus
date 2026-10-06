@@ -102,18 +102,18 @@
                                 class="platform-nav-link">Calendario</a><a href="{{ route('mentor.sessions') }}" class="platform-nav-link">Sesiones y chats</a><a
                                 href="{{ route('mentor.settings') }}" class="platform-nav-link">Perfil de mentor</a>
                         @else
-                            <a href="{{ route('adaptive.dashboard') }}" data-tour="mi-panel" class="platform-nav-link">Mi panel</a><a
-                                href="{{ route('adaptive.path') }}" data-tour="mi-ruta" class="platform-nav-link">Mi ruta</a>
+                            <a href="{{ route('adaptive.dashboard') }}" data-tour="mi-panel" class="platform-nav-link">Mi panel</a>@module('rutas')<a
+                                href="{{ route('adaptive.path') }}" data-tour="mi-ruta" class="platform-nav-link">Mi ruta<x-module-badge module="rutas" /></a>@endmodule
                             <div class="relative" @mouseenter="supportOpen = true" @mouseleave="supportOpen = false"><button data-tour="apoyo"
                                     @click="supportOpen = !supportOpen" class="platform-nav-link inline-flex items-center gap-1" aria-haspopup="true"
                                     :aria-expanded="supportOpen">Aprendizaje y apoyo <span class="text-xs">⌄</span></button>
                                 <div x-cloak x-show="supportOpen" x-transition @click.outside="supportOpen = false"
-                                    class="absolute left-0 top-full z-40 mt-1 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl"><a
-                                        href="{{ route('adaptive.tutor') }}" class="platform-menu-link">Tutor IA</a><a href="{{ route('adaptive.mentorship') }}"
-                                        class="platform-menu-link">Mentoría profesional</a><a href="{{ route('mentor-application.create') }}"
-                                        class="platform-menu-link">Solicitar ser mentor</a></div>
-                            </div><a href="{{ route('adaptive.challenges') }}" data-tour="retos" class="platform-nav-link">Retos</a><a
-                                href="{{ route('adaptive.career') }}" data-tour="perfil" class="platform-nav-link">Perfil</a>
+                                    class="absolute left-0 top-full z-40 mt-1 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl">@module('tutor')<a
+                                        href="{{ route('adaptive.tutor') }}" class="platform-menu-link">Tutor IA<x-module-badge module="tutor" /></a>@endmodule @module('mentoria')<a href="{{ route('adaptive.mentorship') }}"
+                                        class="platform-menu-link">Mentoría profesional<x-module-badge module="mentoria" /></a>@endmodule @module('postulacion_mentor')<a href="{{ route('mentor-application.create') }}"
+                                        class="platform-menu-link">Solicitar ser mentor<x-module-badge module="postulacion_mentor" /></a>@endmodule</div>
+                            </div>@module('retos')<a href="{{ route('adaptive.challenges') }}" data-tour="retos" class="platform-nav-link">Retos<x-module-badge module="retos" /></a>@endmodule @module('perfil')<a
+                                href="{{ route('adaptive.career') }}" data-tour="perfil" class="platform-nav-link">Perfil<x-module-badge module="perfil" /></a>@endmodule
                         @endif
                     @else
                     @endauth
@@ -138,7 +138,7 @@
                                             <span class="float-right rounded-full bg-blue-100 px-2 text-xs text-blue-700">{{ $unreadNotifications }}</span>
                                         @endif
                                 </a>
-                                <a href="{{ route('adaptive.career') }}" class="platform-menu-link">Perfil profesional</a><a href="{{ route('profile.edit') }}"
+                                @module('perfil')<a href="{{ route('adaptive.career') }}" class="platform-menu-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule<a href="{{ route('profile.edit') }}"
                                     class="platform-menu-link">Configuración</a><button @click="toggleTheme()"
                                     class="platform-menu-link flex w-full items-center justify-between text-left"><span
                                         x-text="darkMode ? 'Usar tema claro' : 'Usar tema oscuro'"></span><span aria-hidden="true"
@@ -171,16 +171,17 @@
                         <a href="{{ route('mentor.dashboard') }}" class="platform-mobile-link">Panel mentor · Solicitudes</a><a
                             href="{{ route('mentor.calendar') }}" class="platform-mobile-link">Calendario</a><a href="{{ route('mentor.sessions') }}"
                             class="platform-mobile-link">Sesiones y chats</a><a href="{{ route('mentor.settings') }}" class="platform-mobile-link">Perfil de
-                        mentor</a>@else<a href="{{ route('adaptive.dashboard') }}" class="platform-mobile-link">Mi panel</a><a
-                            href="{{ route('adaptive.path') }}" class="platform-mobile-link">Mi ruta</a><button @click="supportOpen = !supportOpen"
+                        mentor</a>@else<a href="{{ route('adaptive.dashboard') }}" class="platform-mobile-link">Mi panel</a>@module('rutas')<a
+                            href="{{ route('adaptive.path') }}" class="platform-mobile-link">Mi ruta<x-module-badge module="rutas" /></a>@endmodule<button @click="supportOpen = !supportOpen"
                             class="platform-mobile-link flex w-full items-center justify-between text-left">Aprendizaje y apoyo <span>⌄</span></button>
-                        <div x-show="supportOpen" x-cloak class="ml-3 border-l border-blue-100 pl-3"><a href="{{ route('adaptive.tutor') }}"
-                                class="platform-mobile-link">Tutor IA</a><a href="{{ route('adaptive.mentorship') }}" class="platform-mobile-link">Mentoría
-                                profesional</a></div><a href="{{ route('adaptive.challenges') }}" class="platform-mobile-link">Retos</a><a
-                            href="{{ route('adaptive.career') }}" class="platform-mobile-link">Perfil profesional</a>
+                        <div x-show="supportOpen" x-cloak class="ml-3 border-l border-blue-100 pl-3">@module('tutor')<a href="{{ route('adaptive.tutor') }}"
+                                class="platform-mobile-link">Tutor IA<x-module-badge module="tutor" /></a>@endmodule @module('mentoria')<a href="{{ route('adaptive.mentorship') }}" class="platform-mobile-link">Mentoría
+                                profesional<x-module-badge module="mentoria" /></a>@endmodule</div>@module('retos')<a href="{{ route('adaptive.challenges') }}" class="platform-mobile-link">Retos<x-module-badge module="retos" /></a>@endmodule @module('perfil')<a
+                            href="{{ route('adaptive.career') }}" class="platform-mobile-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule
                     @endif
                     <a href="{{ route('workspace.switch') }}" class="hidden">
                     </a>
+                    @if ($canMentorSpace || $canAdminSpace)
                     <div class="my-2 border-t border-slate-200 dark:border-slate-700"></div>
                     <p class="px-3 pt-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Cambiar espacio</p>
                     @if ($activeSpace !== 'learning')
@@ -195,6 +196,7 @@
                                 <form method="POST" action="{{ route('workspace.switch') }}">@csrf<input type="hidden" name="space"
                                         value="admin"><button class="platform-mobile-link w-full text-left">Administración</button></form>
                             @endif
+                    @endif
                             <a href="{{ route('profile.edit') }}" class="platform-mobile-link">
                                 Configuración</a><button @click="toggleTheme()"
                                 class="platform-mobile-link flex w-full items-center justify-between text-left"><span
@@ -232,16 +234,16 @@
                     class="{{ $studentNavClass('mentor.settings') }}">Perfil de mentor</a>
             @else
                 <p class="student-sidebar-label">MI APRENDIZAJE</p><a href="{{ route('adaptive.dashboard') }}"
-                    class="{{ $studentNavClass('adaptive.dashboard') }}">Mi panel</a><a href="{{ route('adaptive.path') }}"
-                    class="{{ $studentNavClass('adaptive.path*') }}">Mi ruta</a><button @click="sideSupportOpen = !sideSupportOpen"
+                    class="{{ $studentNavClass('adaptive.dashboard') }}">Mi panel</a>@module('rutas')<a href="{{ route('adaptive.path') }}"
+                    class="{{ $studentNavClass('adaptive.path*') }}">Mi ruta<x-module-badge module="rutas" /></a>@endmodule<button @click="sideSupportOpen = !sideSupportOpen"
                     class="student-sidebar-link flex w-full items-center justify-between text-left">Aprendizaje y apoyo <span class="text-xs"
                         :class="sideSupportOpen ? 'rotate-180' : ''">⌄</span></button>
-                <div x-show="sideSupportOpen" x-cloak class="ml-3 border-l border-blue-100 pl-2"><a href="{{ route('adaptive.tutor') }}"
-                        class="{{ $studentNavClass('adaptive.tutor') }}">Tutor IA</a><a href="{{ route('adaptive.mentorship') }}"
-                        class="{{ $studentNavClass('adaptive.mentorship') }}">Mentoría profesional</a><a href="{{ route('mentor-application.create') }}"
-                        class="{{ $studentNavClass('mentor-application.*') }}">Solicitar ser mentor</a></div><a
-                    href="{{ route('adaptive.challenges') }}" class="{{ $studentNavClass('adaptive.challenges') }}">Retos</a><a
-                    href="{{ route('adaptive.career') }}" class="{{ $studentNavClass('adaptive.career') }}">Perfil profesional</a>
+                <div x-show="sideSupportOpen" x-cloak class="ml-3 border-l border-blue-100 pl-2">@module('tutor')<a href="{{ route('adaptive.tutor') }}"
+                        class="{{ $studentNavClass('adaptive.tutor') }}">Tutor IA<x-module-badge module="tutor" /></a>@endmodule @module('mentoria')<a href="{{ route('adaptive.mentorship') }}"
+                        class="{{ $studentNavClass('adaptive.mentorship') }}">Mentoría profesional<x-module-badge module="mentoria" /></a>@endmodule @module('postulacion_mentor')<a href="{{ route('mentor-application.create') }}"
+                        class="{{ $studentNavClass('mentor-application.*') }}">Solicitar ser mentor<x-module-badge module="postulacion_mentor" /></a>@endmodule</div>@module('retos')<a
+                    href="{{ route('adaptive.challenges') }}" class="{{ $studentNavClass('adaptive.challenges') }}">Retos<x-module-badge module="retos" /></a>@endmodule @module('perfil')<a
+                    href="{{ route('adaptive.career') }}" class="{{ $studentNavClass('adaptive.career') }}">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule
             @endif
         @else
             <p class="student-sidebar-label">APRENDE GUATE</p><a href="{{ route('login') }}" class="{{ $studentNavClass('login') }}">Iniciar sesión</a>
@@ -294,7 +296,7 @@
                                 <span class="float-right rounded-full bg-blue-100 px-2 text-xs text-blue-700">{{ $unreadNotifications }}</span>
                             @endif
                     </a>
-                    <a href="{{ route('adaptive.career') }}" class="platform-menu-link">Perfil profesional</a><a href="{{ route('profile.edit') }}"
+                    @module('perfil')<a href="{{ route('adaptive.career') }}" class="platform-menu-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule<a href="{{ route('profile.edit') }}"
                         class="platform-menu-link">Configuración</a><button @click="toggleTheme()"
                         class="platform-menu-link flex w-full items-center justify-between text-left"><span
                             x-text="darkMode ? 'Usar tema claro' : 'Usar tema oscuro'"></span><span aria-hidden="true"
@@ -313,7 +315,11 @@
                     href="{{ route('profile.edit', ['section' => 'security']) }}" class="font-extrabold text-orange-800 underline">Configurar
                     ahora</a>
             </div>
-            @endif @if (session('success'))
+            @endif
+            @isset($moduleNotice)
+                <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">{{ $moduleNotice }}</div>
+            @endisset
+            @if (session('success'))
                 <div class="mb-6 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800">
                     <span class="h-2 w-2 rounded-full bg-blue-500"></span>{{ session('success') }}</div>
             @endif
@@ -496,7 +502,7 @@
     }
 </script>
 @endif
-@if (auth()->check() && !auth()->user()->hasRole('Admin'))
+@if (auth()->check() && !auth()->user()->hasRole('Admin') && app(\App\Support\Modules::class)->access(auth()->user(), 'mentoria') === 'allowed')
 <div x-data="mentorChatWidget()" x-init="init()" class="fixed bottom-4 right-4 z-[60] w-[min(22rem,calc(100vw-2rem))]" aria-live="polite">
     <section x-cloak x-show="open" x-transition.origin.bottom.right class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <header class="flex items-center justify-between gap-3 bg-blue-700 px-4 py-3 text-white">

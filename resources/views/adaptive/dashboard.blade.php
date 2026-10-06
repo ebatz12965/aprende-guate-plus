@@ -167,8 +167,12 @@
                 @endswitch
             </section>
         @endif
-        @include('adaptive.partials.dashboard-mentorship')
-        @include('adaptive.partials.dashboard-tutor')
+        @if (app(\App\Support\Modules::class)->access(auth()->user(), 'mentoria') === 'allowed')
+            @include('adaptive.partials.dashboard-mentorship')
+        @endif
+        @if (app(\App\Support\Modules::class)->access(auth()->user(), 'tutor') === 'allowed')
+            @include('adaptive.partials.dashboard-tutor')
+        @endif
     </div>
 
     @if ($stage === 'active' && ! $pendingAttempt)

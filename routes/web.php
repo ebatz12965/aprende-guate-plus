@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\Admin\MentorApplicationController as AdminMentorApplicationController;
+use App\Http\Controllers\Admin\ModuleController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Learning\CareerProfileController;
@@ -155,6 +156,10 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'admin'])-
     });
 
     Route::get('bitacora', [AuditLogController::class, 'index'])->middleware('can:bitacora.ver')->name('audit.index');
+    Route::middleware('can:modulos.gestionar')->group(function () {
+        Route::get('modulos', [ModuleController::class, 'index'])->name('modules.index');
+        Route::put('modulos/{module}', [ModuleController::class, 'update'])->name('modules.update');
+    });
 
     Route::middleware('can:ia.configuracion')->group(function () {
         Route::get('configuracion-ia', [AiSettingsController::class, 'edit'])->name('ai-settings.edit');
