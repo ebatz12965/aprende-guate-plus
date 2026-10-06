@@ -32,6 +32,7 @@
         @endif
 
         @if (in_array($stage->status, ['available', 'skipped'], true))
+            @if (! empty($stage->content['error']))<p class="mt-5 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">{{ $stage->content['error'] }}</p>@endif
             <p class="mt-5 leading-7 text-slate-700">{{ $stage->purpose }}</p>
             @if ($stage->focus)
                 <h2 class="mt-6 font-extrabold text-slate-900">{{ $stage->type === 'practical_test' ? 'Qué entregarás' : 'Qué se evalúa' }}</h2>
@@ -52,18 +53,16 @@
 
             <div class="mt-8 border-t border-slate-100 pt-6">
                 @if ($stage->status === 'skipped')
-                    <p class="text-slate-600">Saltaste esta etapa por ahora.</p>
-                @elseif ($stage->isPlayable())
+                    <p class="text-slate-600">Saltaste esta etapa en una versión anterior del simulador.</p>
+                @else
                     <form method="POST" action="{{ route('adaptive.interviews.stage.start', [$simulation, $stage]) }}" class="flex flex-wrap items-center gap-3">
                         @csrf
-                        <button class="inline-flex min-h-11 items-center rounded-xl bg-blue-700 px-5 text-sm font-bold text-white hover:bg-blue-800">Comenzar la entrevista</button>
-                        <p class="text-sm text-slate-500">Responderás por escrito, una pregunta a la vez.</p>
-                    </form>
-                @else
-                    <p class="text-slate-700">Esta prueba llega en la próxima actualización del simulador. Mientras tanto, puedes saltarla y seguir con el proceso.</p>
-                    <form method="POST" action="{{ route('adaptive.interviews.stage.skip', [$simulation, $stage]) }}" class="mt-4">
-                        @csrf
-                        <button class="inline-flex min-h-11 items-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-bold text-slate-700 hover:border-blue-400">Saltar por ahora</button>
+                        <button class="inline-flex min-h-11 items-center rounded-xl bg-blue-700 px-5 text-sm font-bold text-white hover:bg-blue-800">{{ $stage->isTest() ? 'Comenzar la prueba' : 'Comenzar la entrevista' }}</button>
+                        <p class="text-sm text-slate-500">{{ match ($stage->type) {
+                            'reasoning_test' => '12 preguntas de opción múltiple. El tiempo empieza a contar cuando se abre la prueba.',
+                            'practical_test' => 'Recibirás el caso y sus materiales. Respondes por escrito o adjuntas un archivo.',
+                            default => 'Responderás por escrito, una pregunta a la vez.',
+                        } }}</p>
                     </form>
                 @endif
             </div>
@@ -73,16 +72,20 @@
     @if ($stage->status === 'preparing')
         <section class="mt-6 rounded-3xl border border-blue-100 bg-white p-8 text-center shadow-sm" x-data="{{ $poll("s.status !== 'preparing'") }}" x-init="setTimeout(() => check(), 3000)">
             <span class="ag-soft-pulse ag-brand-loading mx-auto grid h-14 w-14 place-items-center rounded-2xl p-2"><img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt=""></span>
-            <h2 class="mt-6 text-2xl font-black text-slate-900">{{ $stage->interviewer['name'] ?? 'La entrevista' }} está preparando sus preguntas</h2>
+            <h2 class="mt-6 text-2xl font-black text-slate-900">{{ $stage->isTest() ? 'Estamos preparando tu prueba' : ($stage->interviewer['name'] ?? 'La entrevista').' está preparando sus preguntas' }}</h2>
             <p class="ag-soft-pulse mt-4 text-sm font-semibold text-blue-700" aria-live="polite">Esta página se actualiza sola.</p>
         </section>
     @endif
 
-    @if ($stage->status === 'in_progress')
+    @if ($stage->status === 'in_progress' && $stage->type === 'reasoning_test')
+        @include('interviews.partials.reasoning-test')
+    @elseif ($stage->status === 'in_progress' && $stage->type === 'practical_test')
+        @include('interviews.partials.practical-test')
+    @elseif ($stage->status === 'in_progress')
         @php $content = $stage->content; @endphp
         <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
             x-data="interviewChat({ turns: @js($turns), url: @js(route('adaptive.interviews.stage.answer', [$simulation, $stage])), question: {{ ($content['current'] ?? 0) + 1 }}, total: {{ count($content['questions'] ?? []) }}, draftKey: 'ag-interview-{{ $stage->id }}', max: {{ \App\Services\Interviews\InterviewConversation::MAX_ANSWER }}, initials: @js($initials) })"
-            x-init="init()">
+           >
             <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
                 <p class="text-sm font-bold text-slate-700" aria-live="polite">Pregunta <span x-text="question"></span> de <span x-text="total"></span></p>
                 <div class="h-2 w-32 rounded-full bg-slate-100" aria-hidden="true"><div class="h-full rounded-full bg-blue-600 transition-all" :style="`width: ${Math.min(100, (question - 1) / total * 100)}%`"></div></div>
@@ -118,7 +121,9 @@
         </section>
     @endif
 
-    @if (in_array($stage->status, ['submitted', 'evaluated'], true))
+    @if ($stage->status === 'evaluated' && $stage->type === 'reasoning_test')
+        @include('interviews.partials.reasoning-result')
+    @elseif (in_array($stage->status, ['submitted', 'evaluated'], true))
         @php
             $evaluation = $stage->evaluation;
             $feedback = collect($evaluation['per_question'] ?? [])->keyBy('question');
@@ -126,13 +131,13 @@
         @endphp
         @if ($stage->status === 'submitted' && $evaluationStatus !== 'failed')
             <section class="mt-6 rounded-3xl border border-blue-100 bg-white p-8 text-center shadow-sm" x-data="{{ $poll("s.status === 'evaluated' || s.evaluation === 'failed'") }}" x-init="setTimeout(() => check(), 3000)">
-                <h2 class="text-2xl font-black text-slate-900">Estamos evaluando tu entrevista</h2>
+                <h2 class="text-2xl font-black text-slate-900">Estamos evaluando tu {{ $stage->isTest() ? 'prueba' : 'entrevista' }}</h2>
                 <p class="mt-2 text-slate-600">Ya puedes seguir con la siguiente etapa; la retroalimentación aparecerá aquí.</p>
                 <p class="ag-soft-pulse mt-4 text-sm font-semibold text-blue-700" aria-live="polite">Esta página se actualiza sola.</p>
             </section>
         @elseif ($stage->status === 'submitted')
             <section class="mt-6 rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
-                <h2 class="text-xl font-extrabold text-slate-900">Tu entrevista quedó guardada</h2>
+                <h2 class="text-xl font-extrabold text-slate-900">Tu {{ $stage->isTest() ? 'entrega' : 'entrevista' }} quedó guardada</h2>
                 <p class="mt-2 text-slate-600">El evaluador no estaba disponible. Puedes pedir la retroalimentación otra vez.</p>
                 <form method="POST" action="{{ route('adaptive.interviews.stage.retry', [$simulation, $stage]) }}" class="mt-4">@csrf<button class="inline-flex min-h-11 items-center rounded-xl bg-blue-700 px-5 text-sm font-bold text-white hover:bg-blue-800">Pedir la retroalimentación</button></form>
             </section>
@@ -150,7 +155,7 @@
                 <dl class="mt-6 space-y-4">
                     @foreach ($evaluation['criteria'] as $criterion)
                         <div>
-                            <div class="flex items-baseline justify-between gap-3 text-sm"><dt class="font-bold text-slate-900">{{ $criterion['name'] }}</dt><dd class="shrink-0 font-bold tabular-nums text-slate-700">{{ $criterion['score'] }}</dd></div>
+                            <div class="flex items-baseline justify-between gap-3 text-sm"><dt class="font-bold text-slate-900">{{ $criterion['name'] }}@isset($criterion['weight'])<span class="font-normal text-slate-500"> · {{ $criterion['weight'] }} %</span>@endisset</dt><dd class="shrink-0 font-bold tabular-nums text-slate-700">{{ $criterion['score'] }}</dd></div>
                             <div class="mt-1.5 h-2 rounded-full bg-slate-100" role="progressbar" aria-label="{{ $criterion['name'] }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $criterion['score'] }}"><div class="h-full rounded-full bg-blue-600" style="width: {{ $criterion['score'] }}%"></div></div>
                             <p class="mt-1.5 text-sm leading-6 text-slate-600">{{ $criterion['feedback'] }}</p>
                         </div>
@@ -163,6 +168,9 @@
             </section>
         @endif
 
+        @if ($stage->type === 'practical_test')
+            @include('interviews.partials.practical-submission')
+        @else
         <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="transcripcion">
             <h2 id="transcripcion" class="text-lg font-extrabold text-slate-900">Tu entrevista</h2>
             <ol class="mt-4 space-y-4">
@@ -185,6 +193,8 @@
                 @endforeach
             </ol>
         </section>
+
+        @endif
 
         @if ($next)
             <div class="mt-6 flex justify-end">

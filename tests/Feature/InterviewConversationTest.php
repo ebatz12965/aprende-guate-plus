@@ -167,23 +167,22 @@ class InterviewConversationTest extends TestCase
         $this->actingAs($this->user)->post(route('adaptive.interviews.stage.retry', [$this->simulation, $hr]))->assertRedirect();
     }
 
-    public function test_pending_tests_can_be_skipped_and_the_process_completes(): void
+    public function test_the_process_completes_with_the_average_of_its_stages(): void
     {
-        $this->stage(1)->update(['status' => 'evaluated', 'score' => 80]);
-        $this->stage(2)->update(['status' => 'available']);
+        foreach ([1 => 80, 2 => 70, 3 => 60] as $position => $score) {
+            $stage = $this->stage($position);
+            $stage->update(['status' => 'evaluated', 'score' => $score]);
+            $stage->finishAndUnlockNext();
+        }
+        $this->assertSame('available', $this->stage(4)->status);
+        $this->assertNotSame('completed', $this->simulation->fresh()->status);
 
-        $this->actingAs($this->user)->post(route('adaptive.interviews.stage.skip', [$this->simulation, $this->stage(2)]))->assertRedirect();
-        $this->assertSame('skipped', $this->stage(2)->status);
-        $this->assertSame('available', $this->stage(3)->status);
-        // Una entrevista no se puede saltar.
-        $this->actingAs($this->user)->post(route('adaptive.interviews.stage.skip', [$this->simulation, $this->stage(3)]))->assertStatus(422);
-
-        $this->stage(3)->update(['status' => 'evaluated', 'score' => 60]);
-        $this->stage(3)->finishAndUnlockNext();
-        $this->actingAs($this->user)->post(route('adaptive.interviews.stage.skip', [$this->simulation, $this->stage(4)]));
+        $last = $this->stage(4);
+        $last->update(['status' => 'evaluated', 'score' => 90]);
+        $last->finishAndUnlockNext();
         $this->simulation->refresh();
         $this->assertSame('completed', $this->simulation->status);
-        $this->assertSame(70, $this->simulation->overall_score);
+        $this->assertSame(75, $this->simulation->overall_score);
     }
 
     public function test_nobody_else_can_take_or_see_the_interview(): void

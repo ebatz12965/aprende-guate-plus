@@ -106,7 +106,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/entrevistas/{simulation}/etapas/{stage}/estado', [InterviewController::class, 'stageStatus'])->name('adaptive.interviews.stage.status');
     Route::post('/entrevistas/{simulation}/etapas/{stage}/respuestas', [InterviewController::class, 'answer'])->middleware('throttle:ai-tutor')->name('adaptive.interviews.stage.answer');
     Route::post('/entrevistas/{simulation}/etapas/{stage}/reintentar-evaluacion', [InterviewController::class, 'retryEvaluation'])->middleware('throttle:ai-generation')->name('adaptive.interviews.stage.retry');
-    Route::post('/entrevistas/{simulation}/etapas/{stage}/saltar', [InterviewController::class, 'skip'])->name('adaptive.interviews.stage.skip');
+    Route::post('/entrevistas/{simulation}/etapas/{stage}/entregar', [InterviewController::class, 'submitTest'])->middleware('throttle:ai-generation')->name('adaptive.interviews.stage.submit');
+    Route::get('/entrevistas/{simulation}/etapas/{stage}/archivo', [InterviewController::class, 'attachment'])->name('adaptive.interviews.stage.attachment');
     Route::delete('/entrevistas/{simulation}', [InterviewController::class, 'destroy'])->name('adaptive.interviews.destroy');
     Route::get('/mentorias', [StudentMentorshipController::class, 'index'])->name('adaptive.mentorship');
     Route::post('/mentorias/{mentor}/solicitar', [StudentMentorshipController::class, 'store'])->middleware('throttle:10,1')->name('adaptive.mentorship.request');

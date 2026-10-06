@@ -47,8 +47,7 @@ class InterviewStage extends Model
         'skipped' => 'Saltada',
     ];
 
-    /** Etapas que ya se pueden hacer; las demás se pueden saltar mientras llegan (fase 4). */
-    public const PLAYABLE = ['hr_interview', 'technical_interview'];
+    public const TESTS = ['reasoning_test', 'practical_test'];
 
     /** Estados en los que la etapa ya terminó y la siguiente se abre. */
     public const FINISHED = ['submitted', 'evaluated', 'skipped'];
@@ -75,9 +74,15 @@ class InterviewStage extends Model
         return $this->hasMany(InterviewTurn::class)->orderBy('position');
     }
 
-    public function isPlayable(): bool
+    public function isTest(): bool
     {
-        return in_array($this->type, self::PLAYABLE, true);
+        return in_array($this->type, self::TESTS, true);
+    }
+
+    /** Hora límite de una prueba con tiempo; null mientras no se abre. */
+    public function deadline(): ?Carbon
+    {
+        return $this->started_at?->copy()->addMinutes($this->duration_minutes);
     }
 
     public function isFinished(): bool

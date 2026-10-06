@@ -6,15 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Jobs\EvaluateInterviewStageJob;
 use App\Jobs\GenerateInterviewPlanJob;
 use App\Jobs\GenerateInterviewQuestionsJob;
+use App\Jobs\GenerateInterviewTestJob;
 use App\Models\DiagnosticAttempt;
 use App\Models\InterviewSimulation;
 use App\Models\InterviewStage;
 use App\Services\Interviews\InterviewConversation;
+use App\Services\Interviews\PracticalTestService;
+use App\Services\Interviews\ReasoningTestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Simulador de postulación: crear un proceso de selección ficticio y recorrer sus etapas. */
 class InterviewController extends Controller
@@ -87,6 +93,10 @@ class InterviewController extends Controller
         if ($stage->status === 'locked') {
             return redirect()->route('adaptive.interviews.show', $simulation)->with('info', 'Completa primero la etapa anterior.');
         }
+        // El reloj de una prueba empieza cuando la persona la abre por primera vez, no cuando se generó.
+        if ($stage->isTest() && $stage->status === 'in_progress' && $stage->started_at === null) {
+            $stage->update(['started_at' => now()]);
+        }
         $next = $simulation->stages()->where('position', $stage->position + 1)->first();
 
         return view('interviews.stage', [
@@ -97,13 +107,15 @@ class InterviewController extends Controller
         ]);
     }
 
-    /** Comienza una entrevista: se prepara su banco de preguntas en la cola. */
+    /** Comienza una etapa: en la cola se prepara el banco de preguntas o la prueba. */
     public function start(InterviewSimulation $simulation, InterviewStage $stage): RedirectResponse
     {
         $this->ensureStage($simulation, $stage);
-        abort_unless($stage->isPlayable() && $stage->status === 'available', 422);
-        $stage->update(['status' => 'preparing']);
-        GenerateInterviewQuestionsJob::dispatch($stage->id)->onQueue('ai');
+        abort_unless($stage->status === 'available', 422);
+        $stage->update(['status' => 'preparing', 'content' => null]);
+        $stage->isTest()
+            ? GenerateInterviewTestJob::dispatch($stage->id)->onQueue('ai')
+            : GenerateInterviewQuestionsJob::dispatch($stage->id)->onQueue('ai');
 
         return redirect()->route('adaptive.interviews.stage', [$simulation, $stage]);
     }
@@ -141,18 +153,51 @@ class InterviewController extends Controller
         return redirect()->route('adaptive.interviews.stage', [$simulation, $stage]);
     }
 
-    /** Las pruebas que todavía no existen se pueden saltar para seguir con el proceso. */
-    public function skip(InterviewSimulation $simulation, InterviewStage $stage): RedirectResponse
+    /** Entrega de una prueba. La de razonamiento se califica al instante; la práctica pasa al evaluador. */
+    public function submitTest(Request $request, InterviewSimulation $simulation, InterviewStage $stage, ReasoningTestService $reasoning): RedirectResponse
     {
         $this->ensureStage($simulation, $stage);
-        abort_unless(! $stage->isPlayable() && $stage->status === 'available', 422);
-        $stage->update(['status' => 'skipped']);
-        $stage->finishAndUnlockNext();
-        $next = $simulation->stages()->where('position', $stage->position + 1)->first();
+        abort_unless($stage->isTest() && $stage->status === 'in_progress', 409, 'Esta prueba ya fue entregada.');
+        // Margen de dos minutos por la conexión; después se acepta igual, pero queda marcada como fuera de tiempo.
+        $late = $stage->deadline() !== null && now()->greaterThan($stage->deadline()->copy()->addMinutes(2));
 
-        return $next
-            ? redirect()->route('adaptive.interviews.stage', [$simulation, $next])
-            : redirect()->route('adaptive.interviews.show', $simulation);
+        if ($stage->type === 'reasoning_test') {
+            $data = $request->validate(['choices' => ['array'], 'choices.*' => ['nullable', 'integer', 'min:0', 'max:3']]);
+            $grade = $reasoning->grade($stage->content['items'] ?? [], $data['choices'] ?? []);
+            DB::transaction(function () use ($stage, $data, $grade, $late) {
+                $stage->update(['answers' => ['choices' => $data['choices'] ?? [], 'late' => $late], 'status' => 'evaluated', 'score' => $grade['score'], 'evaluation' => $grade, 'submitted_at' => now(), 'evaluated_at' => now()]);
+                $stage->finishAndUnlockNext();
+            });
+
+            return redirect()->route('adaptive.interviews.stage', [$simulation, $stage])->with('success', 'Prueba entregada.');
+        }
+
+        $data = $request->validate([
+            'answer' => ['nullable', 'string', 'max:'.PracticalTestService::MAX_ANSWER, 'required_without:attachment'],
+            'attachment' => ['nullable', 'file', 'max:10240', 'mimes:pdf,txt,csv,xlsx,docx,pptx'],
+        ], ['answer.required_without' => 'Escribe tu solución o adjunta un archivo.']);
+        $answers = ['text' => $data['answer'] ?? '', 'late' => $late];
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $answers['file'] = ['path' => $file->store('interview-evidence/'.$request->user()->id, 'local'), 'name' => $file->getClientOriginalName(), 'mime' => $file->getMimeType(), 'size' => $file->getSize()];
+        }
+        DB::transaction(function () use ($stage, $answers) {
+            $stage->update(['answers' => $answers, 'status' => 'submitted', 'submitted_at' => now(), 'content' => ['evaluation_status' => 'queued'] + ($stage->content ?? [])]);
+            $stage->finishAndUnlockNext();
+        });
+        EvaluateInterviewStageJob::dispatch($stage->id)->onQueue('ai');
+
+        return redirect()->route('adaptive.interviews.stage', [$simulation, $stage]);
+    }
+
+    /** Archivo entregado en la prueba práctica; solo para quien lo subió. */
+    public function attachment(InterviewSimulation $simulation, InterviewStage $stage): StreamedResponse
+    {
+        $this->ensureStage($simulation, $stage);
+        $file = $stage->answers['file'] ?? null;
+        abort_unless($file && Storage::disk('local')->exists($file['path']), 404);
+
+        return Storage::disk('local')->download($file['path'], $file['name']);
     }
 
     private function ensureStage(InterviewSimulation $simulation, InterviewStage $stage): void
@@ -164,6 +209,12 @@ class InterviewController extends Controller
     public function destroy(InterviewSimulation $simulation): RedirectResponse
     {
         $this->authorize('delete', $simulation);
+        // Los archivos entregados en la prueba práctica también se borran del disco.
+        foreach ($simulation->stages()->get() as $stage) {
+            if (isset($stage->answers['file']['path'])) {
+                Storage::disk('local')->delete($stage->answers['file']['path']);
+            }
+        }
         $simulation->delete();
 
         return redirect()->route('adaptive.interviews')->with('success', 'La simulación y tus respuestas fueron eliminadas.');
