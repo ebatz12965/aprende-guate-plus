@@ -312,10 +312,13 @@ Suaves y seguros: invitan a avanzar sin gritar.
 - **Administración:** menú lateral con etiquetas de sección en Label y accesos directos para cambiar al espacio del estudiante.
 
 ### Banda de bienvenida
-La firma visual del espacio del estudiante: un bloque Cielo de Atitlán de 24px de radio y relleno de 32 × 40 px que saluda por su nombre a la persona, con el saludo en Display blanco, una línea de contexto y una única llamada a la acción On dark. Aparece una sola vez, al inicio del panel.
+La firma visual del espacio del estudiante: un bloque Cielo de Atitlán de 24px de radio y relleno de 32 × 40 px que cambia según la etapa de la persona (empezar, generando, falló, en curso, completada). Su título es siempre el siguiente paso, con una línea de contexto y una única llamada a la acción On dark. En modo oscuro usa #0F172A con un borde interior para no fundirse con el fondo. Aparece una sola vez, al inicio del panel.
 
-### Recorrido guiado
-Ventana emergente blanca de 16px de radio con sombra marcada que presenta la plataforma por pasos, con el título del paso y debajo "Paso 1 de 8", con acciones Omitir, Atrás y Siguiente. Señala el elemento que explica y atenúa el resto de la pantalla.
+### Lección en diapositivas
+Las lecciones se recorren una diapositiva a la vez dentro de un panel Fondo con borde de 16px de radio: barra de avance Azul Lago arriba, "Anterior" y "Siguiente" abajo (también con las flechas del teclado) y el avance guardado en el navegador. Orden: portada con objetivos, menú "Elige por dónde empezar" (tarjetas A, B, C que se marcan con ✓; se continúa al explorarlas todas), conceptos que se voltean, ejemplo resuelto que revela un paso a la vez, errores que se tocan para ver la solución, decisión "¿Qué harías?" con consecuencias, una pregunta por diapositiva (no se avanza sin responder) y cierre con puntaje y "Ir a la práctica". Siempre hay "Ver como texto" con la lección completa en una página. Las transiciones solo animan la entrada (opacidad y 4px de desplazamiento, 200 ms).
+
+### Ayudas en contexto
+No hay recorrido guiado: cada pantalla explica lo que hace falta en el lugar donde se necesita. En el panel, un desplegable "¿Cómo avanza mi ruta?" bajo el avance; en Mi ruta, una nota en Azul Lago Bruma que explica fases, mini-quiz y retos. Una línea, sin ventanas emergentes ni foco que atenúe la pantalla.
 
 ## Do's and Don'ts
 

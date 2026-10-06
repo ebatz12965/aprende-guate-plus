@@ -20,8 +20,8 @@ class GenerateTopicContentJob implements ShouldQueue
 
     public function __construct(public int $topicId, public string $type)
     {
-        // Clasificación del tema + lección o práctica.
-        $this->timeout = AiGateway::jobTimeout(2);
+        // Clasificación del tema + borrador, reintento y revisión de la lección o práctica.
+        $this->timeout = AiGateway::jobTimeout(1) + AiGateway::callTimeout((int) config('ai.content_timeout')) * 3;
     }
 
     public function handle(TopicContentService $content): void
@@ -52,9 +52,10 @@ class GenerateTopicContentJob implements ShouldQueue
             if ($this->type === 'lesson') {
                 $lesson = $content->generateLesson($path, $topic);
                 $generatedLesson = $topic->lesson()->firstOrCreate([], [
-                    'content' => ['summary' => $lesson['summary'], 'key_concepts' => $lesson['key_concepts'], 'steps' => $lesson['steps']],
+                    'content' => ['version' => 2] + collect($lesson)->except('youtube_queries')->all(),
                     'resources' => ['youtube_queries' => $lesson['youtube_queries']],
-                    'quiz' => $lesson['quiz'],
+                    // Compatibilidad: la primera pregunta de comprobación también queda como quiz del tema.
+                    'quiz' => $lesson['check_questions'][0] ?? null,
                     'generated_at' => now(),
                 ]);
                 AiContentVersion::firstOrCreate(['content_type' => 'lesson', 'content_id' => $generatedLesson->id, 'version' => 1], ['payload' => ['content' => $generatedLesson->content, 'resources' => $generatedLesson->resources, 'quiz' => $generatedLesson->quiz]]);
@@ -63,9 +64,19 @@ class GenerateTopicContentJob implements ShouldQueue
                 $generatedPractice = $topic->practice()->firstOrCreate([], [
                     'type' => $topic->practice_type,
                     'title' => $practice['title'],
-                    'instructions' => ['context' => $practice['context'], 'steps' => $practice['instructions']],
-                    'artifact' => ['label' => $practice['artifact_label'], 'language' => $practice['artifact_language'], 'content' => $practice['artifact_content']],
-                    'expected_solution' => $practice['expected_solution'],
+                    'instructions' => [
+                        'version' => 2,
+                        'context' => $practice['context'],
+                        'objective' => $practice['objective'],
+                        'steps' => $practice['instructions'],
+                        'deliverable' => $practice['deliverable'],
+                        'success_criteria' => $practice['success_criteria'],
+                        'hints' => $practice['hints'],
+                        'self_check' => $practice['self_check'],
+                    ],
+                    'artifact' => $practice['material'],
+                    // La solución de referencia solo la usa el evaluador; nunca se muestra.
+                    'expected_solution' => ['criteria' => implode(' ', $practice['success_criteria']), 'hint' => $practice['hints'][0] ?? null, 'reference' => $practice['reference_solution'], 'results' => $practice['computed_results'] ?? []],
                     'generated_at' => now(),
                 ]);
                 AiContentVersion::firstOrCreate(['content_type' => 'practice', 'content_id' => $generatedPractice->id, 'version' => 1], ['payload' => ['instructions' => $generatedPractice->instructions, 'artifact' => $generatedPractice->artifact, 'expected_solution' => $generatedPractice->expected_solution]]);

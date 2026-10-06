@@ -225,7 +225,7 @@
             class="flex items-center gap-3 text-blue-950"><img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt=""
                 class="ag-brand-icon"><span><span class="block text-base font-extrabold tracking-tight">Aprende Guate</span><span
                     class="block text-xs font-medium text-blue-700">Mi aprendizaje</span></span></a><button @click="sidebarOpen = false"
-            class="rounded-lg p-2 text-slate-500 hover:bg-blue-50 lg:hidden" aria-label="Cerrar menú">×</button></div>
+            class="rounded-lg p-2.5 text-slate-600 hover:bg-blue-50 lg:hidden" aria-label="Cerrar menú">×</button></div>
     <nav class="flex-1 overflow-y-auto px-4 py-6">
         @auth
             @if ($activeSpace === 'admin' && auth()->user()->hasRole('Admin'))
@@ -327,6 +327,9 @@
             @endif @if (session('success'))
                 <div class="mb-6 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800">
                     <span class="h-2 w-2 rounded-full bg-blue-500"></span>{{ session('success') }}</div>
+            @endif
+            @if (session('info'))
+                <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-900 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-50" role="status">{{ session('info') }}</div>
             @endif
             @if (session('error'))
                 <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">{{ session('error') }}

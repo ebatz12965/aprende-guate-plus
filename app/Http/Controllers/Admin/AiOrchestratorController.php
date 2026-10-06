@@ -3,18 +3,21 @@
 namespace App\Http\Controllers\Admin;
 
 use App\AI\AgentCatalog;
+use App\AI\ProviderRegistry;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateAiAgentRequest;
 use App\Models\AiRequest;
 use App\Models\AiTokenUsage;
+use App\Services\AiPulseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class AiOrchestratorController extends Controller
 {
-    public function index(AgentCatalog $catalog): View
+    public function index(AgentCatalog $catalog, ProviderRegistry $registry): View
     {
-        $configured = (bool) (config('ai.providers.openai.key') ?: config('ai.key'));
+        $providers = $registry->all();
+        $models = collect($providers)->map(fn (array $provider, string $slug) => $provider['configured'] ? $registry->models($slug) : [])->all();
         $metrics = AiRequest::query()
             ->selectRaw('agent_slug, COUNT(*) as requests, SUM(total_tokens) as tokens, SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed', ['completed'])
             ->groupBy('agent_slug')
@@ -26,8 +29,10 @@ class AiOrchestratorController extends Controller
             'name' => $agent['name'],
             'description' => $agent['description'],
             'provider' => $agent['provider'],
+            'default_provider' => config("ai.agents.{$slug}.provider") ?? config('ai.default_provider'),
             'model' => $agent['model'],
             'default_model' => config("ai.agents.{$slug}.model") ?? config('ai.model'),
+            'task' => config("ai.agents.{$slug}.task", 'writing'),
             'max_tokens_override' => $agent['max_tokens_override'],
             'enabled' => (bool) $agent['enabled'],
             'planned' => (bool) $agent['planned'],
@@ -37,15 +42,26 @@ class AiOrchestratorController extends Controller
             'completed' => (int) ($metrics[$slug]->completed ?? 0),
         ])->values();
 
-        return view('admin.ai-orchestrator.index', ['providerConfigured' => $configured, 'providerEnabled' => (bool) config('ai.providers.openai.enabled'), 'agents' => $agents, 'totalRequests' => AiRequest::count(), 'totalTokens' => (int) AiTokenUsage::sum('total_tokens'), 'failedRequests' => AiRequest::where('status', 'failed')->count(), 'recentRequests' => AiRequest::with('user:id,name,email')->latest()->limit(12)->get()]);
+        $pulse = app(AiPulseService::class);
+
+        return view('admin.ai-orchestrator.index', ['providers' => $providers, 'models' => $models, 'priceModels' => $pulse->knownModels(), 'prices' => $pulse->prices(), 'agents' => $agents, 'totalRequests' => AiRequest::count(), 'totalTokens' => (int) AiTokenUsage::sum('total_tokens'), 'failedRequests' => AiRequest::where('status', 'failed')->count(), 'recentRequests' => AiRequest::with('user:id,name,email')->latest()->limit(12)->get()]);
     }
 
     public function update(UpdateAiAgentRequest $request, AgentCatalog $catalog, string $agent): RedirectResponse
     {
         $data = $request->validated();
-        $catalog->saveOverride($agent, $request->boolean('enabled'), $data['model'] ?? null, $data['max_tokens'] ?? null, $request->user()->id);
+        $catalog->saveOverride($agent, $request->boolean('enabled'), $data['model'] ?? null, $data['max_tokens'] ?? null, $request->user()->id, $data['provider'] ?? null);
 
         return redirect()->route('admin.ai-orchestrator.index')->with('success', 'Configuración del agente «'.config("ai.agents.{$agent}.name").'» actualizada.');
+    }
+
+    /** Vuelve a consultar los modelos de cada proveedor configurado. */
+    public function refreshModels(ProviderRegistry $registry): RedirectResponse
+    {
+        $counts = collect($registry->all())->filter(fn (array $provider) => $provider['configured'])
+            ->map(fn (array $provider, string $slug) => $provider['name'].': '.count($registry->models($slug, true)))->implode(' · ');
+
+        return redirect()->route('admin.ai-orchestrator.index')->with('success', $counts ? 'Modelos actualizados. '.$counts.'.' : 'No hay proveedores con API key configurada.');
     }
 
     public function reset(AgentCatalog $catalog, string $agent): RedirectResponse

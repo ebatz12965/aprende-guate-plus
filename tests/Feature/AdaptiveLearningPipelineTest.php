@@ -39,7 +39,7 @@ class AdaptiveLearningPipelineTest extends TestCase
         $path = LearningPath::where('user_id', $user->id)->firstOrFail();
         $this->assertGreaterThanOrEqual(5, $path->items()->count());
         $this->assertDatabaseHas('learning_path_topics', ['learning_path_item_id' => $path->items()->first()->id]);
-        $this->assertSame('pipeline-v1', $path->generation_version);
+        $this->assertSame('pipeline-v2', $path->generation_version);
     }
 
     public function test_office_topic_generates_and_downloads_a_csv_practice(): void
@@ -54,7 +54,7 @@ class AdaptiveLearningPipelineTest extends TestCase
         $this->assertDatabaseHas('learning_path_practices', ['learning_path_topic_id' => $topic->id, 'type' => 'excel_dataset']);
         $this->actingAs($user)->get(route('adaptive.topic.practice.download', $topic))->assertOk()
             ->assertHeader('content-type', 'text/csv; charset=UTF-8')
-            ->assertSee('id_registro');
+            ->assertSee('ID_Venta');
     }
 
     public function test_programming_topic_generates_a_code_artifact_and_records_submission(): void

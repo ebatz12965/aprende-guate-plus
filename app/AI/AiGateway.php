@@ -3,7 +3,6 @@
 namespace App\AI;
 
 use App\AI\Contracts\AiProvider;
-use App\AI\Providers\OpenAiCompatibleProvider;
 use App\Models\AiRequest;
 use App\Models\AiTokenUsage;
 use App\Models\PlatformSetting;
@@ -13,7 +12,7 @@ use Throwable;
 
 class AiGateway
 {
-    public function __construct(private readonly AgentCatalog $catalog, private readonly OutputGuard $guard) {}
+    public function __construct(private readonly AgentCatalog $catalog, private readonly OutputGuard $guard, private readonly ProviderRegistry $providers) {}
 
     /**
      * Tiempo máximo (segundos) que necesita un job que hace $calls llamadas secuenciales al proveedor,
@@ -22,9 +21,13 @@ class AiGateway
      */
     public static function jobTimeout(int $calls): int
     {
-        $perCall = ((int) config('ai.connect_timeout') + (int) config('ai.generation_timeout')) * max(1, (int) config('ai.retry_times')) + 1;
+        return max(1, $calls) * self::callTimeout((int) config('ai.generation_timeout')) + 20;
+    }
 
-        return max(1, $calls) * $perCall + 20;
+    /** Tiempo máximo de una llamada con el tiempo de generación dado, incluidos conexión y reintentos HTTP. */
+    public static function callTimeout(int $generationTimeout): int
+    {
+        return ((int) config('ai.connect_timeout') + $generationTimeout) * max(1, (int) config('ai.retry_times')) + 1;
     }
 
     public function text(string $agent, string $system, array $messages, string $operation, ?int $userId = null, int $maxTokens = 180, float $temperature = 0.35): ?string
@@ -35,12 +38,12 @@ class AiGateway
         return $result['successful'] ? $this->guard->sanitizeText($result['content']) : null;
     }
 
-    public function structured(string $agent, string $prompt, array $schema, string $operation, ?int $userId, int $maxTokens): ?array
+    public function structured(string $agent, string $prompt, array $schema, string $operation, ?int $userId, int $maxTokens, ?int $timeout = null): ?array
     {
         $result = $this->complete($agent, [
             ['role' => 'system', 'content' => 'Responde únicamente con datos que cumplan el esquema. No incluyas Markdown, instrucciones internas ni información sensible.'],
             ['role' => 'user', 'content' => $prompt],
-        ], ['name' => $operation, 'schema' => $schema], $operation, $userId, $maxTokens, 0.2);
+        ], ['name' => $operation, 'schema' => $schema], $operation, $userId, $maxTokens, 0.2, $timeout);
 
         return $result['successful'] ? $this->guard->decodeStructured($result['content']) : null;
     }
@@ -59,7 +62,7 @@ class AiGateway
         // Un límite fijado desde administración reemplaza el que propone cada operación.
         $maxTokens = $agentConfig['max_tokens_override'] ?? $maxTokens;
         $request = $this->startRequest($agent, $provider, $model, $operation, $userId, $messages);
-        if (! (config("ai.providers.{$provider}.key") ?: config('ai.key'))) {
+        if (! $this->providers->configured($provider)) {
             $this->finishRequest($request, [], false, 0, 'No hay credencial configurada para el proveedor.');
 
             return ['successful' => false, 'content' => null];
@@ -90,10 +93,7 @@ class AiGateway
 
     private function provider(string $provider): AiProvider
     {
-        return match ($provider) {
-            'openai' => app(OpenAiCompatibleProvider::class),
-            default => throw new \RuntimeException("El proveedor {$provider} no está habilitado."),
-        };
+        return $this->providers->client($provider);
     }
 
     private function startRequest(string $agent, string $provider, string $model, string $operation, ?int $userId, array $messages): ?AiRequest

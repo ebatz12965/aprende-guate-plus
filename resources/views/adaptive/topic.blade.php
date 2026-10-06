@@ -3,93 +3,79 @@
     @php($module = $topic->module)
     @php($lessonPending = in_array($topic->lesson_generation_status, ['queued', 'processing'], true))
     @php($practicePending = in_array($topic->practice_generation_status, ['queued', 'processing'], true))
-    <div class="mx-auto max-w-5xl" @if ($lessonPending || $practicePending) x-data x-init="setTimeout(() => window.location.reload(), 4000)" @endif>
-        <a href="{{ route('adaptive.path.item.show', $module) }}" class="text-sm font-bold text-blue-700">← Volver a {{ $module->title }}</a>
-        <header class="topic-header mt-5 rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 sm:p-8">
-            <h1 class="text-3xl font-black text-slate-900">{{ $topic->title }}</h1><p class="mt-1 text-sm font-semibold text-blue-600 topic-type-label">Tema {{ $topic->position }} · {{ str_replace('_', ' ', $topic->practice_type) }}</p>
+    <div class="mx-auto max-w-5xl pb-20" @if ($lessonPending || $practicePending) x-data x-init="setTimeout(() => window.location.reload(), 4000)" @endif>
+        <a href="{{ route('adaptive.path.item.show', $module) }}" class="inline-flex min-h-11 items-center text-sm font-bold text-blue-700">← Volver a {{ $module->title }}</a>
+        <header class="topic-header mt-3 rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 sm:p-8">
+            <h1 class="text-balance text-3xl font-black text-slate-900">{{ $topic->title }}</h1>
+            <p class="topic-type-label mt-1 text-sm font-semibold text-blue-600">Tema {{ $topic->position }} de la fase {{ $module->position }} · {{ $module->title }}</p>
             <p class="mt-3 max-w-3xl leading-7 text-slate-700">{{ $topic->learning_objective }}</p>
         </header>
+
         @if ($lessonPending || $practicePending)
-            <div class="ag-animate-in mt-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-medium text-blue-900"><span
-                    class="ag-spinner mr-2 inline-block align-[-.15em] text-blue-700"></span>Estamos preparando tu contenido. Esta página se actualizará
-                automáticamente; puedes continuar navegando sin perder el proceso.</div>
+            <div class="ag-animate-in mt-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-medium text-blue-900 dark:text-blue-50" role="status"><span
+                    class="ag-spinner mr-2 inline-block align-[-.15em] text-blue-700"></span>Estamos preparando tu contenido y revisando su calidad; puede tardar uno o dos minutos.
+                Esta página se actualizará sola y puedes seguir navegando.</div>
         @endif
-        <div class="mt-7 grid gap-6 lg:grid-cols-2">
-            <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <p class="text-xs font-extrabold uppercase tracking-wide text-blue-600">1. Lección</p>
-                @if ($topic->lesson)
-                    <h2 class="mt-2 text-xl font-black">Contenido para este tema</h2>
-                    <p class="mt-3 leading-7 text-slate-700">{{ data_get($topic->lesson->content, 'summary') }}</p>
-                    <h3 class="mt-5 font-black">Conceptos clave</h3>
-                    <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-                        @foreach (data_get($topic->lesson->content, 'key_concepts', []) as $concept)
-                            <li>{{ $concept }}</li>
-                        @endforeach
-                    </ul>
-                    <h3 class="mt-5 font-black">Proceso sugerido</h3>
-                    <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-700">
-                        @foreach (data_get($topic->lesson->content, 'steps', []) as $step)
-                            <li>{{ $step }}</li>
-                        @endforeach
-                    </ol>
-                    <div class="mt-5 flex flex-wrap gap-2">
-                        @foreach (data_get($topic->lesson->resources, 'youtube_queries', []) as $query)
-                            <a target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query={{ urlencode($query) }}"
-                                class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">Ver recurso en YouTube ↗</a>
-                        @endforeach
-                    </div>
-                @elseif($lessonPending)
-                    <p class="ag-soft-pulse mt-3 flex items-center gap-2 text-sm leading-6 text-blue-700"><span class="ag-spinner"></span>Generando explicación,
-                    conceptos y recursos…</p>@else<p class="mt-3 text-sm leading-6 text-slate-600">Genera una explicación breve, conceptos, pasos y recursos
-                        exclusivamente para este tema.</p>
-                    @if ($topic->lesson_generation_status === 'failed')
-                        <p class="mt-3 text-sm font-semibold text-rose-700">{{ $topic->generation_error }}</p>
-                    @endif
-                    <form method="POST" action="{{ route('adaptive.topic.lesson', $topic) }}" data-generation-form
-                        data-generation-status-url="{{ route('adaptive.topic.generation.status', $topic) }}" data-generation-title="{{ $topic->title }}"
-                        class="mt-5">
-                        @csrf<button
-                            class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white">{{ $topic->lesson_generation_status === 'failed' ? 'Reintentar lección' : 'Generar lección' }}</button>
-                    </form>
+
+        @php($lastAttempt = $attempts->first())
+        @php($practiceBadge = $lastAttempt ? ($lastAttempt->status === 'evaluated' ? $lastAttempt->score.'/100' : (in_array($lastAttempt->status, ['queued', 'evaluating'], true) ? 'en revisión' : 'enviada')) : ($practicePending ? 'preparando' : null))
+        @php($lessonBadge = $lessonPending ? 'preparando' : null)
+        {{-- Lección y práctica en pestañas: cada una tiene su propio espacio. La pestaña activa vive en la dirección (#leccion o #practica). --}}
+        <div x-data="{ tab: location.hash === '#practica' ? 'practica' : 'leccion',
+                show(name, focus = false) { this.tab = name; history.replaceState(null, '', '#' + name); if (focus) this.$nextTick(() => this.$refs['tab-' + name].focus()); },
+                fromHash() { if (['#leccion', '#practica'].includes(location.hash)) { this.tab = location.hash.slice(1); this.$nextTick(() => this.$refs.tabs.scrollIntoView({ behavior: 'smooth', block: 'start' })); } } }"
+            @hashchange.window="fromHash()" class="mt-7">
+            <div x-ref="tabs" role="tablist" aria-label="Partes del tema" class="flex scroll-mt-24 gap-2 border-b border-slate-200"
+                @keydown.right.prevent="show(tab === 'leccion' ? 'practica' : 'leccion', true)" @keydown.left.prevent="show(tab === 'leccion' ? 'practica' : 'leccion', true)">
+                @foreach (['leccion' => ['Lección', $lessonBadge], 'practica' => ['Práctica', $practiceBadge]] as $name => [$label, $badge])
+                    <button type="button" role="tab" id="tab-{{ $name }}" x-ref="tab-{{ $name }}" aria-controls="panel-{{ $name }}" @click="show('{{ $name }}')"
+                        :aria-selected="tab === '{{ $name }}'" :tabindex="tab === '{{ $name }}' ? 0 : -1"
+                        class="-mb-px inline-flex min-h-12 items-center gap-2 border-b-2 px-4 text-base font-extrabold transition"
+                        :class="tab === '{{ $name }}' ? 'border-blue-600 text-slate-900' : 'border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900'">
+                        {{ $label }}
+                        @if ($badge)<span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold tabular-nums text-blue-700">{{ $badge }}</span>@endif
+                    </button>
+                @endforeach
+            </div>
+
+        <section id="panel-leccion" role="tabpanel" aria-labelledby="tab-leccion" x-show="tab === 'leccion'" class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <h2 class="sr-only">Lección</h2>
+            @if ($topic->lesson)
+                <div class="mt-5">@include('adaptive.partials.lesson', ['lesson' => $topic->lesson, 'practiceType' => $topic->practice_type, 'topicTitle' => $topic->title, 'topic' => $topic])</div>
+            @elseif($lessonPending)
+                <p class="ag-soft-pulse mt-3 flex items-center gap-2 text-sm leading-6 text-blue-700"><span class="ag-spinner"></span>Escribiendo la lección y revisando que todo sea correcto…</p>
+            @else
+                <p class="max-w-2xl leading-7 text-slate-600">Una explicación completa de este tema: conceptos con ejemplos, un ejemplo resuelto paso a paso, errores frecuentes y preguntas para comprobar lo que aprendiste.</p>
+                @if ($topic->lesson_generation_status === 'failed')
+                    <p class="mt-3 text-sm font-semibold text-rose-700">{{ $topic->generation_error }}</p>
                 @endif
-            </section>
-            <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <p class="text-xs font-extrabold uppercase tracking-wide text-blue-600">2. Práctica</p>
-                @if ($topic->practice)
-                    <h2 class="mt-2 text-xl font-black">{{ $topic->practice->title }}</h2>
-                    <p class="mt-3 text-sm leading-6 text-slate-700">{{ data_get($topic->practice->instructions, 'context') }}</p>
-                    <ol class="mt-4 list-decimal space-y-1 pl-5 text-sm text-slate-700">
-                        @foreach (data_get($topic->practice->instructions, 'steps', []) as $step)
-                            <li>{{ $step }}</li>
-                        @endforeach
-                    </ol>
-                    @if ($topic->practice->type === 'excel_dataset')
-                        <a href="{{ route('adaptive.topic.practice.download', $topic) }}"
-                            class="mt-5 inline-block rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white">Descargar datos CSV</a>
-                    @endif
-                    <pre class="mt-5 max-h-80 overflow-auto rounded-xl bg-slate-950 p-4 text-xs leading-6 text-slate-100">
-<code>{{ data_get($topic->practice->artifact, 'content') }}</code></pre>
-                    <p class="mt-4 text-xs text-slate-500">{{ data_get($topic->practice->artifact, 'label') }} ·
-                        {{ data_get($topic->practice->artifact, 'language') }}</p>
-                    <form method="POST" action="{{ route('adaptive.topic.practice.submit', $topic) }}" class="mt-5">@csrf
-                        <textarea required name="answer" rows="4" class="w-full rounded-xl border-slate-200"
-                            placeholder="Describe tu solución, pega tu resultado o comparte el código corregido."></textarea><button class="mt-3 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white">Registrar práctica</button>
-                    </form>@include('adaptive.partials.practice-feedback', ['attempt' => $latestAttempt ?? null])
-                @elseif($practicePending)
-                    <p class="ag-soft-pulse mt-3 flex items-center gap-2 text-sm leading-6 text-blue-700"><span class="ag-spinner"></span>Generando práctica y
-                    material de apoyo…</p>@else<p class="mt-3 text-sm leading-6 text-slate-600">Se generará un artefacto adecuado para
-                        {{ str_replace('_', ' ', $topic->practice_type) }}: datos, código o un caso profesional.</p>
-                    @if ($topic->practice_generation_status === 'failed')
-                        <p class="mt-3 text-sm font-semibold text-rose-700">{{ $topic->generation_error }}</p>
-                    @endif
-                    <form method="POST" action="{{ route('adaptive.topic.practice', $topic) }}" data-generation-form
-                        data-generation-status-url="{{ route('adaptive.topic.generation.status', $topic) }}" data-generation-title="{{ $topic->title }}"
-                        class="mt-5">
-                        @csrf<button
-                            class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white">{{ $topic->practice_generation_status === 'failed' ? 'Reintentar práctica' : 'Generar práctica' }}</button>
-                    </form>
+                <form method="POST" action="{{ route('adaptive.topic.lesson', $topic) }}" data-generation-form
+                    data-generation-status-url="{{ route('adaptive.topic.generation.status', $topic) }}" data-generation-title="{{ $topic->title }}" class="mt-5">
+                    @csrf<button class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700">{{ $topic->lesson_generation_status === 'failed' ? 'Intentar de nuevo' : 'Preparar la lección' }}</button>
+                </form>
+            @endif
+        </section>
+
+        <section id="panel-practica" role="tabpanel" aria-labelledby="tab-practica" x-show="tab === 'practica'" x-cloak class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <h2 class="sr-only">Práctica</h2>
+            @if ($topic->practice)
+                <div class="mt-5">@include('adaptive.partials.practice', ['practice' => $topic->practice, 'attempts' => $attempts])</div>
+            @elseif($practicePending)
+                <p class="ag-soft-pulse mt-3 flex items-center gap-2 text-sm leading-6 text-blue-700"><span class="ag-spinner"></span>Preparando la práctica, sus datos y sus criterios de evaluación…</p>
+            @else
+                <p class="max-w-2xl leading-7 text-slate-600">Una tarea como las de un trabajo real para aplicar el tema, con {{ match ($topic->practice_type) { 'excel_dataset' => 'datos para trabajar en Excel', 'code_bug', 'code_complete' => 'código para corregir o completar', default => 'un caso para resolver' } }}, pistas si te atascas y retroalimentación de cada intento.</p>
+                @if (! $topic->lesson)
+                    <p class="mt-2 text-sm text-slate-600">Te recomendamos <button type="button" @click="show('leccion')" class="font-bold text-blue-700 underline underline-offset-4">ver la lección</button> primero.</p>
                 @endif
-            </section>
+                @if ($topic->practice_generation_status === 'failed')
+                    <p class="mt-3 text-sm font-semibold text-rose-700">{{ $topic->generation_error }}</p>
+                @endif
+                <form method="POST" action="{{ route('adaptive.topic.practice', $topic) }}" data-generation-form
+                    data-generation-status-url="{{ route('adaptive.topic.generation.status', $topic) }}" data-generation-title="{{ $topic->title }}" class="mt-5">
+                    @csrf<button class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700">{{ $topic->practice_generation_status === 'failed' ? 'Intentar de nuevo' : 'Preparar la práctica' }}</button>
+                </form>
+            @endif
+        </section>
         </div>
     </div>
     <script>

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AiOrchestratorController;
+use App\Http\Controllers\Admin\AiPulseController;
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\AiUsageController;
 use App\Http\Controllers\Admin\AnnouncementController;
@@ -68,6 +69,7 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/espacio/cambiar', [WorkspaceController::class, 'switch'])->name('workspace.switch');
     Route::get('/mi-panel', LearningDashboardController::class)->name('adaptive.dashboard');
+    Route::get('/mi-panel/estado', [LearningDashboardController::class, 'status'])->name('adaptive.dashboard.status');
     Route::get('/diagnostico', [DiagnosticController::class, 'show'])->name('adaptive.diagnostic');
     Route::post('/diagnostico/iniciar', [DiagnosticController::class, 'start'])->middleware('throttle:ai-generation')->name('adaptive.diagnostic.start');
     Route::get('/diagnostico/{attempt}/preguntas', [DiagnosticController::class, 'questions'])->name('adaptive.diagnostic.questions');
@@ -81,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/mi-ruta/temas/{topic}/leccion', [TopicController::class, 'generateLesson'])->middleware('throttle:ai-generation')->name('adaptive.topic.lesson');
     Route::post('/mi-ruta/temas/{topic}/practica', [TopicController::class, 'generatePractice'])->middleware('throttle:ai-generation')->name('adaptive.topic.practice');
     Route::get('/mi-ruta/temas/{topic}/generacion', [TopicController::class, 'generationStatus'])->name('adaptive.topic.generation.status');
+    Route::put('/mi-ruta/temas/{topic}/leccion/progreso', [TopicController::class, 'saveLessonProgress'])->middleware('throttle:120,1')->name('adaptive.topic.lesson.progress');
     Route::post('/mi-ruta/temas/{topic}/practica/entregar', [TopicController::class, 'submitPractice'])->middleware('throttle:ai-generation')->name('adaptive.topic.practice.submit');
     Route::get('/mi-ruta/temas/{topic}/practica/descargar', [TopicController::class, 'downloadPractice'])->name('adaptive.topic.practice.download');
     Route::get('/tutor-ia', [TutorController::class, 'show'])->name('adaptive.tutor');
@@ -124,12 +127,17 @@ Route::middleware(['auth', 'verified', 'role:Instructor|Admin'])->group(function
 
 Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'role:Admin'])->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('ia', [AiPulseController::class, 'index'])->name('ai-pulse.index');
+    Route::get('ia/datos', [AiPulseController::class, 'data'])->name('ai-pulse.data');
+    Route::get('ia/detalle', [AiPulseController::class, 'detail'])->name('ai-pulse.detail');
+    Route::put('orquestador-ia/precios', [AiPulseController::class, 'savePrices'])->name('ai-orchestrator.prices');
     Route::resource('users', AdminUserController::class);
     Route::get('roles', [AdminRoleController::class, 'index'])->name('roles.index');
     Route::get('configuracion-ia', [AiSettingsController::class, 'edit'])->name('ai-settings.edit');
     Route::put('configuracion-ia', [AiSettingsController::class, 'update'])->name('ai-settings.update');
     Route::get('consumo-ia', [AiUsageController::class, 'index'])->name('ai-usage.index');
     Route::get('orquestador-ia', [AiOrchestratorController::class, 'index'])->name('ai-orchestrator.index');
+    Route::post('orquestador-ia/modelos', [AiOrchestratorController::class, 'refreshModels'])->name('ai-orchestrator.models.refresh');
     Route::put('orquestador-ia/{agent}', [AiOrchestratorController::class, 'update'])->name('ai-orchestrator.update');
     Route::delete('orquestador-ia/{agent}', [AiOrchestratorController::class, 'reset'])->name('ai-orchestrator.reset');
     Route::get('configuracion-correo', [MailSettingsController::class, 'edit'])->name('mail-settings.edit');

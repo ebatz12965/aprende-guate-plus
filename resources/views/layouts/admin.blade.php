@@ -14,7 +14,7 @@
 </head>
 <body class="admin-shell min-h-screen bg-slate-100 font-sans text-slate-800 antialiased">
 @php
-    $navItemClass = fn (string $pattern) => request()->routeIs($pattern)
+    $navItemClass = fn (string|array $pattern) => request()->routeIs($pattern)
         ? 'admin-sidebar-link admin-sidebar-link-active'
         : 'admin-sidebar-link';
     $twoFactorPending = auth()->check() && ! auth()->user()->hasTwoFactorEnabled();
@@ -42,7 +42,7 @@
 
         <nav class="flex-1 overflow-y-auto px-4 py-6">
             <p class="admin-sidebar-label">VISTA GENERAL</p>
-            <a href="{{ route('admin.dashboard') }}" class="{{ $navItemClass('admin.dashboard') }}">
+            <a href="{{ route('admin.dashboard') }}" class="{{ $navItemClass(['admin.dashboard', 'admin.ai-pulse.*']) }}">
                 <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Panel
             </a>
 
@@ -58,7 +58,7 @@
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15.5 7.5 18l1.2-5-3.8-3.2 5-.4L12 4.7l2.1 4.7 5 .4-3.8 3.2 1.2 5z"/></svg>Roles
                 </a>
 
-                <p class="admin-sidebar-label mt-7">CONFIGURACIÓN</p>
+                <p class="admin-sidebar-label mt-7">INTELIGENCIA ARTIFICIAL</p>
                 <a href="{{ route('admin.ai-settings.edit') }}" class="{{ $navItemClass('admin.ai-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 9h.01M9 15h6"/></svg>Límites de IA
                 </a>
@@ -67,7 +67,10 @@
                 </a>
                 <a href="{{ route('admin.ai-orchestrator.index') }}" class="{{ $navItemClass('admin.ai-orchestrator.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Orquestador IA
-                </a>                <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
+                </a>
+
+                <p class="admin-sidebar-label mt-7">CONFIGURACIÓN</p>
+                <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Correo saliente
                 </a>                <a href="{{ route('admin.announcements.index') }}" class="{{ $navItemClass('admin.announcements.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>Avisos

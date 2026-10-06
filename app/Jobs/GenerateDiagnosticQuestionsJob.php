@@ -5,11 +5,12 @@ namespace App\Jobs;
 use App\AI\AiGateway;
 use App\Models\DiagnosticAttempt;
 use App\Services\Learning\DiagnosticQuestionService;
+use App\Services\Learning\GoalAnalysisService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
-/** Genera las preguntas del diagnóstico fuera de la petición web; la página espera con recarga automática. */
+/** Analiza la meta y arma el cuestionario de nivel a partir de ese análisis. */
 class GenerateDiagnosticQuestionsJob implements ShouldQueue
 {
     use Queueable;
@@ -20,28 +21,34 @@ class GenerateDiagnosticQuestionsJob implements ShouldQueue
 
     public function __construct(public int $attemptId)
     {
-        $this->timeout = AiGateway::jobTimeout(1);
+        // Análisis (borrador, reintento y revisión) + cuestionario (borrador, reintento y revisión).
+        $this->timeout = AiGateway::callTimeout((int) config('ai.content_timeout')) * 6 + 20;
     }
 
-    public function handle(DiagnosticQuestionService $diagnostic): void
+    public function handle(GoalAnalysisService $analyst, DiagnosticQuestionService $diagnostic): void
     {
         $attempt = DiagnosticAttempt::find($this->attemptId);
         if (! $attempt || $attempt->status !== 'preparing') {
             return;
         }
 
+        $analysis = $analyst->analyze($attempt->primary_answer, $attempt->user_id);
+        $attempt->update(['analysis' => $analysis]);
+
         $attempt->update([
-            'questions' => $diagnostic->generate($attempt->primary_answer, $attempt->user_id),
+            'questions' => $diagnostic->generate($attempt->primary_answer, $analysis, $attempt->user_id),
             'status' => 'started',
         ]);
     }
 
-    /** Si el job falla, el estudiante continúa con las preguntas genéricas en lugar de quedarse esperando. */
+    /** Si el job falla, el estudiante continúa con un cuestionario de respaldo en lugar de quedarse esperando. */
     public function failed(?Throwable $exception): void
     {
-        DiagnosticAttempt::whereKey($this->attemptId)->where('status', 'preparing')->update([
-            'questions' => json_encode(app(DiagnosticQuestionService::class)->fallbackQuestions(), JSON_UNESCAPED_UNICODE),
-            'status' => 'started',
-        ]);
+        $attempt = DiagnosticAttempt::whereKey($this->attemptId)->where('status', 'preparing')->first();
+        if (! $attempt) {
+            return;
+        }
+        $analysis = $attempt->analysis ?: app(GoalAnalysisService::class)->fallback($attempt->primary_answer);
+        $attempt->update(['analysis' => $analysis, 'questions' => app(DiagnosticQuestionService::class)->fallbackQuestions($analysis), 'status' => 'started']);
     }
 }

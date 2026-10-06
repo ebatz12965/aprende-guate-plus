@@ -64,7 +64,7 @@ class AdminAiOrchestratorTest extends TestCase
             ->assertSessionHasNoErrors();
 
         app(AiTutorService::class)->reply([['role' => 'user', 'content' => 'Hola']], 'Estudiante');
-        Http::assertSent(fn ($request) => $request['model'] === 'gpt-4.1-mini' && $request['max_tokens'] === 450);
+        Http::assertSent(fn ($request) => $request['model'] === 'gpt-4.1-mini' && $request['max_completion_tokens'] === 450);
     }
 
     public function test_values_equal_to_config_are_not_stored_and_reset_restores_defaults(): void

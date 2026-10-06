@@ -42,7 +42,8 @@ La aplicación necesita cuatro procesos:
 |---|---|
 | Servidor web | `php artisan serve` |
 | Assets (desarrollo) | `npm run dev` |
-| Worker de colas | `php artisan queue:work database --queue=ai,default --tries=1 --timeout=120` |
+| Worker de colas | `php artisan queue:work database --queue=ai,default --tries=1` (cada trabajo define su propio límite de tiempo; reinícialo después de actualizar el código) |
+| Datos de demostración del tablero de IA | `php artisan ai:demo-data --days=21`, solo en una base cuyo nombre contenga «demo» (por ejemplo `DB_DATABASE=proyecto_demo`). Con `--live` sigue registrando solicitudes cada pocos segundos para mostrar el tablero en vivo. |
 | Scheduler (recordatorios de mentoría) | `php artisan schedule:work` |
 
 En Windows, `iniciar-local-admin.bat` abre los cuatro en ventanas separadas. **El worker es obligatorio:** la generación de rutas, lecciones, prácticas y retos, y la evaluación de evidencias, se procesan en la cola `ai`. Después de cambiar código, reinicia el worker (`php artisan queue:restart`).

@@ -6,6 +6,7 @@ use App\Models\PlatformSetting;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Telescope\TelescopeServiceProvider;
 
@@ -22,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // El producto es solo en español: las fechas ("hace 2 horas", "miércoles") no dependen de APP_LOCALE.
+        Carbon::setLocale('es');
+
         $this->registerPolicies();
 
         // Conversación (tutor y guía) y generación de contenido tienen cuotas separadas

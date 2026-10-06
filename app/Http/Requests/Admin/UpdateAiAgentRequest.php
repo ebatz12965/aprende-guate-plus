@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\AI\AgentCatalog;
+use App\AI\ProviderRegistry;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -12,9 +13,10 @@ class UpdateAiAgentRequest extends FormRequest
     {
         return [
             'enabled' => ['nullable', 'boolean'],
+            'provider' => ['nullable', 'string', 'in:'.implode(',', array_keys(config('ai.providers', [])))],
             // Identificadores de modelo del proveedor: letras, números, punto, guion, dos puntos y barra.
             'model' => ['nullable', 'string', 'max:160', 'regex:/^[A-Za-z0-9._:\/-]+$/'],
-            'max_tokens' => ['nullable', 'integer', 'min:50', 'max:8000'],
+            'max_tokens' => ['nullable', 'integer', 'min:50', 'max:32000'],
         ];
     }
 
@@ -27,6 +29,14 @@ class UpdateAiAgentRequest extends FormRequest
             }
             if ($this->boolean('enabled') && config("ai.agents.{$agent}.planned")) {
                 $validator->errors()->add('enabled', 'Este agente aún no tiene un módulo que lo use; no se puede activar.');
+            }
+            $provider = (string) $this->input('provider');
+            if ($provider !== '' && ! app(ProviderRegistry::class)->configured($provider)) {
+                $validator->errors()->add('provider', 'Ese proveedor no tiene API key. Agrega '.config("ai.providers.{$provider}.key_env").' en el archivo .env.');
+            }
+            $defaultProvider = config("ai.agents.{$agent}.provider") ?? config('ai.default_provider');
+            if ($provider !== '' && $provider !== $defaultProvider && blank($this->input('model'))) {
+                $validator->errors()->add('model', 'Elige un modelo del proveedor seleccionado.');
             }
         }];
     }

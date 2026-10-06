@@ -10,7 +10,8 @@ use App\Models\Skill;
 use App\Models\SkillCategory;
 use App\Models\StudentProfile;
 use App\Models\UserSkill;
-use App\Services\CareerProfilerService;
+use App\Services\Learning\DiagnosticScorer;
+use App\Services\Learning\GoalAnalysisService;
 use App\Services\Learning\LearningPathArchitect;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -28,11 +29,11 @@ class GenerateLearningPathJob implements ShouldQueue
 
     public function __construct(public int $attemptId)
     {
-        // Perfil profesional + arquitectura de la ruta.
-        $this->timeout = AiGateway::jobTimeout(2);
+        // Arquitectura de la ruta: borrador, reintento y revisión.
+        $this->timeout = AiGateway::callTimeout((int) config('ai.content_timeout')) * 3 + 20;
     }
 
-    public function handle(CareerProfilerService $profiler, LearningPathArchitect $architect): void
+    public function handle(LearningPathArchitect $architect, GoalAnalysisService $analyst, DiagnosticScorer $scorer): void
     {
         $attempt = DiagnosticAttempt::find($this->attemptId);
 
@@ -41,11 +42,19 @@ class GenerateLearningPathJob implements ShouldQueue
         }
 
         try {
-            $careerProfile = $profiler->profile($attempt->primary_answer, $attempt->questions ?? [], $attempt->answers ?? [], $attempt->user_id);
-            $architecture = $architect->design($attempt->primary_answer, $attempt->questions ?? [], $attempt->answers ?? [], $attempt->user_id);
-            $level = data_get($careerProfile, 'current_level', data_get($architecture, 'level', 'Inicial'));
+            $analysis = $attempt->analysis ?: $analyst->fallback($attempt->primary_answer);
+            // El nivel lo calcula el cuestionario, no la IA; los intentos anteriores a este cambio se califican aquí.
+            $assessment = data_get($attempt->skill_results, 'assessment') ?? $scorer->score($attempt->questions ?? [], $attempt->answers ?? [], $analysis);
+            $architecture = $architect->design($attempt->primary_answer, $analysis, $assessment, $attempt->user_id);
+            $level = $assessment['level'] ?? 'Inicial';
+            $careerProfile = [
+                'target_role' => $analysis['target_role'] ?? $attempt->primary_answer,
+                'current_level' => $level,
+                'skill_gaps' => collect($assessment['skills'] ?? [])->where('level', '!=', 'Avanzado')->sortBy('score')->pluck('name')->values()->all(),
+                'summary' => data_get($architecture, 'summary'),
+            ];
 
-            DB::transaction(function () use ($attempt, $architecture, $careerProfile, $level) {
+            DB::transaction(function () use ($attempt, $architecture, $careerProfile, $level, $analysis, $assessment) {
                 StudentProfile::updateOrCreate(
                     ['user_id' => $attempt->user_id],
                     ['professional_goal' => $attempt->primary_answer, 'current_level' => $level],
@@ -59,11 +68,11 @@ class GenerateLearningPathJob implements ShouldQueue
                     'goal' => $attempt->primary_answer,
                     'estimated_level' => $level,
                     'estimated_hours' => data_get($architecture, 'total_hours'),
-                    'generation_version' => 'pipeline-v1',
+                    'generation_version' => 'pipeline-v2',
                     'status' => 'active',
                 ]);
 
-                LearningPathVersion::create(['learning_path_id' => $path->id, 'diagnostic_attempt_id' => $attempt->id, 'version' => 1, 'architecture' => ['career_profile' => $careerProfile, 'roadmap' => $architecture], 'generator' => 'learning_path']);
+                LearningPathVersion::create(['learning_path_id' => $path->id, 'diagnostic_attempt_id' => $attempt->id, 'version' => 1, 'architecture' => ['analysis' => $analysis, 'assessment' => $assessment, 'career_profile' => $careerProfile, 'roadmap' => $architecture], 'generator' => 'learning_path']);
 
                 $previousItemId = null;
                 foreach (data_get($architecture, 'modules', []) as $position => $module) {
@@ -73,8 +82,9 @@ class GenerateLearningPathJob implements ShouldQueue
                         'title' => data_get($module, 'title', 'Módulo de aprendizaje'),
                         'area' => $area,
                         'description' => data_get($module, 'description'),
-                        'content' => ['generation' => 'architecture', 'skills' => []],
-                        'quiz' => ['question' => '¿Qué conviene hacer antes de avanzar?', 'options' => ['Revisar los temas del módulo', 'Saltar al siguiente módulo', 'Ignorar las dudas'], 'answer' => 0],
+                        'content' => ['generation' => 'architecture', 'skills' => array_filter([data_get($module, 'skill')])],
+                        // Cada fase trae su propia pregunta; la genérica solo queda para las rutas de respaldo.
+                        'quiz' => $this->validQuiz(data_get($module, 'quiz')) ?? ['question' => '¿Qué conviene hacer antes de avanzar?', 'options' => ['Revisar los temas del módulo', 'Saltar al siguiente módulo', 'Ignorar las dudas'], 'answer' => 0],
                         'position' => $position + 1,
                     ]);
 
@@ -98,8 +108,8 @@ class GenerateLearningPathJob implements ShouldQueue
 
                 $attempt->update([
                     'level' => $level,
-                    'score' => 0,
-                    'skill_results' => ['summary' => data_get($architecture, 'summary'), 'career_profile' => $careerProfile],
+                    'score' => $assessment['score'] ?? 0,
+                    'skill_results' => ['assessment' => $assessment, 'summary' => data_get($architecture, 'summary'), 'career_profile' => $careerProfile],
                     'status' => 'completed',
                     'generation_error' => null,
                 ]);
@@ -112,6 +122,13 @@ class GenerateLearningPathJob implements ShouldQueue
 
             throw $exception;
         }
+    }
+
+    private function validQuiz(mixed $quiz): ?array
+    {
+        return is_array($quiz) && filled($quiz['question'] ?? null) && count($quiz['options'] ?? []) === 3 && in_array($quiz['answer'] ?? null, [0, 1, 2], true)
+            ? ['question' => $quiz['question'], 'options' => array_values($quiz['options']), 'answer' => $quiz['answer']]
+            : null;
     }
 
     public function failed(?Throwable $exception): void
