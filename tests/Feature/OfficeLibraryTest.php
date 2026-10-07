@@ -148,6 +148,27 @@ class OfficeLibraryTest extends TestCase
         $this->get(route('library.narration', [$library, 9]))->assertNotFound();
     }
 
+    public function test_only_the_steps_without_audio_are_narrated_again(): void
+    {
+        Storage::fake('local');
+        config(['services.elevenlabs.key' => 'el-test']);
+        Http::fake(['*' => Http::response('ID3-audio', 200, ['Content-Type' => 'audio/mpeg'])]);
+        $walkthrough = app(WalkthroughService::class)->normalize($this->walkthrough('300'), 'excel');
+        foreach ($walkthrough['steps'] as $index => &$step) {
+            $step['audio'] = ! in_array($index, [1, 4], true);
+        }
+        unset($step);
+        $library = LibraryTopic::where('slug', 'like', 'office.excel.principiante.suma%')->firstOrFail();
+        $library->update(['walkthrough' => $walkthrough + ['narration' => ['characters' => 100]]]);
+
+        $this->artisan('library:generate', ['slugs' => ['excel.principiante.suma'], '--narration' => true])->expectsOutputToContain('pasos narrados: 2')->assertSuccessful();
+
+        Http::assertSentCount(2);
+        $this->assertTrue(collect($library->fresh()->walkthrough['steps'])->every(fn ($step) => $step['audio']));
+        Storage::disk('local')->assertExists("library/narration/{$library->id}/5.mp3");
+        Storage::disk('local')->assertMissing("library/narration/{$library->id}/1.mp3");
+    }
+
     public function test_without_an_elevenlabs_key_the_walkthrough_uses_captions(): void
     {
         config(['services.elevenlabs.key' => null]);

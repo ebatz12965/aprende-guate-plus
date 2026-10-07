@@ -59,6 +59,33 @@ class WalkthroughService
         return $walkthrough;
     }
 
+    /**
+     * Narra solo los pasos que quedaron sin audio (por ejemplo, por un corte de conexión), sin volver a pagar los demás.
+     *
+     * @return int pasos que ahora tienen audio
+     */
+    public function narrateMissing(LibraryTopic $topic): int
+    {
+        $walkthrough = $topic->walkthrough;
+        $missing = array_keys(array_filter($walkthrough['steps'] ?? [], fn (array $step) => empty($step['audio'])));
+        if (! $missing || ! $this->narrator->configured()) {
+            return 0;
+        }
+        $narration = $this->narrator->narrate("library/narration/{$topic->id}", array_column($walkthrough['steps'], 'narration'), $missing);
+        $added = 0;
+        foreach ($missing as $index) {
+            if ($narration['files'][$index] !== null) {
+                $walkthrough['steps'][$index]['audio'] = true;
+                $added++;
+            }
+        }
+        $walkthrough['narration'] = ['provider' => 'elevenlabs', 'voice' => $narration['voice'], 'model' => $narration['model'],
+            'characters' => (int) data_get($walkthrough, 'narration.characters', 0) + $narration['characters']];
+        $topic->update(['walkthrough' => $walkthrough]);
+
+        return $added;
+    }
+
     private function prompt(LibraryTopic $topic): string
     {
         $tabs = implode(', ', self::TABS[$topic->tool]);

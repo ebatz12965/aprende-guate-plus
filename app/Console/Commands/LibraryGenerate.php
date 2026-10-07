@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Jobs\GenerateLibraryWalkthroughJob;
 use App\Models\LibraryTopic;
 use App\Services\Library\LibraryContentService;
+use App\Services\Library\WalkthroughService;
 use Illuminate\Console\Command;
 use Throwable;
 
@@ -14,11 +15,12 @@ class LibraryGenerate extends Command
         {--only=all : lesson, practice, walkthrough o all}
         {--limit=0 : Máximo de temas a procesar}
         {--force-walkthrough : Vuelve a crear el extracto animado aunque ya exista}
+        {--narration : Solo narra los pasos que quedaron sin audio}
         {--sync : Ejecuta aquí mismo, sin la cola}';
 
     protected $description = 'Genera una sola vez el contenido de la biblioteca de Office (consume tokens de IA y, si hay clave, caracteres de ElevenLabs).';
 
-    public function handle(LibraryContentService $library): int
+    public function handle(LibraryContentService $library, WalkthroughService $walkthroughs): int
     {
         $query = LibraryTopic::query()->orderBy('level_order')->orderBy('tool')->orderBy('position');
         if ($slugs = $this->argument('slugs')) {
@@ -32,6 +34,11 @@ class LibraryGenerate extends Command
 
         foreach ($topics as $topic) {
             $this->line("· {$topic->slug}");
+            if ($this->option('narration')) {
+                $this->line('  pasos narrados: '.($topic->hasWalkthrough() ? $walkthroughs->narrateMissing($topic) : 0));
+
+                continue;
+            }
             try {
                 if (in_array($only, ['all', 'lesson'], true) && ! $topic->lesson) {
                     $library->lesson($topic, queueWalkthrough: false);

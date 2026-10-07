@@ -3,6 +3,7 @@
 namespace App\Services\Library;
 
 use App\Models\AiRequest;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -23,9 +24,10 @@ class ElevenLabsNarrator
      * Genera el audio de cada paso. Devuelve las rutas (o null en los pasos que fallaron) y los caracteres enviados.
      *
      * @param  list<string>  $texts
+     * @param  list<int>|null  $only  índices a narrar (los demás se omiten y quedan en null); null = todos
      * @return array{files: list<?string>, characters: int, voice: string, model: string}
      */
-    public function narrate(string $directory, array $texts): array
+    public function narrate(string $directory, array $texts, ?array $only = null): array
     {
         $voice = (string) config('services.elevenlabs.voice_id');
         $model = (string) config('services.elevenlabs.model');
@@ -37,9 +39,16 @@ class ElevenLabsNarrator
         $failures = [];
 
         foreach ($texts as $index => $text) {
+            if ($only !== null && ! in_array($index, $only, true)) {
+                $files[] = null;
+
+                continue;
+            }
             try {
                 $response = Http::withHeaders(['xi-api-key' => (string) config('services.elevenlabs.key'), 'Accept' => 'audio/mpeg'])
                     ->timeout((int) config('services.elevenlabs.timeout', 30))
+                    // Los cortes de conexión (por ejemplo, un certificado interceptado un instante) se reintentan; los errores de la API no.
+                    ->retry(3, 800, fn (Throwable $exception) => $exception instanceof ConnectionException, throw: false)
                     ->post("https://api.elevenlabs.io/v1/text-to-speech/{$voice}?output_format=mp3_44100_64", array_filter([
                         'text' => $text,
                         'model_id' => $model,
