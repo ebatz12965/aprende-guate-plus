@@ -85,30 +85,6 @@ parameters:
 			path: app/Http/Controllers/Learning/DiagnosticController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Learning/LearningPathController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$position\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Learning/LearningPathController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quiz\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Learning/LearningPathController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Learning/LearningPathController.php
-
-		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:active\(\)\.$#'
 			identifier: method.notFound
 			count: 1
@@ -247,18 +223,6 @@ parameters:
 			path: app/Jobs/EvaluatePracticeAttemptJob.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Jobs/GenerateLearningPathJob.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:topics\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Jobs/GenerateLearningPathJob.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$artifact\.$#'
 			identifier: property.notFound
 			count: 1
@@ -335,24 +299,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: app/Services/AiPulseService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$area\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/Learning/ChallengeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/Learning/ChallengeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$topics\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/Learning/ChallengeService.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>area" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'

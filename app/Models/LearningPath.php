@@ -16,6 +16,7 @@ class LearningPath extends Model
         return $this->belongsTo(User::class);
     }
 
+    /** @return HasMany<LearningPathItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(LearningPathItem::class)->orderBy('position');

@@ -5,7 +5,9 @@ namespace App\Jobs;
 use App\AI\AiGateway;
 use App\Models\AiContentVersion;
 use App\Models\LearningPathTopic;
+use App\Models\LibraryTopic;
 use App\Services\Learning\TopicContentService;
+use App\Services\Library\LibraryContentService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
@@ -24,7 +26,7 @@ class GenerateTopicContentJob implements ShouldQueue
         $this->timeout = AiGateway::jobTimeout(1) + AiGateway::callTimeout((int) config('ai.content_timeout')) * 3;
     }
 
-    public function handle(TopicContentService $content): void
+    public function handle(TopicContentService $content, LibraryContentService $library): void
     {
         $topic = LearningPathTopic::with('module.learningPath')->find($this->topicId);
 
@@ -45,14 +47,18 @@ class GenerateTopicContentJob implements ShouldQueue
 
         try {
             $path = $topic->module->learningPath;
-            $contentPlan = $content->classify($path, $topic);
-            $topic->update(['metadata' => array_merge($topic->metadata ?? [], ['content_plan' => $contentPlan])]);
-            $topic->refresh();
+            // Temas de la biblioteca compartida (Office): se toma el contenido ya generado o se genera una sola vez para todos.
+            $libraryTopic = ($id = data_get($topic->metadata, 'library_topic_id')) ? LibraryTopic::find($id) : null;
+            if (! $libraryTopic) {
+                $contentPlan = $content->classify($path, $topic);
+                $topic->update(['metadata' => array_merge($topic->metadata ?? [], ['content_plan' => $contentPlan])]);
+                $topic->refresh();
+            }
 
             if ($this->type === 'lesson') {
-                $lesson = $content->generateLesson($path, $topic);
+                $lesson = $libraryTopic ? $library->lesson($libraryTopic) : $content->generateLesson($path, $topic);
                 $generatedLesson = $topic->lesson()->firstOrCreate([], [
-                    'content' => ['version' => 2] + collect($lesson)->except('youtube_queries')->all(),
+                    'content' => ['version' => 2] + ($libraryTopic ? ['library_topic_id' => $libraryTopic->id] : []) + collect($lesson)->except('youtube_queries')->all(),
                     'resources' => ['youtube_queries' => $lesson['youtube_queries']],
                     // Compatibilidad: la primera pregunta de comprobación también queda como quiz del tema.
                     'quiz' => $lesson['check_questions'][0] ?? null,
@@ -60,7 +66,7 @@ class GenerateTopicContentJob implements ShouldQueue
                 ]);
                 AiContentVersion::firstOrCreate(['content_type' => 'lesson', 'content_id' => $generatedLesson->id, 'version' => 1], ['payload' => ['content' => $generatedLesson->content, 'resources' => $generatedLesson->resources, 'quiz' => $generatedLesson->quiz]]);
             } else {
-                $practice = $content->generatePractice($path, $topic);
+                $practice = $libraryTopic ? $library->practice($libraryTopic) : $content->generatePractice($path, $topic);
                 $generatedPractice = $topic->practice()->firstOrCreate([], [
                     'type' => $topic->practice_type,
                     'title' => $practice['title'],

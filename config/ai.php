@@ -109,7 +109,7 @@ return [
         'curriculum' => $agent('Diseñador curricular', 'Desarrolla unidades, objetivos, prerrequisitos y estimaciones.', 1000, false, true),
         'content_classifier' => $agent('Clasificador de contenido', 'Decide el formato pedagógico, el tipo de práctica y los recursos que necesita cada tema.', 550, true, false, 'fast'),
         'theory_content' => $agent('Generador de teoría', 'Produce contenido estructurado, claro y pedagógico.', 3200, true, false, 'writing'),
-        'tutorial_script' => $agent('Guionista tutorial', 'Produce guiones y escenas; no genera video directamente.', 900, false, true),
+        'tutorial_script' => $agent('Guionista tutorial', 'Diseña los extractos animados de Office (escenas paso a paso de Excel, Word, PowerPoint y Outlook) y su narración; no genera video.', 2600, true, false, 'writing'),
         'exercise_generator' => $agent('Generador de ejercicios', 'Crea prácticas profesionales, datasets y criterios de entrega.', 2400, true, false, 'writing'),
         'content_reviewer' => $agent('Revisor de contenido', 'Revisa y corrige lecciones y prácticas: exactitud, respuestas correctas, datos coherentes y claridad.', 3200, true, false, 'reasoning'),
         'file_generator' => $agent('Especificador de archivos', 'Describe archivos a generar por el backend; nunca produce binarios.', 600, false, true),

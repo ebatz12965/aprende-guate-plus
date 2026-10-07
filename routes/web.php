@@ -18,6 +18,7 @@ use App\Http\Controllers\Learning\DashboardController as LearningDashboardContro
 use App\Http\Controllers\Learning\DiagnosticController;
 use App\Http\Controllers\Learning\InterviewController;
 use App\Http\Controllers\Learning\LearningPathController;
+use App\Http\Controllers\Learning\LibraryNarrationController;
 use App\Http\Controllers\Learning\MentorshipController as StudentMentorshipController;
 use App\Http\Controllers\Learning\TopicController;
 use App\Http\Controllers\Learning\TutorController;
@@ -86,6 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/mi-ruta/fases/{item}', [LearningPathController::class, 'showItem'])->name('adaptive.path.item.show');
     Route::post('/mi-ruta/fases/{item}/quiz', [LearningPathController::class, 'submitQuiz'])->name('adaptive.path.item.quiz');
     Route::get('/mi-ruta/temas/{topic}', [TopicController::class, 'show'])->name('adaptive.topic.show');
+    Route::get('/biblioteca/{libraryTopic}/narracion/{step}', LibraryNarrationController::class)->whereNumber('step')->name('library.narration');
     Route::post('/mi-ruta/temas/{topic}/leccion', [TopicController::class, 'generateLesson'])->middleware('throttle:ai-generation')->name('adaptive.topic.lesson');
     Route::post('/mi-ruta/temas/{topic}/practica', [TopicController::class, 'generatePractice'])->middleware('throttle:ai-generation')->name('adaptive.topic.practice');
     Route::get('/mi-ruta/temas/{topic}/generacion', [TopicController::class, 'generationStatus'])->name('adaptive.topic.generation.status');
