@@ -113,7 +113,7 @@
                                         class="platform-menu-link">Mentoría profesional<x-module-badge module="mentoria" /></a>@endmodule @module('postulacion_mentor')<a href="{{ route('mentor-application.create') }}"
                                         class="platform-menu-link">Solicitar ser mentor<x-module-badge module="postulacion_mentor" /></a>@endmodule</div>
                             </div>@module('retos')<a href="{{ route('adaptive.challenges') }}" data-tour="retos" class="platform-nav-link">Retos<x-module-badge module="retos" /></a>@endmodule @module('entrevistas')<a href="{{ route('adaptive.interviews') }}" data-tour="retos" class="platform-nav-link">Empleabilidad<x-module-badge module="entrevistas" /></a>@endmodule @module('perfil')<a
-                                href="{{ route('adaptive.career') }}" data-tour="perfil" class="platform-nav-link">Perfil<x-module-badge module="perfil" /></a>@endmodule
+                                href="{{ route('adaptive.career') }}" data-tour="perfil" class="platform-nav-link">Perfil<x-module-badge module="perfil" /></a>@endmodule<a href="{{ route('adaptive.certificates') }}" class="platform-nav-link">Certificados</a>
                         @endif
                     @else
                     @endauth
@@ -138,7 +138,7 @@
                                             <span class="float-right rounded-full bg-blue-100 px-2 text-xs text-blue-700">{{ $unreadNotifications }}</span>
                                         @endif
                                 </a>
-                                @module('perfil')<a href="{{ route('adaptive.career') }}" class="platform-menu-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule<a href="{{ route('profile.edit') }}"
+                                @module('perfil')<a href="{{ route('adaptive.career') }}" class="platform-menu-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule<a href="{{ route('adaptive.certificates') }}" class="platform-menu-link">Mis certificados</a><a href="{{ route('profile.edit') }}"
                                     class="platform-menu-link">Configuración</a><button @click="toggleTheme()"
                                     class="platform-menu-link flex w-full items-center justify-between text-left"><span
                                         x-text="darkMode ? 'Usar tema claro' : 'Usar tema oscuro'"></span><span aria-hidden="true"
@@ -177,7 +177,7 @@
                         <div x-show="supportOpen" x-cloak class="ml-3 border-l border-blue-100 pl-3">@module('tutor')<a href="{{ route('adaptive.tutor') }}"
                                 class="platform-mobile-link">Tutor IA<x-module-badge module="tutor" /></a>@endmodule @module('mentoria')<a href="{{ route('adaptive.mentorship') }}" class="platform-mobile-link">Mentoría
                                 profesional<x-module-badge module="mentoria" /></a>@endmodule</div>@module('retos')<a href="{{ route('adaptive.challenges') }}" class="platform-mobile-link">Retos<x-module-badge module="retos" /></a>@endmodule @module('entrevistas')<a href="{{ route('adaptive.interviews') }}" class="platform-mobile-link">Empleabilidad<x-module-badge module="entrevistas" /></a>@endmodule @module('perfil')<a
-                            href="{{ route('adaptive.career') }}" class="platform-mobile-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule
+                            href="{{ route('adaptive.career') }}" class="platform-mobile-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule<a href="{{ route('adaptive.certificates') }}" class="platform-mobile-link">Mis certificados</a>
                     @endif
                     <a href="{{ route('workspace.switch') }}" class="hidden">
                     </a>
@@ -244,7 +244,7 @@
                         class="{{ $studentNavClass('mentor-application.*') }}">Solicitar ser mentor<x-module-badge module="postulacion_mentor" /></a>@endmodule</div>@module('retos')<a
                     href="{{ route('adaptive.challenges') }}" class="{{ $studentNavClass('adaptive.challenges') }}">Retos<x-module-badge module="retos" /></a>@endmodule @module('entrevistas')<a
                     href="{{ route('adaptive.interviews') }}" class="{{ $studentNavClass('adaptive.interviews*') }}">Empleabilidad<x-module-badge module="entrevistas" /></a>@endmodule @module('perfil')<a
-                    href="{{ route('adaptive.career') }}" class="{{ $studentNavClass('adaptive.career') }}">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule
+                    href="{{ route('adaptive.career') }}" class="{{ $studentNavClass('adaptive.career') }}">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule<a href="{{ route('adaptive.certificates') }}" class="{{ $studentNavClass('adaptive.certificates*') }}">Mis certificados</a>
             @endif
         @else
             <p class="student-sidebar-label">APRENDE GUATE</p><a href="{{ route('login') }}" class="{{ $studentNavClass('login') }}">Iniciar sesión</a>
@@ -297,7 +297,7 @@
                                 <span class="float-right rounded-full bg-blue-100 px-2 text-xs text-blue-700">{{ $unreadNotifications }}</span>
                             @endif
                     </a>
-                    @module('perfil')<a href="{{ route('adaptive.career') }}" class="platform-menu-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule<a href="{{ route('profile.edit') }}"
+                    @module('perfil')<a href="{{ route('adaptive.career') }}" class="platform-menu-link">Perfil profesional<x-module-badge module="perfil" /></a>@endmodule<a href="{{ route('adaptive.certificates') }}" class="platform-menu-link">Mis certificados</a><a href="{{ route('profile.edit') }}"
                         class="platform-menu-link">Configuración</a><button @click="toggleTheme()"
                         class="platform-menu-link flex w-full items-center justify-between text-left"><span
                             x-text="darkMode ? 'Usar tema claro' : 'Usar tema oscuro'"></span><span aria-hidden="true"

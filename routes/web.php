@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\ModuleController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Learning\CareerProfileController;
+use App\Http\Controllers\Learning\CertificateController;
 use App\Http\Controllers\Learning\ChallengeController;
 use App\Http\Controllers\Learning\DashboardController as LearningDashboardController;
 use App\Http\Controllers\Learning\DiagnosticController;
@@ -34,6 +35,8 @@ use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
+// Verificación pública de certificados: la página a la que lleva el código QR.
+Route::get('/certificados/{certificate}', [CertificateController::class, 'verify'])->middleware('throttle:30,1')->name('certificates.verify');
 Route::view('/terminos-y-condiciones', 'legal.terms')->name('legal.terms');
 Route::view('/politica-de-privacidad', 'legal.privacy')->name('legal.privacy');
 Route::view('/politica-de-cookies', 'legal.cookies')->name('legal.cookies');
@@ -84,6 +87,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/diagnostico/{attempt}/generando', [DiagnosticController::class, 'generation'])->name('adaptive.diagnostic.generation');
     Route::post('/diagnostico/{attempt}/reintentar', [DiagnosticController::class, 'retry'])->middleware('throttle:ai-generation')->name('adaptive.diagnostic.retry');
     Route::get('/mi-ruta', [LearningPathController::class, 'show'])->name('adaptive.path');
+    Route::get('/mis-certificados', [CertificateController::class, 'index'])->name('adaptive.certificates');
+    Route::get('/mis-certificados/{certificate}', [CertificateController::class, 'show'])->name('adaptive.certificates.show');
+    Route::get('/mis-certificados/{certificate}/pdf', [CertificateController::class, 'download'])->middleware('throttle:20,1')->name('adaptive.certificates.pdf');
     Route::get('/mi-ruta/fases/{item}', [LearningPathController::class, 'showItem'])->name('adaptive.path.item.show');
     Route::post('/mi-ruta/fases/{item}/quiz', [LearningPathController::class, 'submitQuiz'])->name('adaptive.path.item.quiz');
     Route::get('/mi-ruta/temas/{topic}', [TopicController::class, 'show'])->name('adaptive.topic.show');

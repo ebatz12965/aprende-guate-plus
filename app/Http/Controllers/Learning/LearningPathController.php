@@ -7,6 +7,7 @@ use App\Jobs\GenerateMilestoneChallengeJob;
 use App\Models\Challenge;
 use App\Models\LearningPath;
 use App\Models\LearningPathItemQuizAttempt;
+use App\Services\Learning\CertificateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -32,7 +33,7 @@ class LearningPathController extends Controller
         return view('adaptive.path-item', compact('path', 'item'));
     }
 
-    public function submitQuiz(Request $request, int $item): RedirectResponse
+    public function submitQuiz(Request $request, int $item, CertificateService $certificates): RedirectResponse
     {
         $user = $request->user();
         $path = $user->activeLearningPathOrFail();
@@ -57,9 +58,10 @@ class LearningPathController extends Controller
         $this->queueEligibleMilestoneChallenges($path);
 
         if (! $path->items()->where('status', '!=', 'completed')->exists()) {
-            $path->update(['status' => 'completed']);
+            $path->update(['status' => 'completed', 'completed_at' => now()]);
+            $certificate = $certificates->issue($path);
 
-            return redirect()->route('adaptive.career')->with('success', '¡Ruta completada! Se desbloqueó tu reto opcional final y ya aparece como un logro en tu perfil profesional.');
+            return redirect()->route('adaptive.certificates.show', $certificate)->with('success', '¡Ruta completada! Aquí está tu certificado. Además se desbloqueó tu reto opcional final y la ruta ya aparece como un logro en tu perfil profesional.');
         }
 
         return redirect()->route('adaptive.path')->with('success', '¡Mini-quiz aprobado! La siguiente fase ya está desbloqueada.');

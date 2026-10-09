@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Jobs\GenerateMilestoneChallengeJob;
+use App\Models\Certificate;
 use App\Models\LearningPath;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,8 +63,9 @@ class LearningPhaseContentTest extends TestCase
         ]);
         $this->assertDatabaseHas('learning_path_items', ['id' => $item->id, 'status' => 'pending']);
 
+        // Al completar la ruta se emite el certificado y se muestra.
         $this->actingAs($user)->post(route('adaptive.path.item.quiz', $item), ['answer' => '0'])
-            ->assertRedirect(route('adaptive.career'));
+            ->assertRedirect(route('adaptive.certificates.show', Certificate::sole()));
 
         $this->assertDatabaseHas('learning_path_item_quiz_attempts', [
             'learning_path_item_id' => $item->id,
