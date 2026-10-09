@@ -36,10 +36,11 @@ class GenerateInterviewQuestionsJob implements ShouldQueue
         }
 
         $mode = $stage->content['mode'] ?? 'chat';
+        $credit = (bool) ($stage->content['voice_credit'] ?? false);
         $bank = $questions->bank($stage->simulation, $stage);
-        DB::transaction(function () use ($stage, $bank, $mode, $conversation) {
+        DB::transaction(function () use ($stage, $bank, $mode, $credit, $conversation) {
             $stage->turns()->delete();
-            $stage->update(['content' => $bank + ['mode' => $mode]]);
+            $stage->update(['content' => $bank + ['mode' => $mode, 'voice_credit' => $credit]]);
             $this->open($stage, $mode, $conversation);
             if ($stage->simulation->status === 'ready') {
                 $stage->simulation->update(['status' => 'in_progress']);
@@ -55,8 +56,9 @@ class GenerateInterviewQuestionsJob implements ShouldQueue
             return;
         }
         $mode = $stage->content['mode'] ?? 'chat';
+        $credit = (bool) ($stage->content['voice_credit'] ?? false);
         $stage->turns()->delete();
-        $stage->update(['content' => app(InterviewQuestionService::class)->fallback($stage->simulation, $stage) + ['source' => 'plantilla', 'mode' => $mode]]);
+        $stage->update(['content' => app(InterviewQuestionService::class)->fallback($stage->simulation, $stage) + ['source' => 'plantilla', 'mode' => $mode, 'voice_credit' => $credit]]);
         $this->open($stage, $mode, app(InterviewConversation::class));
     }
 

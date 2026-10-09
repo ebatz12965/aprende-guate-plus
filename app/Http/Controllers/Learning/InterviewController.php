@@ -114,6 +114,7 @@ class InterviewController extends Controller
             },
             'voiceUnavailable' => $stage->isInterview() && $stage->status === 'available' ? $voice->unavailableReason($request->user(), $stage) : null,
             'voiceMaxMinutes' => (int) ceil(config('ai.voice.max_seconds') / 60),
+            'voiceCredits' => $stage->isInterview() && $stage->status === 'available' ? $voice->credits($request->user()) : null,
         ]);
     }
 
@@ -126,7 +127,9 @@ class InterviewController extends Controller
         if ($mode === 'voice' && ($reason = $voice->unavailableReason($request->user(), $stage))) {
             return back()->with('error', $reason);
         }
-        $stage->update(['status' => 'preparing', 'content' => $stage->isTest() ? null : ['mode' => $mode]]);
+        // Empezar por voz gasta la entrevista por voz que da una ruta completada (salvo en las cuentas de prueba).
+        $credit = $mode === 'voice' && $voice->useCredit($request->user());
+        $stage->update(['status' => 'preparing', 'content' => $stage->isTest() ? null : ['mode' => $mode] + ($mode === 'voice' ? ['voice_credit' => $credit || $voice->unrestricted($request->user())] : [])]);
         $stage->isTest()
             ? GenerateInterviewTestJob::dispatch($stage->id)->onQueue('ai')
             : GenerateInterviewQuestionsJob::dispatch($stage->id)->onQueue('ai');
@@ -162,11 +165,12 @@ class InterviewController extends Controller
     }
 
     /** Si la voz falla o la persona prefiere escribir, la misma entrevista sigue por chat. */
-    public function switchToChat(InterviewSimulation $simulation, InterviewStage $stage, InterviewConversation $conversation): RedirectResponse
+    public function switchToChat(Request $request, InterviewSimulation $simulation, InterviewStage $stage, InterviewConversation $conversation, VoiceInterviewService $voice): RedirectResponse
     {
         $this->ensureVoiceCall($simulation, $stage);
+        $voice->refundCredit($request->user(), $stage);
         $stage->turns()->delete();
-        $stage->update(['content' => ['mode' => 'chat'] + ($stage->content ?? [])]);
+        $stage->update(['content' => ['mode' => 'chat', 'voice_credit' => false] + ($stage->content ?? [])]);
         $conversation->begin($stage->refresh());
 
         return redirect()->route('adaptive.interviews.stage', [$simulation, $stage]);

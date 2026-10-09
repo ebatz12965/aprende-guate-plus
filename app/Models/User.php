@@ -23,6 +23,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $suspension_reason
  * @property int|null $suspended_by
  * @property string|null $last_space
+ * @property int $voice_interviews_used
  */
 class User extends Authenticatable implements MustVerifyEmail
 {

@@ -88,6 +88,8 @@ return [
     // Entrevista por voz: corta a propósito, porque el audio es lo más caro de la plataforma.
     'voice' => [
         'models' => ['gpt-realtime-2.1-mini', 'gpt-realtime-2.1'],
+        // Cuentas de prueba con la voz siempre habilitada (sin completar rutas ni límite por entrevista), separadas por coma.
+        'unrestricted_emails' => array_values(array_filter(array_map(fn ($email) => strtolower(trim($email)), explode(',', (string) env('AI_VOICE_UNRESTRICTED_EMAILS', ''))))),
         'max_seconds' => (int) env('AI_VOICE_MAX_SECONDS', 300),
         // Para probar, llamadas de 1 minuto con 1 pregunta: AI_VOICE_MAX_SECONDS=60 y AI_VOICE_QUESTIONS=1.
         'questions' => (int) env('AI_VOICE_QUESTIONS', 4),

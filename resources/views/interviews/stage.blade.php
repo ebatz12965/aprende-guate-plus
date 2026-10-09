@@ -67,7 +67,11 @@
                             <span class="mt-1 block text-sm leading-6 text-slate-600">Una llamada de hasta {{ $voiceMaxMinutes }} minutos y {{ trans_choice('{1} 1 pregunta|[2,*] :count preguntas', (int) config('ai.voice.questions')) }}. Necesitas micrófono y audífonos o bocinas.</span>
                         </button>
                     </form>
-                    @if ($voiceUnavailable)<p class="mt-3 text-sm font-medium text-slate-600">{{ $voiceUnavailable }}</p>@endif
+                    @if ($voiceUnavailable)
+                        <p class="mt-3 text-sm font-medium text-slate-600">{{ $voiceUnavailable }}</p>
+                    @elseif ($voiceCredits && ! $voiceCredits['unrestricted'])
+                        <p class="mt-3 text-sm text-slate-600">Tienes {{ trans_choice('{1} 1 entrevista por voz disponible|[2,*] :count entrevistas por voz disponibles', $voiceCredits['left']) }} por las rutas que completaste. Se usa al empezar por voz; si no logras conectar la llamada y pasas a chat, la recuperas.</p>
+                    @endif
                 @else
                     <form method="POST" action="{{ route('adaptive.interviews.stage.start', [$simulation, $stage]) }}" class="flex flex-wrap items-center gap-3">
                         @csrf

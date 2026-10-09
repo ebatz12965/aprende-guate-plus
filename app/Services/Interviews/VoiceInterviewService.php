@@ -9,6 +9,7 @@ use App\Jobs\EvaluateInterviewStageJob;
 use App\Models\AiRequest;
 use App\Models\AiTokenUsage;
 use App\Models\InterviewStage;
+use App\Models\LearningPath;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -37,9 +38,64 @@ class VoiceInterviewService
 
     public function __construct(private readonly AgentCatalog $catalog, private readonly ProviderRegistry $providers, private readonly AiGateway $gateway) {}
 
+    /** Cuenta de prueba con la voz siempre habilitada (config ai.voice.unrestricted_emails). */
+    public function unrestricted(User $user): bool
+    {
+        return in_array(strtolower($user->email), config('ai.voice.unrestricted_emails', []), true);
+    }
+
+    /**
+     * Entrevistas por voz: cada ruta de aprendizaje completada da derecho a una.
+     *
+     * @return array{earned: int, used: int, left: int, unrestricted: bool}
+     */
+    public function credits(User $user): array
+    {
+        $earned = LearningPath::where('user_id', $user->id)->where('status', 'completed')->count();
+        $used = (int) $user->voice_interviews_used;
+
+        return ['earned' => $earned, 'used' => $used, 'left' => max(0, $earned - $used), 'unrestricted' => $this->unrestricted($user)];
+    }
+
+    /** La etapa ya tiene su entrevista por voz asignada (el crédito se gastó al empezarla). */
+    public function hasCredit(InterviewStage $stage): bool
+    {
+        return (bool) ($stage->content['voice_credit'] ?? false);
+    }
+
+    /** Gasta un crédito al empezar una entrevista por voz. Las cuentas de prueba no gastan. */
+    public function useCredit(User $user): bool
+    {
+        if ($this->unrestricted($user)) {
+            return false;
+        }
+        $user->increment('voice_interviews_used');
+
+        return true;
+    }
+
+    /** Si la persona pasa a chat sin haber conectado ninguna llamada, recupera su entrevista por voz. */
+    public function refundCredit(User $user, InterviewStage $stage): void
+    {
+        if (! $this->unrestricted($user) && $this->hasCredit($stage) && ($stage->content['voice']['sessions'] ?? 0) === 0 && $user->voice_interviews_used > 0) {
+            $user->decrement('voice_interviews_used');
+        }
+    }
+
     /** Motivo por el que no se puede iniciar una llamada, o null si se puede. */
     public function unavailableReason(User $user, InterviewStage $stage): ?string
     {
+        $unrestricted = $this->unrestricted($user);
+        // Para empezar una entrevista por voz hace falta un crédito libre; si ya se empezó, el crédito está asignado.
+        if (! $unrestricted && ! $this->hasCredit($stage)) {
+            $credits = $this->credits($user);
+            if ($credits['earned'] === 0) {
+                return 'La entrevista por voz se habilita cuando completas una ruta de aprendizaje. Mientras tanto, puedes hacerla por chat.';
+            }
+            if ($credits['left'] === 0) {
+                return 'Ya usaste tu entrevista por voz. Cada ruta de aprendizaje que completes te da una más; mientras tanto, puedes hacerla por chat.';
+            }
+        }
         $agent = $this->catalog->configuration(self::AGENT);
         if (! ($agent['enabled'] ?? false)) {
             return 'La entrevista por voz no está disponible en este momento. Puedes hacerla por chat.';
@@ -53,7 +109,7 @@ class VoiceInterviewService
         if ($this->callsToday($user) >= (int) config('ai.voice.daily_limit')) {
             return 'Ya usaste las llamadas de voz disponibles por hoy. Puedes seguir por chat o volver mañana.';
         }
-        if (($stage->content['voice']['sessions'] ?? 0) >= (int) config('ai.voice.sessions_per_stage')) {
+        if (! $unrestricted && ($stage->content['voice']['sessions'] ?? 0) >= (int) config('ai.voice.sessions_per_stage')) {
             return 'Ya intentaste la llamada las veces permitidas en esta entrevista. Puedes terminarla por chat.';
         }
 
