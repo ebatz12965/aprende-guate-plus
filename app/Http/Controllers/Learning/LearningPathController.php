@@ -16,7 +16,46 @@ class LearningPathController extends Controller
 {
     public function show(Request $request): View
     {
-        return view('adaptive.path', ['path' => $request->user()->learningPaths()->active()->with('items.topics')->latest()->first()]);
+        $path = $request->user()->learningPaths()->active()->with('items.topics')->latest()->first();
+        if (! $path) {
+            return view('adaptive.path', ['path' => null]);
+        }
+
+        // Resumen de cada fase para las vistas de recorrido y compacta.
+        $total = max(1, $path->items->count());
+        $current = $path->items->first(fn ($item) => $item->status !== 'completed');
+        $phases = $path->items->values()->map(function ($item, int $index) use ($path, $current) {
+            $topics = $item->topics->count();
+            $done = $item->topics->where('status', 'completed')->count();
+
+            return [
+                'item' => $item,
+                'index' => $index,
+                'completed' => $item->status === 'completed',
+                'current' => $current?->is($item) ?? false,
+                'locked' => $path->items->where('position', '<', $item->position)->where('status', '!=', 'completed')->isNotEmpty(),
+                'topics' => $topics,
+                'topicsDone' => $done,
+            ];
+        });
+        $completedPhases = $phases->where('completed', true)->count();
+        // Los retos opcionales se desbloquean al 25, 50, 75 y 100 %: se dibujan después de la fase que alcanza cada porcentaje.
+        $challenges = $path->challenges()->whereNotNull('milestone')->get()->keyBy('milestone');
+        $milestones = collect([25, 50, 75, 100])->map(fn (int $percent) => [
+            'percent' => $percent,
+            'after' => (int) ceil($percent / 100 * $total) - 1,
+            'reached' => (int) floor($completedPhases / $total * 100) >= $percent,
+            'challenge' => $challenges->get($percent),
+        ])->groupBy('after');
+
+        return view('adaptive.path', [
+            'path' => $path,
+            'phases' => $phases,
+            'currentPhase' => $phases->firstWhere('current', true),
+            'completedPhases' => $completedPhases,
+            'progress' => (int) floor($completedPhases / $total * 100),
+            'milestones' => $milestones,
+        ]);
     }
 
     public function showItem(Request $request, int $item): View
