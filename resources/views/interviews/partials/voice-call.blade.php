@@ -24,8 +24,27 @@
         <p x-show="error" x-cloak class="mt-4 max-w-lg text-sm font-medium text-rose-700" role="alert" x-text="error"></p>
         <p x-show="state === 'idle'" class="mt-4 max-w-lg text-sm leading-6 text-slate-600">
             Te pediremos permiso para usar el micrófono. Usa audífonos si puedes, para que no se escuche el eco. Habla con naturalidad; puedes interrumpir.
-            La llamada dura como máximo <span x-text="Math.round(max / 60)"></span> minutos.
+            La llamada dura como máximo <span x-text="durationText()"></span>.
         </p>
+
+        {{-- Prueba y medidor del micrófono: así se sabe si de verdad llega tu voz --}}
+        <div x-show="state !== 'saving'" class="mt-5 w-full max-w-md rounded-xl border border-slate-200 p-4 text-left">
+            <div class="flex items-center justify-between gap-3">
+                <p class="text-sm font-bold text-slate-900">Tu micrófono</p>
+                <button type="button" x-show="(state === 'idle' || state === 'error') && ! testing" @click="testMic()" class="text-sm font-bold text-blue-700 underline-offset-4 hover:underline">Probar micrófono</button>
+            </div>
+            <template x-if="devices.length > 1 && state !== 'live'">
+                <label class="mt-2 block text-xs font-semibold text-slate-600">Micrófono a usar
+                    <select x-model="deviceId" @change="testMic()" class="mt-1 block w-full rounded-lg border-slate-300 text-sm">
+                        <template x-for="device in devices" :key="device.deviceId"><option :value="device.deviceId" x-text="device.label || 'Micrófono'" :selected="device.deviceId === deviceId"></option></template>
+                    </select>
+                </label>
+            </template>
+            <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100" role="meter" aria-label="Nivel del micrófono" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="level">
+                <div class="h-full rounded-full transition-[width] duration-100" :class="level > 8 ? 'bg-emerald-500' : 'bg-slate-300'" :style="'width:' + level + '%'"></div>
+            </div>
+            <p class="mt-2 text-xs font-semibold" aria-live="polite" :class="heard ? 'text-emerald-700' : (noSound ? 'text-rose-700' : 'text-slate-500')" x-text="micText()"></p>
+        </div>
     </div>
 
     <div x-show="entries.some((e) => e.text)" x-cloak class="border-t border-slate-100">
@@ -54,8 +73,52 @@ function voiceCall(config) {
     return {
         ...config, state: 'idle', error: '', max: {{ (int) config('ai.voice.max_seconds') }}, elapsed: 0, muted: false, speaking: false, listening: false,
         entries: [], usage: { input_tokens: 0, output_tokens: 0 }, pc: null, dc: null, mic: null, timer: null, warned: false, closingSeen: false,
+        testing: false, devices: [], deviceId: '', level: 0, heard: false, noSound: false, audioCtx: null, meterFrame: null,
+        diag: { device: '', max_level: 0, speech_started: 0, transcripts: 0, responses: 0, ice: '', connection: '', errors: [] },
         init() {
             window.addEventListener('beforeunload', (event) => { if (this.state === 'live') event.preventDefault(); });
+        },
+        durationText() { return this.max <= 60 ? 'un minuto' : (this.max <= 90 ? 'un minuto y medio' : Math.round(this.max / 60) + ' minutos'); },
+        micText() {
+            if (this.noSound) return 'No llega sonido de tu micrófono. Revisa que no esté silenciado o elige otro en la lista.';
+            if (this.heard) return 'Te escuchamos bien.';
+            return this.mic ? 'Habla para probar… la barra debe moverse.' : 'Pruébalo antes de llamar: la barra se mueve cuando hablas.';
+        },
+        async getMic() {
+            const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+            if (this.deviceId) audio.deviceId = { exact: this.deviceId };
+            const stream = await navigator.mediaDevices.getUserMedia({ audio });
+            this.mic?.getTracks().forEach((track) => track.stop());
+            this.mic = stream;
+            const track = stream.getAudioTracks()[0];
+            this.diag.device = track?.label || '';
+            this.deviceId = track?.getSettings?.().deviceId || this.deviceId;
+            // Con el permiso ya dado, el navegador muestra los nombres de los micrófonos.
+            this.devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput' && d.deviceId !== 'default' && d.deviceId !== 'communications');
+            this.meter(stream);
+        },
+        async testMic() {
+            this.testing = true; this.error = ''; this.heard = false; this.noSound = false;
+            try { await this.getMic(); } catch (e) { this.error = 'No pudimos usar tu micrófono. Revisa que el navegador tenga permiso y que no lo esté usando otra aplicación.'; }
+            this.testing = false;
+        },
+        meter(stream) {
+            window.cancelAnimationFrame(this.meterFrame);
+            this.audioCtx?.close();
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = this.audioCtx.createAnalyser();
+            analyser.fftSize = 1024;
+            this.audioCtx.createMediaStreamSource(stream).connect(analyser);
+            const data = new Float32Array(analyser.fftSize);
+            const loop = () => {
+                analyser.getFloatTimeDomainData(data);
+                const rms = Math.sqrt(data.reduce((sum, v) => sum + v * v, 0) / data.length);
+                this.level = Math.min(100, Math.round(rms * 400));
+                if (this.level > this.diag.max_level) this.diag.max_level = this.level;
+                if (this.level > 8 && !this.muted) { this.heard = true; this.noSound = false; }
+                this.meterFrame = window.requestAnimationFrame(loop);
+            };
+            loop();
         },
         statusText() {
             return {
@@ -67,9 +130,11 @@ function voiceCall(config) {
         clock() { const s = this.left(); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; },
         async start() {
             if (this.state === 'connecting') return;
-            Object.assign(this, { error: '', state: 'connecting', entries: [], elapsed: 0, warned: false, closingSeen: false, usage: { input_tokens: 0, output_tokens: 0 } });
+            Object.assign(this, { error: '', state: 'connecting', entries: [], elapsed: 0, warned: false, closingSeen: false, noSound: false, usage: { input_tokens: 0, output_tokens: 0 } });
+            Object.assign(this.diag, { speech_started: 0, transcripts: 0, responses: 0, errors: [] });
             try {
-                this.mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+                // Se reutiliza el micrófono que se probó; si no hay, se pide ahora.
+                if (!this.mic || this.mic.getAudioTracks().every((track) => track.readyState === 'ended')) await this.getMic();
             } catch (e) {
                 return this.fail('No pudimos usar tu micrófono. Revisa que el navegador tenga permiso y que no lo esté usando otra aplicación.');
             }
@@ -81,7 +146,9 @@ function voiceCall(config) {
 
                 this.pc = new RTCPeerConnection();
                 this.pc.ontrack = (event) => { this.$refs.audio.srcObject = event.streams[0]; };
+                this.pc.oniceconnectionstatechange = () => { this.diag.ice = this.pc?.iceConnectionState || this.diag.ice; };
                 this.pc.onconnectionstatechange = () => {
+                    this.diag.connection = this.pc?.connectionState || this.diag.connection;
                     if (['failed', 'disconnected'].includes(this.pc?.connectionState) && this.state === 'live') this.hangUp('Se cortó la conexión. Guardamos lo que alcanzaste a responder.');
                 };
                 this.mic.getTracks().forEach((track) => this.pc.addTrack(track, this.mic));
@@ -108,10 +175,14 @@ function voiceCall(config) {
         },
         tick() {
             this.elapsed++;
-            if (!this.warned && this.left() <= 30) {
+            // En llamadas cortas el aviso llega a los 15 segundos del final (antes cortaba la entrevista apenas empezaba).
+            const warnAt = this.max <= 120 ? 15 : 30;
+            if (!this.warned && this.left() <= warnAt) {
                 this.warned = true;
-                this.send({ type: 'conversation.item.create', item: { type: 'message', role: 'system', content: [{ type: 'input_text', text: 'Quedan 30 segundos. En tu próxima intervención agradece y cierra con la frase indicada.' }] } });
+                this.send({ type: 'conversation.item.create', item: { type: 'message', role: 'system', content: [{ type: 'input_text', text: 'Quedan ' + warnAt + ' segundos. Cuando la persona termine de hablar, agradece y cierra con la frase indicada.' }] } });
             }
+            // Si pasan varios segundos sin que el micrófono capte nada, se avisa en pantalla.
+            if (this.elapsed >= 12 && !this.heard && !this.muted && this.diag.speech_started === 0) this.noSound = true;
             if (this.left() <= 0) this.hangUp();
         },
         send(event) { if (this.dc?.readyState === 'open') this.dc.send(JSON.stringify(event)); },
@@ -127,7 +198,14 @@ function voiceCall(config) {
                 case 'conversation.item.created':
                     if (event.item?.type === 'message' && ['user', 'assistant'].includes(event.item.role)) this.entry(event.item.id, event.item.role === 'user' ? 'candidate' : 'interviewer');
                     break;
+                case 'error':
+                    this.diag.errors.push(String(event.error?.message || event.error?.code || 'error').slice(0, 200));
+                    break;
+                case 'conversation.item.input_audio_transcription.failed':
+                    this.diag.errors.push('Transcripción: ' + String(event.error?.message || 'falló').slice(0, 180));
+                    break;
                 case 'conversation.item.input_audio_transcription.completed':
+                    this.diag.transcripts++;
                     this.entry(event.item_id, 'candidate').text = (event.transcript || '').trim();
                     this.scroll();
                     break;
@@ -146,9 +224,11 @@ function voiceCall(config) {
                     // Termina sola cuando la entrevistadora acaba de despedirse.
                     if (this.closingSeen) window.setTimeout(() => this.hangUp(), 800);
                     break;
-                case 'input_audio_buffer.speech_started': this.listening = true; break;
+                case 'input_audio_buffer.speech_started': this.listening = true; this.diag.speech_started++; this.heard = true; this.noSound = false; break;
                 case 'input_audio_buffer.speech_stopped': this.listening = false; break;
                 case 'response.done':
+                    this.diag.responses++;
+                    if (event.response?.status_details?.reason === 'max_output_tokens') this.diag.errors.push('Respuesta cortada por el límite de tokens.');
                     this.usage.input_tokens += event.response?.usage?.input_tokens || 0;
                     this.usage.output_tokens += event.response?.usage?.output_tokens || 0;
                     break;
@@ -162,6 +242,8 @@ function voiceCall(config) {
         stop() {
             window.clearInterval(this.timer);
             this.mic?.getTracks().forEach((track) => track.stop());
+            window.cancelAnimationFrame(this.meterFrame);
+            this.audioCtx?.close(); this.audioCtx = null; this.level = 0;
             this.dc?.close(); this.pc?.close();
             this.pc = null; this.dc = null; this.mic = null; this.speaking = false; this.listening = false;
         },
@@ -178,7 +260,7 @@ function voiceCall(config) {
                 const response = await fetch(this.finish, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf() },
-                    body: JSON.stringify({ transcript: this.entries.filter((e) => e.text).map((e) => ({ role: e.role, text: e.text })), usage: this.usage, seconds }),
+                    body: JSON.stringify({ transcript: this.entries.filter((e) => e.text).map((e) => ({ role: e.role, text: e.text })), usage: this.usage, seconds, diagnostics: this.diag }),
                 });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok) return this.fail(data.errors?.voice?.[0] || data.message || 'No se pudo guardar la entrevista.');

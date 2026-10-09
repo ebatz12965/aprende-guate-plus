@@ -33,6 +33,8 @@ class VoiceInterviewTest extends TestCase
         $this->user->assignRole('Student');
         // Plan y preguntas con plantillas (agente apagado): solo se simula la llamada de voz.
         config(['ai.agents.interviewer.enabled' => false, 'ai.providers.openai.key' => 'sk-test', 'ai.agents.voice_interviewer.enabled' => true]);
+        // Valores de producción, sin depender del .env local (que puede tener llamadas cortas de prueba).
+        config(['ai.voice.max_seconds' => 300, 'ai.voice.questions' => 4, 'ai.voice.daily_limit' => 2, 'ai.voice.sessions_per_stage' => 2]);
         $this->simulation = InterviewSimulation::create(['user_id' => $this->user->id, 'job_title' => 'Técnico de soporte de TI', 'area' => 'soporte', 'seniority' => 'junior', 'status' => 'generating']);
         GenerateInterviewPlanJob::dispatchSync($this->simulation->id);
         $this->simulation->refresh();
@@ -93,12 +95,14 @@ class VoiceInterviewTest extends TestCase
 
             return $request->hasHeader('Authorization', 'Bearer sk-test')
                 && $session['model'] === 'gpt-realtime-2.1-mini'
-                && $session['max_output_tokens'] === 350
+                && $session['max_output_tokens'] === 1800
                 && $session['audio']['input']['transcription']['language'] === 'es'
                 && str_contains($session['instructions'], $firstQuestion)
                 && ! str_contains($session['instructions'], $fifthQuestion)
                 && str_contains($session['instructions'], 'Hemos terminado la entrevista.')
-                && str_contains($session['instructions'], 'nunca preguntes ni comentes sobre edad');
+                && str_contains($session['instructions'], 'nunca preguntes ni comentes sobre edad')
+                && str_contains($session['instructions'], 'Pide a la persona que se presente')
+                && $session['audio']['input']['turn_detection']['eagerness'] === 'auto';
         });
         $this->assertSame(1, $hr->fresh()->content['voice']['sessions']);
         $this->assertSame('processing', AiRequest::where('operation', 'interview_voice')->sole()->status);
@@ -181,7 +185,13 @@ class VoiceInterviewTest extends TestCase
 
         $this->actingAs($this->user)->postJson(route('adaptive.interviews.stage.voice.finish', [$this->simulation, $hr]), [
             'transcript' => [['role' => 'interviewer', 'text' => 'Hola, ¿me escuchas?']], 'usage' => ['input_tokens' => 300, 'output_tokens' => 500], 'seconds' => 20,
+            'diagnostics' => ['device' => 'Micrófono (Realtek)', 'max_level' => 0, 'speech_started' => 0, 'transcripts' => 0, 'responses' => 1, 'ice' => 'connected', 'errors' => ['Respuesta cortada por el límite de tokens.']],
         ])->assertStatus(422)->assertJsonValidationErrors('voice');
+
+        // Queda el diagnóstico para saber por qué no se escuchó a la persona: el micrófono no captó sonido.
+        $diagnostics = $hr->fresh()->content['voice']['diagnostics'];
+        $this->assertSame(['Micrófono (Realtek)', 0, 0], [$diagnostics['device'], $diagnostics['max_level'], $diagnostics['speech_started']]);
+        $this->assertSame(['Respuesta cortada por el límite de tokens.'], $diagnostics['errors']);
 
         $this->assertSame('in_progress', $hr->fresh()->status);
         $this->assertSame(800, (int) AiTokenUsage::where('operation', 'interview_voice')->sum('total_tokens'));

@@ -89,10 +89,11 @@ return [
     'voice' => [
         'models' => ['gpt-realtime-2.1-mini', 'gpt-realtime-2.1'],
         'max_seconds' => (int) env('AI_VOICE_MAX_SECONDS', 300),
-        'questions' => 4,
+        // Para probar, llamadas de 1 minuto con 1 pregunta: AI_VOICE_MAX_SECONDS=60 y AI_VOICE_QUESTIONS=1.
+        'questions' => (int) env('AI_VOICE_QUESTIONS', 4),
         'daily_limit' => (int) env('AI_VOICE_DAILY_LIMIT', 2),
         // Reconexiones permitidas por entrevista si se corta la llamada.
-        'sessions_per_stage' => 2,
+        'sessions_per_stage' => (int) env('AI_VOICE_SESSIONS_PER_STAGE', 2),
         'voice' => env('AI_VOICE_NAME', 'marin'),
         'transcription_model' => 'gpt-4o-mini-transcribe',
     ],
@@ -117,7 +118,7 @@ return [
         'tutor' => $agent('Tutor IA', 'Da pistas progresivas y orientación contextual al estudiante.', 300, true, false, 'fast'),
         'interviewer' => $agent('Entrevistador', 'Diseña el proceso de selección simulado y conduce entrevistas escritas con repreguntas.', 1400, true, false, 'writing'),
         // Voz en tiempo real (OpenAI Realtime por WebRTC): solo modelos realtime de OpenAI.
-        'voice_interviewer' => [...$agent('Entrevistador por voz', 'Conduce la entrevista corta de Recursos Humanos por voz en tiempo real.', 350, true, false, 'realtime'), 'model' => env('AI_VOICE_MODEL', 'gpt-realtime-2.1-mini')],
+        'voice_interviewer' => [...$agent('Entrevistador por voz', 'Conduce la entrevista corta de Recursos Humanos por voz en tiempo real.', 1800, true, false, 'realtime'), 'model' => env('AI_VOICE_MODEL', 'gpt-realtime-2.1-mini')],
         'interview_evaluator' => $agent('Evaluador de entrevista', 'Califica las entrevistas simuladas con una rúbrica y da retroalimentación por pregunta.', 2200, true, false, 'reasoning'),
         'employability' => $agent('Agente de empleabilidad', 'Relaciona vacantes, perfil, evidencias y brechas.', 800, false, true),
         'mentor_application_assessor' => $agent('Generador de cuestionarios de mentoría', 'Genera un cuestionario pedagógico según la especialidad y las áreas de apoyo declaradas, sin evaluar ni recibir respuestas personales.', 900, true, false, 'writing'),

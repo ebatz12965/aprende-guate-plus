@@ -154,8 +154,9 @@ class InterviewController extends Controller
             'usage.input_tokens' => ['nullable', 'integer', 'min:0'],
             'usage.output_tokens' => ['nullable', 'integer', 'min:0'],
             'seconds' => ['required', 'integer', 'min:0', 'max:3600'],
+            'diagnostics' => ['nullable', 'array'],
         ]);
-        $voice->finish($stage, $data['transcript'], $data['usage'] ?? [], $data['seconds']);
+        $voice->finish($stage, $data['transcript'], $data['usage'] ?? [], $data['seconds'], $data['diagnostics'] ?? []);
 
         return response()->json(['redirect' => route('adaptive.interviews.stage', [$simulation, $stage])]);
     }
