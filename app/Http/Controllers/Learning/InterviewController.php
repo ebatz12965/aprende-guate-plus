@@ -112,17 +112,17 @@ class InterviewController extends Controller
                 $stage->status === 'in_progress' && ($stage->content['mode'] ?? null) === 'voice' => now()->addSeconds((int) config('ai.voice.max_seconds') + 300)->toIso8601String(),
                 default => null,
             },
-            'voiceUnavailable' => $stage->type === 'hr_interview' && $stage->status === 'available' ? $voice->unavailableReason($request->user(), $stage) : null,
+            'voiceUnavailable' => $stage->isInterview() && $stage->status === 'available' ? $voice->unavailableReason($request->user(), $stage) : null,
             'voiceMaxMinutes' => (int) ceil(config('ai.voice.max_seconds') / 60),
         ]);
     }
 
-    /** Comienza una etapa: en la cola se prepara el banco de preguntas o la prueba. La de RR. HH. puede ser por voz. */
+    /** Comienza una etapa: en la cola se prepara el banco de preguntas o la prueba. Las entrevistas (RR. HH. y técnica) pueden ser por voz. */
     public function start(Request $request, InterviewSimulation $simulation, InterviewStage $stage, VoiceInterviewService $voice): RedirectResponse
     {
         $this->ensureStage($simulation, $stage);
         abort_unless($stage->status === 'available', 422);
-        $mode = $request->input('mode') === 'voice' && $stage->type === 'hr_interview' ? 'voice' : 'chat';
+        $mode = $request->input('mode') === 'voice' && $stage->isInterview() ? 'voice' : 'chat';
         if ($mode === 'voice' && ($reason = $voice->unavailableReason($request->user(), $stage))) {
             return back()->with('error', $reason);
         }
@@ -175,7 +175,7 @@ class InterviewController extends Controller
     private function ensureVoiceCall(InterviewSimulation $simulation, InterviewStage $stage): void
     {
         $this->ensureStage($simulation, $stage);
-        abort_unless($stage->type === 'hr_interview' && $stage->status === 'in_progress' && ($stage->content['mode'] ?? null) === 'voice', 409, 'Esta entrevista ya no está en modo de voz.');
+        abort_unless($stage->isInterview() && $stage->status === 'in_progress' && ($stage->content['mode'] ?? null) === 'voice', 409, 'Esta entrevista ya no está en modo de voz.');
     }
 
     /** Estado para las pantallas de espera (preparando preguntas o evaluando). */

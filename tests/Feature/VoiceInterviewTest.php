@@ -136,14 +136,22 @@ class VoiceInterviewTest extends TestCase
         $this->assertSame(['opening', 'question'], $hr->fresh()->turns->pluck('meta.kind')->all());
     }
 
-    public function test_voice_is_only_for_the_hr_interview(): void
+    public function test_the_technical_interview_can_also_be_by_voice_but_the_tests_cannot(): void
     {
+        $this->fakeSecret();
         $technical = $this->simulation->stages()->where('type', 'technical_interview')->firstOrFail();
         $technical->update(['status' => 'available']);
+        $this->actingAs($this->user)->get(route('adaptive.interviews.stage', [$this->simulation, $technical]))->assertSee('Por voz');
 
         $this->actingAs($this->user)->post(route('adaptive.interviews.stage.start', [$this->simulation, $technical]), ['mode' => 'voice']);
-        $this->assertSame('chat', $technical->fresh()->content['mode']);
-        $this->actingAs($this->user)->postJson(route('adaptive.interviews.stage.voice.session', [$this->simulation, $technical]))->assertStatus(409);
+        $this->assertSame('voice', $technical->fresh()->content['mode']);
+        $this->actingAs($this->user)->postJson(route('adaptive.interviews.stage.voice.session', [$this->simulation, $technical]))->assertOk();
+        Http::assertSent(fn (Request $request) => str_contains($request->data()['session']['instructions'] ?? '', 'Es una entrevista técnica'));
+
+        // Las pruebas (razonamiento y práctica) no tienen modo de voz.
+        $reasoning = $this->simulation->stages()->where('type', 'reasoning_test')->firstOrFail();
+        $reasoning->update(['status' => 'in_progress', 'content' => ['mode' => 'voice']]);
+        $this->actingAs($this->user)->postJson(route('adaptive.interviews.stage.voice.session', [$this->simulation, $reasoning]))->assertStatus(409);
     }
 
     public function test_hanging_up_saves_the_transcript_records_usage_and_evaluates(): void

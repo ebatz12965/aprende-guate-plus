@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
- * Entrevista de Recursos Humanos por voz con OpenAI Realtime.
+ * Entrevistas por voz (Recursos Humanos y entrevista técnica) con OpenAI Realtime.
  *
  * El navegador se conecta directo a OpenAI por WebRTC con una clave temporal que crea este servicio; la API key
  * nunca sale del servidor. La llamada es corta a propósito (pocas preguntas, tiempo máximo y respuestas breves)
@@ -222,8 +222,9 @@ class VoiceInterviewService
     private function instructions(InterviewStage $stage): string
     {
         $simulation = $stage->simulation;
-        $name = $stage->interviewer['name'] ?? 'la persona de Recursos Humanos';
-        $role = $stage->interviewer['role'] ?? 'Recursos Humanos';
+        $technical = $stage->type === 'technical_interview';
+        $name = $stage->interviewer['name'] ?? ($technical ? 'la persona encargada del área' : 'la persona de Recursos Humanos');
+        $role = $stage->interviewer['role'] ?? ($technical ? 'encargada del área' : 'Recursos Humanos');
         $company = $simulation->company['name'] ?? 'la empresa';
         $list = collect($stage->content['questions'] ?? [])->take(max(1, (int) config('ai.voice.questions')))->values();
         $questions = $list->map(fn ($q, $i) => ($i + 1).'. '.$q['text'])->implode('
@@ -241,13 +242,14 @@ Guion, en este orden:'
             ."
 1) Saluda, preséntate con tu nombre y cargo en una oración y di que la entrevista dura {$length}."
             .'
-2) Pide a la persona que se presente brevemente (su nombre y su experiencia) y espera a que termine.'
+2) Pide a la persona que se presente brevemente ('.($technical ? 'su nombre y la experiencia técnica que más se relaciona con el puesto' : 'su nombre y su experiencia').') y espera a que termine.'
             ."
 3) Agradece su presentación en pocas palabras, llamándola por su nombre, y haz las preguntas de esta lista en orden, UNA a la vez, esperando cada respuesta. Haz {$count}; no inventes otras, no las numeres en voz alta ni digas cuántas son:"
             ."
 {$questions}"
             .'
 Si una respuesta es muy vaga o no trae un ejemplo, puedes hacer UNA repregunta breve; si no, sigue.'
+            .($technical ? "\nEs una entrevista técnica: interesa cómo razona la persona. Si responde solo con un término, pídele que explique cómo lo haría paso a paso. No le des la respuesta correcta ni la corrijas." : '')
             .'
 4) Cuando la persona responda la última pregunta, agradece en una oración y di exactamente: «Hemos terminado la entrevista.» Después no hables más.'
             .'

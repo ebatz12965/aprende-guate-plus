@@ -62,9 +62,9 @@
                         <div>
                             <p class="font-bold text-slate-900">{{ $label }}</p>
                             <p class="text-sm leading-6 text-slate-600">{{ match ($type) {
-                                'hr_interview' => 'Una conversación escrita sobre tu motivación, cómo trabajas en equipo y qué esperas del puesto.',
+                                'hr_interview' => 'Una conversación por chat o por voz sobre tu motivación, cómo trabajas en equipo y qué esperas del puesto.',
                                 'reasoning_test' => 'Lógica, números, lectura y situaciones del trabajo. Es práctica, no un test psicométrico validado.',
-                                'technical_interview' => 'Preguntas técnicas del puesto con quien sería tu jefe o jefa; repregunta según lo que respondes.',
+                                'technical_interview' => 'Preguntas técnicas del puesto con quien sería tu jefe o jefa, por chat o por voz; repregunta según lo que respondes.',
                                 default => 'Un caso corto del puesto que resuelves en computadora y entregas por escrito o en un archivo.',
                             } }}</p>
                         </div>
