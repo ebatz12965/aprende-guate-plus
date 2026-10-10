@@ -443,7 +443,17 @@
             background: #81d4fa
         }
     </style>
-    @vite(['resources/css/app.css'])
+    <style>
+        /* Ventana de inicio de sesión: la página inicial se ve detrás, oscurecida y desenfocada. */
+        .ag-login-dialog { padding: 0; border: 0; background: transparent; max-width: none; max-height: calc(100dvh - 2rem); overflow: auto; }
+        .ag-login-dialog::backdrop { background: rgb(2 6 23 / 0.55); backdrop-filter: blur(6px); }
+        .ag-login-dialog[open] { animation: ag-login-in .28s cubic-bezier(.16, 1, .3, 1); }
+        .ag-login-dialog[open]::backdrop { animation: ag-login-fade .28s ease-out; }
+        @keyframes ag-login-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
+        @keyframes ag-login-fade { from { opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) { .ag-login-dialog[open], .ag-login-dialog[open]::backdrop { animation: none; } }
+    </style>
+    @vite(['resources/css/app.css', 'resources/js/password-toggle.js'])
 </head>
 
 <body>
@@ -461,6 +471,46 @@
         </header>
         <main>@yield('content')</main>
         @include('components.platform-footer')
+
+        @guest
+            {{-- Inicio de sesión en una ventana flotante: la página inicial se sigue viendo detrás. --}}
+            <dialog id="login-dialog" class="ag-login-dialog" aria-labelledby="login-title">
+                <div class="relative w-[min(28rem,calc(100vw-2rem))] rounded-3xl bg-white p-6 text-left shadow-2xl ring-1 ring-slate-200 sm:p-9">
+                    <button type="button" data-login-close class="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" aria-label="Cerrar">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                    </button>
+                    <div class="mb-7 flex items-center gap-3">
+                        <img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="" class="h-11 w-11 rounded-xl">
+                        <span class="text-lg font-extrabold tracking-tight text-slate-900">Aprende Guate</span>
+                    </div>
+                    <h2 id="login-title" class="text-3xl font-extrabold tracking-tight text-slate-900">Inicia sesión</h2>
+                    <p class="mb-7 mt-2 text-sm leading-6 text-slate-600">Continúa con tu ruta, tus prácticas y tu crecimiento profesional.</p>
+                    @include('auth.partials.login-form')
+                </div>
+            </dialog>
+            <script>
+                (() => {
+                    const dialog = document.getElementById('login-dialog');
+                    const home = @js(route('home'));
+                    const open = () => { if (!dialog.open) dialog.showModal(); };
+                    const close = () => dialog.close();
+                    // Los enlaces «Iniciar sesión» abren la ventana en lugar de cambiar de página (Ctrl o ⌘ + clic sigue abriendo una pestaña).
+                    document.querySelectorAll('a[href="{{ route('login') }}"]').forEach((link) => link.addEventListener('click', (event) => {
+                        if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+                        event.preventDefault();
+                        open();
+                    }));
+                    dialog.querySelector('[data-login-close]').addEventListener('click', close);
+                    // Un clic fuera de la tarjeta también la cierra.
+                    dialog.addEventListener('click', (event) => { if (event.target === dialog) close(); });
+                    // Al cerrar desde /login, la dirección vuelve a la página inicial.
+                    dialog.addEventListener('close', () => { if (location.pathname === new URL(@js(route('login'))).pathname) history.replaceState(null, '', home); });
+                    // Se abre sola al entrar a /login, tras un intento fallido o con un aviso (por ejemplo, la sesión cerrada por inactividad).
+                    const autoOpen = @js(($openLogin ?? false) || $errors->hasAny(['email', 'password']) || filled(session('status')));
+                    if (autoOpen) open();
+                })();
+            </script>
+        @endguest
     </body>
 
     </html>

@@ -14,7 +14,7 @@
         <section class="relative hidden overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 px-12 py-12 lg:flex lg:flex-col lg:justify-between xl:px-20">
             <div class="absolute inset-0 opacity-40" style="background-image: radial-gradient(circle at 88% 18%, #64B5F6 0, transparent 25%), radial-gradient(circle at 70% 88%, #42A5F5 0, transparent 23%);"></div>
             <a href="{{ route('home') }}" class="relative flex items-center gap-3 self-start text-white">
-                <span class="grid h-11 w-11 place-items-center rounded-xl bg-white/15 ring-1 ring-white/25"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5V5.75A1.75 1.75 0 0 1 5.75 4H20v14.5"/><path d="M4 19.5c0-1.1.9-2 2-2h14"/><path d="M8 8h8M8 12h6"/></svg></span>
+                <img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="" class="h-11 w-11 rounded-xl ring-1 ring-white/25">
                 <span class="text-lg font-extrabold tracking-tight">Aprende Guate</span>
             </a>
 
@@ -33,7 +33,7 @@
 
         <section class="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8 lg:bg-white">
             <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-9 lg:shadow-xl lg:shadow-blue-950/5">
-                <a href="{{ route('home') }}" class="mb-9 flex items-center gap-3 text-blue-950 lg:hidden"><span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-700 text-white shadow-md shadow-blue-700/20"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5.75A1.75 1.75 0 0 1 5.75 4H20v14.5"/><path d="M4 19.5c0-1.1.9-2 2-2h14"/></svg></span><span class="text-lg font-extrabold">Aprende Guate</span></a>
+                <a href="{{ route('home') }}" class="mb-9 flex items-center gap-3 text-blue-950 lg:hidden"><img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt="" class="h-10 w-10 rounded-xl shadow-md shadow-blue-700/20"><span class="text-lg font-extrabold">Aprende Guate</span></a>
                 {{ $slot }}
             </div>
         </section>

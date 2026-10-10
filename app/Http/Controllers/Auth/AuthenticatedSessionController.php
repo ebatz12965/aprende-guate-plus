@@ -15,7 +15,8 @@ class AuthenticatedSessionController extends Controller
 {
     public function create(): View
     {
-        return view('auth.login');
+        // El inicio de sesión es una ventana flotante sobre la página inicial.
+        return view('welcome', ['openLogin' => true]);
     }
 
     public function store(LoginRequest $request): RedirectResponse
