@@ -86,9 +86,9 @@ class AdminAiOrchestratorTest extends TestCase
     {
         $admin = $this->admin();
 
-        $this->actingAs($admin)->put(route('admin.ai-orchestrator.update', 'interviewer'), ['enabled' => '1'])
+        $this->actingAs($admin)->put(route('admin.ai-orchestrator.update', 'employability'), ['enabled' => '1'])
             ->assertSessionHasErrors('enabled');
-        $this->assertFalse(app(AgentCatalog::class)->configuration('interviewer')['enabled']);
+        $this->assertFalse(app(AgentCatalog::class)->configuration('employability')['enabled']);
 
         $this->actingAs($admin)->put(route('admin.ai-orchestrator.update', 'no-existe'), ['enabled' => '1'])->assertNotFound();
         $this->actingAs($admin)->put(route('admin.ai-orchestrator.update', 'tutor'), ['enabled' => '1', 'model' => 'modelo con espacios'])->assertSessionHasErrors('model');

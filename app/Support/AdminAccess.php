@@ -45,6 +45,7 @@ final class AdminAccess
         'ia.configuracion' => 'Límites de uso y presupuesto de tokens de IA',
         'ia.orquestador' => 'Orquestador de agentes y precios de modelos',
         'correo.configurar' => 'Correo saliente (SMTP)',
+        'modulos.gestionar' => 'Poner módulos en mantenimiento o en vista previa',
     ];
 
     /** @return list<string> */

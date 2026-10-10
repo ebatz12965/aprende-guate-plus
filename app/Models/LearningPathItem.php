@@ -20,6 +20,7 @@ class LearningPathItem extends Model
         return $this->belongsTo(LearningPath::class);
     }
 
+    /** @return HasMany<LearningPathTopic, $this> */
     public function topics(): HasMany
     {
         return $this->hasMany(LearningPathTopic::class)->orderBy('position');

@@ -26,6 +26,10 @@
             $worked = ['scenario' => data_get($content, 'worked_example.scenario'), 'material' => $material, 'steps' => array_map(fn ($step) => ['action' => $unnumber($step['action'] ?? ''), 'explanation' => $step['explanation'] ?? ''], array_values(data_get($content, 'worked_example.steps', []))), 'result' => data_get($content, 'worked_example.result', '')];
         }
 
+        // Extracto animado de la biblioteca de Office: se consulta en vivo, así llega aunque se haya preparado después de la lección.
+        $libraryTopic = isset($content['library_topic_id']) ? \App\Models\LibraryTopic::find($content['library_topic_id']) : null;
+        $walkthrough = $libraryTopic?->hasWalkthrough() ? $libraryTopic->walkthrough : null;
+
         $decision = data_get($content, 'decision');
         $decision = $decision && count($decision['choices'] ?? []) >= 2 ? ['situation' => $decision['situation'] ?? '', 'question' => $decision['question'] ?? '¿Qué harías?', 'choices' => array_values($decision['choices'])] : null;
         $questions = collect($content['check_questions'] ?? [])->map(fn ($question) => ['question' => $question['question'] ?? '', 'options' => array_values($question['options'] ?? []), 'answer' => (int) ($question['answer'] ?? 0), 'explanation' => $letters((string) ($question['explanation'] ?? ''))])->values()->all();
@@ -43,7 +47,7 @@
         // Orden de las diapositivas. Con dos o más secciones, la persona elige en un menú por cuál empezar.
         $order = ['cover'];
         $order = array_merge($order, count($sections) >= 2 ? ['hub'] : (count($sections) ? ['section'] : []));
-        foreach (['concepts' => count($deck['concepts']), 'worked' => (bool) $worked, 'mistakes' => count($deck['mistakes']), 'decision' => (bool) $decision] as $slide => $present) {
+        foreach (['concepts' => count($deck['concepts']), 'demo' => (bool) $walkthrough, 'worked' => (bool) $worked, 'mistakes' => count($deck['mistakes']), 'decision' => (bool) $decision] as $slide => $present) {
             if ($present) {
                 $order[] = $slide;
             }
@@ -62,6 +66,7 @@
             $slide === 'hub' => 'Elige por dónde empezar',
             $slide === 'section' => $sections[0]['heading'] ?? 'Contenido',
             $slide === 'concepts' => 'Conceptos clave',
+            $slide === 'demo' => 'Míralo en acción',
             $slide === 'worked' => 'Ejemplo resuelto',
             $slide === 'mistakes' => 'Errores frecuentes',
             $slide === 'decision' => '¿Qué harías?',
@@ -69,6 +74,9 @@
             default => 'Cierre',
         })->all();
     @endphp
+    @if ($walkthrough)
+        @include('adaptive.partials.walkthrough-script')
+    @endif
     <div x-data="lessonDeck(@js($deck), @js($order), 'ag-lesson-{{ $lesson->id }}', { lessonId: {{ $lesson->id }}, saved: @js($saved), labels: @js($labels), url: @js(isset($topic) ? route('adaptive.topic.lesson.progress', $topic) : null) })"
         x-init="init()" @keydown.window="keys($event)" class="text-slate-700">
         {{-- Al volver a una lección empezada: continuar o empezar de nuevo. --}}
@@ -170,6 +178,19 @@
                     </template>
                 </div>
             </section>
+
+            {{-- Extracto animado (biblioteca de Office) --}}
+            @if ($walkthrough)
+                <template x-if="slide === 'demo'">
+                    <section x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="translate-y-1 opacity-0">
+                        @include('adaptive.partials.walkthrough', [
+                            'walkthrough' => $walkthrough,
+                            'audio' => collect($walkthrough['steps'])->map(fn ($step, $index) => ! empty($step['audio']) ? route('library.narration', [$libraryTopic, $index + 1]) : null)->all(),
+                            'tabs' => \App\Services\Library\WalkthroughService::TABS[$walkthrough['app']] ?? [],
+                        ])
+                    </section>
+                </template>
+            @endif
 
             {{-- Ejemplo resuelto: los pasos se revelan uno por uno --}}
             <template x-if="slide === 'worked' && deck.worked">

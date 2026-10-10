@@ -34,6 +34,18 @@ class UpdateAiAgentRequest extends FormRequest
             if ($provider !== '' && ! app(ProviderRegistry::class)->configured($provider)) {
                 $validator->errors()->add('provider', 'Ese proveedor no tiene API key. Agrega '.config("ai.providers.{$provider}.key_env").' en el archivo .env.');
             }
+            // El agente de voz usa la API Realtime: solo OpenAI, un modelo realtime y como máximo 4096 tokens por respuesta.
+            if (config("ai.agents.{$agent}.task") === 'realtime') {
+                if ($provider !== '' && $provider !== 'openai') {
+                    $validator->errors()->add('provider', 'La entrevista por voz solo funciona con OpenAI.');
+                }
+                if (filled($this->input('model')) && ! str_contains((string) $this->input('model'), 'realtime')) {
+                    $validator->errors()->add('model', 'Elige un modelo de voz en tiempo real (por ejemplo, gpt-realtime-2.1-mini).');
+                }
+                if ((int) $this->input('max_tokens') > 4096) {
+                    $validator->errors()->add('max_tokens', 'El modelo de voz acepta como máximo 4096 tokens por respuesta.');
+                }
+            }
             $defaultProvider = config("ai.agents.{$agent}.provider") ?? config('ai.default_provider');
             if ($provider !== '' && $provider !== $defaultProvider && blank($this->input('model'))) {
                 $validator->errors()->add('model', 'Elige un modelo del proveedor seleccionado.');

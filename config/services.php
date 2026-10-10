@@ -35,6 +35,14 @@ return [
         ],
     ],
 
+    // Narración de los extractos animados de la biblioteca de Office. Sin clave, se muestran con subtítulos.
+    'elevenlabs' => [
+        'key' => env('ELEVENLABS_API_KEY'),
+        'voice_id' => env('ELEVENLABS_VOICE_ID') ?: 'XrExE9yKIg1WjnnlVkGX',
+        'model' => env('ELEVENLABS_MODEL') ?: 'eleven_multilingual_v2',
+        'timeout' => (int) env('ELEVENLABS_TIMEOUT', 30),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

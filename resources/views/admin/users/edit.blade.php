@@ -114,7 +114,7 @@
                             </fieldset>
                             <div x-show="duration === 'custom'" x-cloak>
                                 <label for="until" class="block text-sm font-semibold text-slate-700">Suspender hasta</label>
-                                <input type="datetime-local" name="until" id="until" value="{{ old('until') }}" min="{{ now()->addHour()->format('Y-m-d\TH:i') }}" class="{{ $input }}" :required="duration === 'custom'">
+                                <input type="datetime-local" name="until" id="until" value="{{ old('until') }}" class="{{ $input }}" :required="duration === 'custom'">
                                 @error('until')<p class="mt-2 text-sm text-rose-700">{{ $message }}</p>@enderror
                             </div>
                             <div>

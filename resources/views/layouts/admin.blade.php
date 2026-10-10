@@ -89,9 +89,14 @@
                 </a>
             @endcan
 
-            @canany(['correo.configurar', 'avisos.publicar'])
+            @canany(['correo.configurar', 'avisos.publicar', 'modulos.gestionar'])
                 <p class="admin-sidebar-label mt-7">CONFIGURACIÓN</p>
             @endcanany
+            @can('modulos.gestionar')
+                <a href="{{ route('admin.modules.index') }}" class="{{ $navItemClass('admin.modules.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M17.5 14v7M14 17.5h7"/></svg>Módulos
+                </a>
+            @endcan
             @can('correo.configurar')
                 <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Correo saliente
@@ -162,5 +167,6 @@
         @include('components.platform-footer')
     </div>
 </div>
+@include('partials.idle-watch')
 </body>
 </html>

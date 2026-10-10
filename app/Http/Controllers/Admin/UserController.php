@@ -93,6 +93,8 @@ class UserController extends Controller
             'duration' => ['required', 'in:1,3,7,30,custom,permanent'],
             'until' => ['nullable', 'required_if:duration,custom', 'date', 'after:now'],
             'reason' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'until.after' => 'Esa hora ya pasó. Elige una posterior a la actual ('.now()->format('d/m/Y H:i').').',
         ]);
         $until = match ($data['duration']) {
             'permanent' => null,

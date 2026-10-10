@@ -19,6 +19,8 @@ class WorkspaceController extends Controller
         }, 403);
 
         $request->session()->put('active_space', $space);
+        // Se recuerda para reabrir este espacio en el próximo inicio de sesión.
+        $user->forceFill(['last_space' => $space])->save();
 
         return redirect()->to(match ($space) {
             'admin' => route('admin.dashboard'),

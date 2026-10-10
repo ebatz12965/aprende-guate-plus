@@ -190,7 +190,8 @@ if (config && root) {
         root.classList.add('is-loading');
         try {
             const url = new URL(config.dataUrl); url.searchParams.set('range', state.range); if (state.provider) url.searchParams.set('provider', state.provider);
-            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            // Consulta de fondo: no cuenta como actividad para el cierre por inactividad.
+            const response = await fetch(url, { headers: { Accept: 'application/json', 'X-Background-Request': '1' } });
             if (response.ok) { render(await response.json()); state.updated = Date.now(); }
         } catch (error) { /* Se reintenta en la siguiente consulta; el tablero conserva los últimos datos. */ }
         root.classList.remove('is-loading');

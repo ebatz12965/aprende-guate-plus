@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\EnforceIdleTimeout;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureAdminAccess;
+use App\Http\Middleware\EnsureModuleAvailable;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
@@ -24,7 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(SecurityHeaders::class);
-        $middleware->web(append: [EnsureAccountIsActive::class]);
+        $middleware->web(append: [EnsureAccountIsActive::class, EnforceIdleTimeout::class, EnsureModuleAvailable::class]);
         $middleware->alias([
             'admin' => EnsureAdminAccess::class,
             'role' => RoleMiddleware::class,

@@ -22,6 +22,9 @@ class TopicContentService
 {
     private const PRACTICE_TYPES = ['excel_dataset', 'code_bug', 'code_complete', 'case_study', 'language_activity', 'theory_quiz'];
 
+    /** Indica si la última lección o práctica generada es el contenido de respaldo (la IA no respondió bien). */
+    public bool $usedFallback = false;
+
     public function __construct(private readonly AiGateway $gateway, private readonly ReviewedGenerator $reviewed) {}
 
     public function classify(LearningPath $path, LearningPathTopic $topic): array
@@ -58,7 +61,7 @@ class TopicContentService
             .'5) que todo el contenido trate este tema y no se adelante a temas posteriores; 6) que ninguna pregunta pida recitar una definición; 7) que en la decisión solo una opción sea de verdad la mejor y que cada consecuencia sea realista. Recalcula paso a paso cada número del ejemplo resuelto con su material. No te limites a copiar el borrador: mejora lo que esté débil. En review_notes anota cada error que encontraste y cómo lo corregiste. Devuelve la lección completa.';
 
         return $this->generateReviewed('theory_content', $prompt, $review, $this->lessonSchema(), 'topic_lesson', (int) config('ai.lesson_max_tokens'), $path->user_id,
-            fn (array $value) => $this->lessonProblems($value), fn () => $this->lessonFallback($path, $topic));
+            fn (array $value) => $this->lessonProblems($value), fn () => $this->fallback(fn () => $this->lessonFallback($path, $topic)));
     }
 
     private function lessonPrompt(LearningPath $path, LearningPathTopic $topic): string
@@ -206,7 +209,7 @@ class TopicContentService
             .'5) que la entrega sea texto que se pueda pegar en un cuadro de respuesta; 6) español claro con tuteo. En excel_dataset no escribas números en reference_solution: verifica que cada cálculo de checks use nombres de columnas y valores que existen en el CSV. En código, ejecuta mentalmente cada caso de prueba y confirma que el resultado esperado del comentario es el correcto. No te limites a copiar el borrador: mejora lo que esté débil. En review_notes anota cada error que encontraste y cómo lo corregiste. Devuelve la práctica completa.';
 
         $practice = $this->generateReviewed('exercise_generator', $this->practicePrompt($path, $topic), $review, $this->practiceSchema(), 'topic_practice', (int) config('ai.practice_max_tokens'), $path->user_id,
-            fn (array $value) => $this->practiceProblems($value, $type), fn () => $this->practiceFallback($path, $topic));
+            fn (array $value) => $this->practiceProblems($value, $type), fn () => $this->fallback(fn () => $this->practiceFallback($path, $topic)));
 
         $practice['material']['kind'] = $this->materialKind($type);
         if ($type === 'excel_dataset' && count($practice['checks'] ?? [])) {
@@ -473,8 +476,18 @@ class TopicContentService
      * @param  callable(array): array{0: array<int, string>, 1: array<int, string>}  $problems
      * @param  callable(): array  $fallback
      */
+    /** @param  callable(): array  $build */
+    private function fallback(callable $build): array
+    {
+        $this->usedFallback = true;
+
+        return $build();
+    }
+
     private function generateReviewed(string $agent, string $prompt, string $reviewInstructions, array $schema, string $operation, int $maxTokens, ?int $userId, callable $problems, callable $fallback): array
     {
+        $this->usedFallback = false;
+
         return $this->reviewed->generate($agent, $prompt, $reviewInstructions, $schema, $operation, $maxTokens, $userId, $problems, $fallback);
     }
 
@@ -489,6 +502,11 @@ class TopicContentService
 
     private function topicContext(LearningPath $path, LearningPathTopic $topic): string
     {
+        // Temas de la biblioteca compartida: el contexto es el del curso, no el de una persona.
+        if ($library = data_get($topic->metadata, 'library_context')) {
+            return $library.' Plan pedagógico: '.json_encode(data_get($topic->metadata, 'content_plan', []), JSON_UNESCAPED_UNICODE).'.';
+        }
+
         $module = $topic->module;
         $siblings = $module?->topics()->orderBy('position')->get(['title', 'position']) ?? collect();
         $before = $siblings->where('position', '<', $topic->position)->pluck('title')->implode('; ');

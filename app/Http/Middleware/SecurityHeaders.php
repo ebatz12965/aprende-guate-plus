@@ -15,7 +15,9 @@ class SecurityHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+        // El micrófono solo se permite en la etapa de entrevista (llamada de voz); en el resto del sitio sigue bloqueado.
+        $microphone = $request->routeIs('adaptive.interviews.stage') ? 'microphone=(self)' : 'microphone=()';
+        $response->headers->set('Permissions-Policy', "camera=(), {$microphone}, geolocation=(), payment=()");
         $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
         // CSP parcial: directivas que no restringen scripts ni estilos (Alpine.js evalúa expresiones
         // y hay scripts en línea; una política completa requiere nonces y pruebas en navegador).

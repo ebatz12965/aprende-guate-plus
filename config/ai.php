@@ -83,6 +83,22 @@ return [
     'architecture_max_tokens' => (int) env('AI_ARCHITECTURE_MAX_TOKENS', 5000),
     'analysis_max_tokens' => (int) env('AI_ANALYSIS_MAX_TOKENS', 2500),
     'diagnostic_max_tokens' => (int) env('AI_DIAGNOSTIC_MAX_TOKENS', 5000),
+    // Simulaciones de entrevista que una persona puede crear por día (cada una consume varias llamadas a la IA).
+    'interview_daily_limit' => (int) env('AI_INTERVIEW_DAILY_LIMIT', 3),
+    // Entrevista por voz: corta a propósito, porque el audio es lo más caro de la plataforma.
+    'voice' => [
+        'models' => ['gpt-realtime-2.1-mini', 'gpt-realtime-2.1'],
+        // Cuentas de prueba con la voz siempre habilitada (sin completar rutas ni límite por entrevista), separadas por coma.
+        'unrestricted_emails' => array_values(array_filter(array_map(fn ($email) => strtolower(trim($email)), explode(',', (string) env('AI_VOICE_UNRESTRICTED_EMAILS', ''))))),
+        'max_seconds' => (int) env('AI_VOICE_MAX_SECONDS', 300),
+        // Para probar, llamadas de 1 minuto con 1 pregunta: AI_VOICE_MAX_SECONDS=60 y AI_VOICE_QUESTIONS=1.
+        'questions' => (int) env('AI_VOICE_QUESTIONS', 4),
+        'daily_limit' => (int) env('AI_VOICE_DAILY_LIMIT', 2),
+        // Reconexiones permitidas por entrevista si se corta la llamada.
+        'sessions_per_stage' => (int) env('AI_VOICE_SESSIONS_PER_STAGE', 2),
+        'voice' => env('AI_VOICE_NAME', 'marin'),
+        'transcription_model' => 'gpt-4o-mini-transcribe',
+    ],
     'lesson_max_tokens' => (int) env('AI_LESSON_MAX_TOKENS', 3200),
     'practice_max_tokens' => (int) env('AI_PRACTICE_MAX_TOKENS', 2400),
     'evaluation_max_tokens' => (int) env('AI_EVALUATION_MAX_TOKENS', 900),
@@ -96,14 +112,16 @@ return [
         'curriculum' => $agent('Diseñador curricular', 'Desarrolla unidades, objetivos, prerrequisitos y estimaciones.', 1000, false, true),
         'content_classifier' => $agent('Clasificador de contenido', 'Decide el formato pedagógico, el tipo de práctica y los recursos que necesita cada tema.', 550, true, false, 'fast'),
         'theory_content' => $agent('Generador de teoría', 'Produce contenido estructurado, claro y pedagógico.', 3200, true, false, 'writing'),
-        'tutorial_script' => $agent('Guionista tutorial', 'Produce guiones y escenas; no genera video directamente.', 900, false, true),
+        'tutorial_script' => $agent('Guionista tutorial', 'Diseña los extractos animados de Office (escenas paso a paso de Excel, Word, PowerPoint y Outlook) y su narración; no genera video.', 2600, true, false, 'writing'),
         'exercise_generator' => $agent('Generador de ejercicios', 'Crea prácticas profesionales, datasets y criterios de entrega.', 2400, true, false, 'writing'),
         'content_reviewer' => $agent('Revisor de contenido', 'Revisa y corrige lecciones y prácticas: exactitud, respuestas correctas, datos coherentes y claridad.', 3200, true, false, 'reasoning'),
         'file_generator' => $agent('Especificador de archivos', 'Describe archivos a generar por el backend; nunca produce binarios.', 600, false, true),
         'evaluator' => $agent('Evaluador de evidencias', 'Evalúa contra rúbricas y explica mejoras sin revelar soluciones.', 900, true, false, 'reasoning'),
         'tutor' => $agent('Tutor IA', 'Da pistas progresivas y orientación contextual al estudiante.', 300, true, false, 'fast'),
-        'interviewer' => $agent('Entrevistador', 'Conduce entrevistas escritas por estados y preguntas adaptativas.', 700, false, true),
-        'interview_evaluator' => $agent('Evaluador de entrevista', 'Califica entrevistas separadamente mediante rúbricas.', 900, false, true),
+        'interviewer' => $agent('Entrevistador', 'Diseña el proceso de selección simulado y conduce entrevistas escritas con repreguntas.', 1400, true, false, 'writing'),
+        // Voz en tiempo real (OpenAI Realtime por WebRTC): solo modelos realtime de OpenAI.
+        'voice_interviewer' => [...$agent('Entrevistador por voz', 'Conduce la entrevista corta de Recursos Humanos por voz en tiempo real.', 1800, true, false, 'realtime'), 'model' => env('AI_VOICE_MODEL', 'gpt-realtime-2.1-mini')],
+        'interview_evaluator' => $agent('Evaluador de entrevista', 'Califica las entrevistas simuladas con una rúbrica y da retroalimentación por pregunta.', 2200, true, false, 'reasoning'),
         'employability' => $agent('Agente de empleabilidad', 'Relaciona vacantes, perfil, evidencias y brechas.', 800, false, true),
         'mentor_application_assessor' => $agent('Generador de cuestionarios de mentoría', 'Genera un cuestionario pedagógico según la especialidad y las áreas de apoyo declaradas, sin evaluar ni recibir respuestas personales.', 900, true, false, 'writing'),
     ],

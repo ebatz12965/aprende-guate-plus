@@ -9,13 +9,17 @@ use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\Admin\MentorApplicationController as AdminMentorApplicationController;
+use App\Http\Controllers\Admin\ModuleController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Learning\CareerProfileController;
+use App\Http\Controllers\Learning\CertificateController;
 use App\Http\Controllers\Learning\ChallengeController;
 use App\Http\Controllers\Learning\DashboardController as LearningDashboardController;
 use App\Http\Controllers\Learning\DiagnosticController;
+use App\Http\Controllers\Learning\InterviewController;
 use App\Http\Controllers\Learning\LearningPathController;
+use App\Http\Controllers\Learning\LibraryNarrationController;
 use App\Http\Controllers\Learning\MentorshipController as StudentMentorshipController;
 use App\Http\Controllers\Learning\TopicController;
 use App\Http\Controllers\Learning\TutorController;
@@ -25,11 +29,14 @@ use App\Http\Controllers\MentorshipConversationController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PlatformGuideController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SessionActivityController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
+// Verificación pública de certificados: la página a la que lleva el código QR.
+Route::get('/certificados/{certificate}', [CertificateController::class, 'verify'])->middleware('throttle:30,1')->name('certificates.verify');
 Route::view('/terminos-y-condiciones', 'legal.terms')->name('legal.terms');
 Route::view('/politica-de-privacidad', 'legal.privacy')->name('legal.privacy');
 Route::view('/politica-de-cookies', 'legal.cookies')->name('legal.cookies');
@@ -69,6 +76,8 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/espacio/cambiar', [WorkspaceController::class, 'switch'])->name('workspace.switch');
+    Route::post('/sesion/actividad', [SessionActivityController::class, 'ping'])->middleware('throttle:30,1')->name('session.ping');
+    Route::post('/sesion/inactividad', [SessionActivityController::class, 'expire'])->name('session.expire');
     Route::get('/mi-panel', LearningDashboardController::class)->name('adaptive.dashboard');
     Route::get('/mi-panel/estado', [LearningDashboardController::class, 'status'])->name('adaptive.dashboard.status');
     Route::get('/diagnostico', [DiagnosticController::class, 'show'])->name('adaptive.diagnostic');
@@ -78,9 +87,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/diagnostico/{attempt}/generando', [DiagnosticController::class, 'generation'])->name('adaptive.diagnostic.generation');
     Route::post('/diagnostico/{attempt}/reintentar', [DiagnosticController::class, 'retry'])->middleware('throttle:ai-generation')->name('adaptive.diagnostic.retry');
     Route::get('/mi-ruta', [LearningPathController::class, 'show'])->name('adaptive.path');
+    Route::get('/mis-certificados', [CertificateController::class, 'index'])->name('adaptive.certificates');
+    Route::get('/mis-certificados/{certificate}', [CertificateController::class, 'show'])->name('adaptive.certificates.show');
+    Route::get('/mis-certificados/{certificate}/pdf', [CertificateController::class, 'download'])->middleware('throttle:20,1')->name('adaptive.certificates.pdf');
     Route::get('/mi-ruta/fases/{item}', [LearningPathController::class, 'showItem'])->name('adaptive.path.item.show');
     Route::post('/mi-ruta/fases/{item}/quiz', [LearningPathController::class, 'submitQuiz'])->name('adaptive.path.item.quiz');
     Route::get('/mi-ruta/temas/{topic}', [TopicController::class, 'show'])->name('adaptive.topic.show');
+    Route::get('/biblioteca/{libraryTopic}/narracion/{step}', LibraryNarrationController::class)->whereNumber('step')->name('library.narration');
     Route::post('/mi-ruta/temas/{topic}/leccion', [TopicController::class, 'generateLesson'])->middleware('throttle:ai-generation')->name('adaptive.topic.lesson');
     Route::post('/mi-ruta/temas/{topic}/practica', [TopicController::class, 'generatePractice'])->middleware('throttle:ai-generation')->name('adaptive.topic.practice');
     Route::get('/mi-ruta/temas/{topic}/generacion', [TopicController::class, 'generationStatus'])->name('adaptive.topic.generation.status');
@@ -94,6 +107,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/retos/{challenge}', [ChallengeController::class, 'submit'])->middleware('throttle:ai-generation')->name('adaptive.challenges.submit');
     Route::get('/retos/{challenge}/material/{resource}', [ChallengeController::class, 'downloadResource'])->whereNumber('resource')->name('adaptive.challenges.resource');
     Route::get('/retos/evidencias/{submission}/archivo', [ChallengeController::class, 'downloadAttachment'])->name('adaptive.challenges.attachment');
+    Route::get('/empleabilidad', [InterviewController::class, 'index'])->name('adaptive.interviews');
+    Route::post('/empleabilidad', [InterviewController::class, 'store'])->middleware('throttle:ai-generation')->name('adaptive.interviews.store');
+    Route::get('/empleabilidad/{simulation}', [InterviewController::class, 'show'])->name('adaptive.interviews.show');
+    Route::get('/empleabilidad/{simulation}/estado', [InterviewController::class, 'status'])->name('adaptive.interviews.status');
+    Route::post('/empleabilidad/{simulation}/reintentar', [InterviewController::class, 'retry'])->middleware('throttle:ai-generation')->name('adaptive.interviews.retry');
+    Route::get('/empleabilidad/{simulation}/etapas/{stage}', [InterviewController::class, 'stage'])->name('adaptive.interviews.stage');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/comenzar', [InterviewController::class, 'start'])->middleware('throttle:ai-generation')->name('adaptive.interviews.stage.start');
+    Route::get('/empleabilidad/{simulation}/etapas/{stage}/estado', [InterviewController::class, 'stageStatus'])->name('adaptive.interviews.stage.status');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/respuestas', [InterviewController::class, 'answer'])->middleware('throttle:ai-tutor')->name('adaptive.interviews.stage.answer');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/reintentar-evaluacion', [InterviewController::class, 'retryEvaluation'])->middleware('throttle:ai-generation')->name('adaptive.interviews.stage.retry');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/voz/sesion', [InterviewController::class, 'voiceSession'])->middleware('throttle:10,1')->name('adaptive.interviews.stage.voice.session');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/voz/terminar', [InterviewController::class, 'voiceFinish'])->middleware('throttle:10,1')->name('adaptive.interviews.stage.voice.finish');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/continuar-por-chat', [InterviewController::class, 'switchToChat'])->middleware('throttle:ai-generation')->name('adaptive.interviews.stage.to-chat');
+    Route::post('/empleabilidad/{simulation}/etapas/{stage}/entregar', [InterviewController::class, 'submitTest'])->middleware('throttle:ai-generation')->name('adaptive.interviews.stage.submit');
+    Route::get('/empleabilidad/{simulation}/etapas/{stage}/archivo', [InterviewController::class, 'attachment'])->name('adaptive.interviews.stage.attachment');
+    Route::delete('/empleabilidad/{simulation}', [InterviewController::class, 'destroy'])->name('adaptive.interviews.destroy');
     Route::get('/mentorias', [StudentMentorshipController::class, 'index'])->name('adaptive.mentorship');
     Route::post('/mentorias/{mentor}/solicitar', [StudentMentorshipController::class, 'store'])->middleware('throttle:10,1')->name('adaptive.mentorship.request');
     Route::get('/mentorias/sesiones/{session}', [MentorshipConversationController::class, 'show'])->name('mentorship.sessions.show');
@@ -155,6 +184,10 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'admin'])-
     });
 
     Route::get('bitacora', [AuditLogController::class, 'index'])->middleware('can:bitacora.ver')->name('audit.index');
+    Route::middleware('can:modulos.gestionar')->group(function () {
+        Route::get('modulos', [ModuleController::class, 'index'])->name('modules.index');
+        Route::put('modulos/{module}', [ModuleController::class, 'update'])->name('modules.update');
+    });
 
     Route::middleware('can:ia.configuracion')->group(function () {
         Route::get('configuracion-ia', [AiSettingsController::class, 'edit'])->name('ai-settings.edit');

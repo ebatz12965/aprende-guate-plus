@@ -6,16 +6,34 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon|null $completed_at
+ */
 class LearningPath extends Model
 {
-    protected $fillable = ['user_id', 'title', 'goal', 'estimated_level', 'estimated_hours', 'generation_version', 'status'];
+    protected $fillable = ['user_id', 'title', 'goal', 'estimated_level', 'estimated_hours', 'generation_version', 'status', 'completed_at'];
 
+    protected function casts(): array
+    {
+        return ['completed_at' => 'datetime'];
+    }
+
+    /** @return HasOne<Certificate, $this> */
+    public function certificate(): HasOne
+    {
+        return $this->hasOne(Certificate::class);
+    }
+
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return HasMany<LearningPathItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(LearningPathItem::class)->orderBy('position');
