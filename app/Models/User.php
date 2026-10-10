@@ -24,6 +24,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property int|null $suspended_by
  * @property string|null $last_space
  * @property int $voice_interviews_used
+ * @property bool $password_change_required
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -46,6 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_reminder_shown_at' => 'datetime',
             'suspended_at' => 'datetime',
             'suspended_until' => 'datetime',
+            'password_change_required' => 'boolean',
         ];
     }
 

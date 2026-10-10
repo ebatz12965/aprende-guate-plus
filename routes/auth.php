@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\RequiredPasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,10 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    // Cambio obligatorio de una contraseña temporal (primer inicio de sesión).
+    Route::get('cambiar-contrasena', [RequiredPasswordChangeController::class, 'edit'])->name('password.change');
+    Route::put('cambiar-contrasena', [RequiredPasswordChangeController::class, 'update'])->middleware('throttle:10,1')->name('password.change.update');
+
     Route::post('two-factor-authentication/setup', [TwoFactorAuthenticationController::class, 'begin'])->name('two-factor.setup');
     Route::post('two-factor-authentication/confirm', [TwoFactorAuthenticationController::class, 'confirm'])->name('two-factor.confirm');
     Route::delete('two-factor-authentication', [TwoFactorAuthenticationController::class, 'disable'])->name('two-factor.disable');
