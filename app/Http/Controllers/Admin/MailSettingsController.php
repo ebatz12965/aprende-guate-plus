@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateMailSettingsRequest;
+use App\Mail\MailSettingsTestMail;
 use App\Models\PlatformSetting;
 use App\Services\MailConfigurationService;
 use App\Support\Audit;
@@ -34,12 +35,7 @@ class MailSettingsController extends Controller
         try {
             $mailConfiguration->apply();
 
-            Mail::raw(
-                'Este es un correo de prueba de Aprende Guate. Si lo recibiste, la configuración SMTP administrada está funcionando correctamente.',
-                function ($message) use ($data): void {
-                    $message->to($data['test_recipient'])->subject('Prueba de correo · Aprende Guate');
-                },
-            );
+            Mail::to($data['test_recipient'])->send(new MailSettingsTestMail($request->user()->name, (string) $settings['host']));
         } catch (\Throwable $exception) {
             report($exception);
 
