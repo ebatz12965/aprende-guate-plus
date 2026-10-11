@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\NotificationPreference;
 use App\Models\User;
 use App\Services\MailConfigurationService;
+use App\Support\EmailTemplates;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -55,15 +56,12 @@ class PlatformAlertNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         app(MailConfigurationService::class)->apply();
-        $message = (new MailMessage)
-            ->subject($this->title.' · Aprende Guate')
-            ->greeting('Hola, '.$notifiable->name)
-            ->line($this->body);
 
-        if ($this->url) {
-            $message->action($this->actionLabel ?: 'Ver detalle', $this->url);
-        }
-
-        return $message->line('Puedes cambiar tus preferencias de notificaciones desde tu cuenta.');
+        return EmailTemplates::mailMessage('platform_alert', [
+            'nombre' => $notifiable->name,
+            'titulo' => $this->title,
+            'mensaje' => $this->body,
+            'accion' => $this->actionLabel ?: 'Ver detalle',
+        ], $this->url);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Services\MailConfigurationService;
+use App\Support\EmailTemplates;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\URL;
@@ -17,11 +18,10 @@ class ResetPasswordNotification extends ResetPassword
             'email' => $notifiable->getEmailForPasswordReset(),
         ]);
 
-        return (new MailMessage)
-            ->subject('Restablece tu contraseña · Aprende Guate')
-            ->greeting('Solicitud de restablecimiento de contraseña')
-            ->line('Recibimos una solicitud para cambiar la contraseña de tu cuenta.')
-            ->action('Restablecer contraseña', $url)
-            ->line('Este enlace expirará en 60 minutos. Si no solicitaste el cambio, no es necesario realizar ninguna acción.');
+        return EmailTemplates::mailMessage('password_reset', [
+            'nombre' => $notifiable->name,
+            'correo' => $notifiable->getEmailForPasswordReset(),
+            'minutos' => config('auth.passwords.'.config('auth.defaults.passwords').'.expire', 60),
+        ], $url);
     }
 }

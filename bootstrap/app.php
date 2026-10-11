@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('mentorship:send-reminders')->everyMinute()->withoutOverlapping();
+        $schedule->command('mentorship:close-finished')->everyFifteenMinutes()->withoutOverlapping();
         // Solo reencola lo que quedó esperando al evaluador; los errores se reintentan a mano (--include-failed).
         $schedule->command('ai:retry-evaluations')->hourly()->withoutOverlapping();
     })

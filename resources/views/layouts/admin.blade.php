@@ -101,6 +101,9 @@
                 <a href="{{ route('admin.mail-settings.edit') }}" class="{{ $navItemClass('admin.mail-settings.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Correo saliente
                 </a>
+                <a href="{{ route('admin.email-templates.index') }}" class="{{ $navItemClass('admin.email-templates.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Plantillas de correo
+                </a>
             @endcan
             @can('avisos.publicar')
                 <a href="{{ route('admin.announcements.index') }}" class="{{ $navItemClass('admin.announcements.*') }}">

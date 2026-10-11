@@ -66,7 +66,7 @@
 
     <section class="platform-feature mt-6">
         <h2 class="!mt-0 text-xl">Probar configuración</h2>
-        <p class="mt-1 text-sm text-slate-500">Envía un mensaje real usando la configuración guardada. Guarda los cambios antes de probar.</p>
+        <p class="mt-1 text-sm text-slate-500">Envía un mensaje real usando la configuración guardada. Guarda los cambios antes de probar. El asunto y el texto de la prueba se editan en <a href="{{ route('admin.email-templates.edit', 'mail_test') }}" class="font-bold text-blue-700 underline">Plantillas de correo</a>.</p>
         <form action="{{ route('admin.mail-settings.test') }}" method="POST" class="mt-5 flex flex-col gap-3 sm:flex-row">
             @csrf
             <input name="test_recipient" type="email" required class="w-full rounded-xl border-slate-200" placeholder="correo-destino@ejemplo.com">

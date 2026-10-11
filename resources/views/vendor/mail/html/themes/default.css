@@ -301,6 +301,45 @@ img {
     padding-bottom: 0;
 }
 
+/* Conversación de mentoría */
+
+.transcript {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    margin: 8px 0 24px;
+    width: 100%;
+}
+
+.transcript-row {
+    border-bottom: 1px solid #E2E8F0;
+    padding: 12px 16px;
+}
+
+.transcript-meta {
+    color: #64748B;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.transcript-meta strong {
+    color: #0F172A;
+}
+
+.transcript-body {
+    color: #334155;
+    font-size: 15px;
+    margin-bottom: 0;
+}
+
+.transcript-empty {
+    color: #64748B;
+    font-size: 14px;
+    padding: 16px;
+}
+
 /* Utilities */
 
 .break-all {

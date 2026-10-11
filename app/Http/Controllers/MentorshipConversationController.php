@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\MentorshipSession;
-use App\Models\NotificationPreference;
 use App\Notifications\PlatformAlertNotification;
+use App\Services\MentorshipCompletionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,16 +16,16 @@ class MentorshipConversationController extends Controller
     {
         $this->authorize('participate', $session);
         $isMentor = $session->mentor_id === $request->user()->id;
-        abort_unless($isMentor || in_array($session->status, ['accepted', 'scheduled'], true), 403);
+        abort_unless($isMentor || in_array($session->status, ['accepted', 'scheduled', 'completed'], true), 403);
 
-        if (in_array($session->status, ['accepted', 'scheduled'], true)) {
+        if ($session->isActive()) {
             $session->messages()
                 ->where('sender_id', '!=', $request->user()->id)
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
         }
 
-        $session->load(['student.studentProfile', 'mentor.mentorProfile', 'messages.sender']);
+        $session->load(['student.studentProfile', 'mentor.mentorProfile', 'messages.sender', 'completedBy']);
 
         return view('mentorship.session', [
             'session' => $session,
@@ -36,7 +36,7 @@ class MentorshipConversationController extends Controller
     public function send(Request $request, MentorshipSession $session): RedirectResponse|JsonResponse
     {
         $this->authorize('participate', $session);
-        abort_unless(in_array($session->status, ['accepted', 'scheduled'], true), 403);
+        abort_unless($session->isActive(), 403, $session->status === 'completed' ? 'Esta sesión ya finalizó; la conversación quedó cerrada.' : 'Esta conversación no está disponible.');
         $data = $request->validate(['body' => ['required', 'string', 'max:2000']]);
 
         $message = $session->messages()->create([
@@ -44,31 +44,16 @@ class MentorshipConversationController extends Controller
             'body' => $data['body'],
         ]);
 
+        // Solo el aviso dentro de la plataforma: el correo llega una vez, con toda la conversación, al finalizar la sesión.
         $recipient = $session->mentor_id === $request->user()->id ? $session->student : $session->mentor;
-        $title = 'Nuevo mensaje de mentoría';
-        $body = $request->user()->name.' te envió un mensaje sobre “'.$session->topic.'”.';
         $recipient->notify(new PlatformAlertNotification(
             category: 'messages',
-            title: $title,
-            body: $body,
+            title: 'Nuevo mensaje de mentoría',
+            body: $request->user()->name.' te envió un mensaje sobre “'.$session->topic.'”.',
             url: route('mentorship.sessions.show', $session),
             actionLabel: 'Leer mensaje',
             allowEmail: false,
         ));
-
-        if (NotificationPreference::forUser($recipient)->receives('mail', 'messages')) {
-            dispatch(function () use ($recipient, $title, $body, $session): void {
-                $recipient->notify(new PlatformAlertNotification(
-                    category: 'messages',
-                    title: $title,
-                    body: $body,
-                    url: route('mentorship.sessions.show', $session),
-                    actionLabel: 'Leer mensaje',
-                    allowEmail: true,
-                    allowDatabase: false,
-                ));
-            })->afterResponse();
-        }
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -80,6 +65,19 @@ class MentorshipConversationController extends Controller
         }
 
         return back()->with('success', 'Mensaje enviado.');
+    }
+
+    public function finish(Request $request, MentorshipSession $session, MentorshipCompletionService $completion): RedirectResponse
+    {
+        $this->authorize('participate', $session);
+
+        if (! $completion->complete($session, $request->user())) {
+            return redirect()->route('mentorship.sessions.show', $session)->with('error', 'Esta sesión ya no estaba abierta.');
+        }
+
+        dispatch(fn () => $completion->sendTranscripts($session))->afterResponse();
+
+        return redirect()->route('mentorship.sessions.show', $session)->with('success', 'Sesión finalizada. Ambas personas recibirán la conversación completa por correo.');
     }
 
     public function messages(Request $request, MentorshipSession $session): JsonResponse

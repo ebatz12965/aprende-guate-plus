@@ -48,6 +48,7 @@
     $statusClass = match ($session->status) {
         'accepted', 'scheduled' => 'bg-emerald-50 text-emerald-700',
         'rejected', 'cancelled' => 'bg-rose-50 text-rose-700',
+        'completed' => 'bg-slate-100 text-slate-700',
         default => 'bg-amber-50 text-amber-700'
     }
 )
@@ -64,10 +65,10 @@
                             @endif
                         </div>
                         <div class="flex items-center gap-3"><span
-                                class="rounded-full px-2.5 py-1 text-xs font-bold {{ $statusClass }}">{{ match ($session->status) {'requested' => 'Pendiente','accepted' => 'Aceptada','scheduled' => 'Programada','rejected' => 'No disponible','cancelled' => 'Cancelada',default => ucfirst($session->status)} }}</span>
-                            @if (in_array($session->status, ['accepted', 'scheduled'], true))
+                                class="rounded-full px-2.5 py-1 text-xs font-bold {{ $statusClass }}">{{ match ($session->status) {'requested' => 'Pendiente','accepted' => 'Aceptada','scheduled' => 'Programada','rejected' => 'No disponible','cancelled' => 'Cancelada','completed' => 'Finalizada',default => ucfirst($session->status)} }}</span>
+                            @if (in_array($session->status, ['accepted', 'scheduled', 'completed'], true))
                                 <a href="{{ route('mentorship.sessions.show', $session) }}"
-                                    class="rounded-xl border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700 hover:bg-blue-50">Abrir conversación</a>
+                                    class="rounded-xl border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700 hover:bg-blue-50">{{ $session->status === 'completed' ? 'Ver conversación' : 'Abrir conversación' }}</a>
                             @endif
                         </div>
                 </article>@empty<p class="rounded-2xl bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">Aún no has solicitado una mentoría.</p>

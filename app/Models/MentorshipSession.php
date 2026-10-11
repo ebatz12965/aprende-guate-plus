@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon|null $scheduled_at
+ * @property Carbon|null $completed_at
+ */
 class MentorshipSession extends Model
 {
     protected $fillable = [
@@ -23,6 +28,9 @@ class MentorshipSession extends Model
         'cancelled_by',
         'cancelled_at',
         'cancellation_message',
+        'completed_at',
+        'completed_by',
+        'transcript_sent_at',
         'reminders_sent',
     ];
 
@@ -33,6 +41,8 @@ class MentorshipSession extends Model
             'preferred_at' => 'datetime',
             'responded_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'transcript_sent_at' => 'datetime',
             'reminders_sent' => 'array',
         ];
     }
@@ -49,6 +59,19 @@ class MentorshipSession extends Model
         return $this->belongsTo(User::class, 'student_id');
     }
 
+    /** @return BelongsTo<User, $this> */
+    public function completedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'completed_by');
+    }
+
+    /** Estados en los que la conversación sigue abierta. */
+    public function isActive(): bool
+    {
+        return in_array($this->status, ['accepted', 'scheduled'], true);
+    }
+
+    /** @return HasMany<MentorshipMessage, $this> */
     public function messages(): HasMany
     {
         return $this->hasMany(MentorshipMessage::class)->oldest();
