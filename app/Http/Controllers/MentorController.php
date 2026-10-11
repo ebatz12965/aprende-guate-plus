@@ -24,8 +24,8 @@ class MentorController extends Controller
             ->with('student.studentProfile')
             ->latest()
             ->get();
-        $availableStatuses = ['requested', 'accepted', 'scheduled', 'cancelled', 'rejected'];
-        $defaultStatuses = ['requested', 'accepted', 'scheduled', 'cancelled'];
+        $availableStatuses = ['requested', 'accepted', 'scheduled', 'completed', 'cancelled', 'rejected'];
+        $defaultStatuses = ['requested', 'accepted', 'scheduled', 'completed', 'cancelled'];
         $selectedStatuses = $request->has('status')
             ? array_values(array_intersect((array) $request->input('status'), $availableStatuses))
             : $defaultStatuses;

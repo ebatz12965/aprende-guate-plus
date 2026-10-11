@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\AiUsageController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\Admin\MentorApplicationController as AdminMentorApplicationController;
 use App\Http\Controllers\Admin\ModuleController;
@@ -131,6 +132,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/mentorias/widget', [MentorshipConversationController::class, 'widget'])->name('mentorship.widget');
     Route::post('/mentorias/widget/{session}/leer', [MentorshipConversationController::class, 'markWidgetRead'])->name('mentorship.widget.read');
     Route::post('/mentorias/sesiones/{session}/cancelar', [MentorController::class, 'cancel'])->name('mentor.sessions.cancel');
+    Route::post('/mentorias/sesiones/{session}/finalizar', [MentorshipConversationController::class, 'finish'])->name('mentorship.sessions.finish');
     Route::get('/notificaciones', [NotificationsController::class, 'index'])->name('notifications.index');
     Route::post('/guia-plataforma/preguntar', [PlatformGuideController::class, 'ask'])->middleware('throttle:ai-tutor')->name('platform.guide.ask');
     Route::patch('/notificaciones/preferencias', [NotificationsController::class, 'updatePreferences'])->name('notifications.preferences.update');
@@ -205,6 +207,12 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'admin'])-
         Route::get('configuracion-correo', [MailSettingsController::class, 'edit'])->name('mail-settings.edit');
         Route::put('configuracion-correo', [MailSettingsController::class, 'update'])->name('mail-settings.update');
         Route::post('configuracion-correo/probar', [MailSettingsController::class, 'sendTest'])->name('mail-settings.test');
+        Route::get('plantillas-correo', [EmailTemplateController::class, 'index'])->name('email-templates.index');
+        Route::get('plantillas-correo/{key}', [EmailTemplateController::class, 'edit'])->name('email-templates.edit');
+        Route::put('plantillas-correo/{key}', [EmailTemplateController::class, 'update'])->name('email-templates.update');
+        Route::delete('plantillas-correo/{key}', [EmailTemplateController::class, 'destroy'])->name('email-templates.destroy');
+        Route::match(['get', 'post'], 'plantillas-correo/{key}/vista-previa', [EmailTemplateController::class, 'preview'])->name('email-templates.preview');
+        Route::post('plantillas-correo/{key}/probar', [EmailTemplateController::class, 'sendTest'])->middleware('throttle:10,1')->name('email-templates.test');
     });
     Route::middleware('can:avisos.publicar')->group(function () {
         Route::get('avisos', [AnnouncementController::class, 'index'])->name('announcements.index');

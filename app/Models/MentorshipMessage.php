@@ -19,6 +19,7 @@ class MentorshipMessage extends Model
         return $this->belongsTo(MentorshipSession::class, 'mentorship_session_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
