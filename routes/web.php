@@ -74,6 +74,7 @@ require __DIR__.'/auth.php';
 
 Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])->name('socialite.redirect');
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']);
+Route::get('/auth/google/confirmar', [SocialiteController::class, 'confirm'])->middleware(['auth', 'throttle:10,1'])->name('socialite.confirm');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/espacio/cambiar', [WorkspaceController::class, 'switch'])->name('workspace.switch');

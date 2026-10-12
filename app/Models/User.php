@@ -48,6 +48,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'suspended_at' => 'datetime',
             'suspended_until' => 'datetime',
             'password_change_required' => 'boolean',
+            'has_local_password' => 'boolean',
+            'two_factor_last_counter' => 'integer',
         ];
     }
 
