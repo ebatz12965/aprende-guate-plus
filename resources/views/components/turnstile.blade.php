@@ -14,7 +14,8 @@
                         sitekey: el.dataset.sitekey,
                         action: el.dataset.action,
                         language: 'es',
-                        theme: 'auto',
+                        // El tema de la página (clase «dark» en <html>), no el del sistema operativo.
+                        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                         size: 'flexible',
                         // Cada token sirve una sola vez y vence a los 5 minutos: se renueva solo.
                         'refresh-expired': 'auto',
