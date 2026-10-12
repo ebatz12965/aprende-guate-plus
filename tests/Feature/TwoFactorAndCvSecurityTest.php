@@ -62,6 +62,40 @@ class TwoFactorAndCvSecurityTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_the_challenge_opens_as_a_floating_window_with_the_masked_account(): void
+    {
+        [$user] = $this->userWithTwoFactor();
+        $user->forceFill(['name' => 'Ana López', 'email' => 'analopez@example.com'])->save();
+
+        $this->withSession(['two_factor.login_user_id' => $user->id])->get(route('two-factor.challenge'))
+            ->assertOk()
+            ->assertSee('id="two-factor-dialog"', false)
+            ->assertSee('Confirma que eres tú')
+            ->assertSee('Ana López')
+            ->assertSee('a'.str_repeat('•', 7).'@example.com')
+            ->assertDontSee('analopez@example.com');
+    }
+
+    public function test_a_failed_code_tells_how_many_attempts_remain(): void
+    {
+        [$user] = $this->userWithTwoFactor();
+
+        $this->withSession(['two_factor.login_user_id' => $user->id])->post(route('two-factor.challenge.verify'), ['code' => '000000'])
+            ->assertSessionHas('two_factor_remaining', 4)
+            ->assertSessionHasErrors('code');
+    }
+
+    public function test_not_me_discards_the_pending_second_step(): void
+    {
+        [$user] = $this->userWithTwoFactor();
+
+        $this->withSession(['two_factor.login_user_id' => $user->id, 'two_factor.remember' => true])->post(route('two-factor.challenge.cancel'))
+            ->assertRedirect(route('login'))
+            ->assertSessionMissing('two_factor.login_user_id')
+            ->assertSessionMissing('two_factor.remember');
+        $this->get(route('two-factor.challenge'))->assertRedirect(route('login'));
+    }
+
     public function test_cvs_are_private_and_only_their_owner_can_download_them(): void
     {
         Storage::fake('local');

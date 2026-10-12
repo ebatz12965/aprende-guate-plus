@@ -453,7 +453,12 @@
         .ag-login-dialog[open]::backdrop { animation: ag-login-fade .28s ease-out; }
         @keyframes ag-login-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
         @keyframes ag-login-fade { from { opacity: 0; } }
-        @media (prefers-reduced-motion: reduce) { .ag-login-dialog[open], .ag-login-dialog[open]::backdrop { animation: none; } }
+        /* Código de verificación incorrecto: las casillas se marcan y se sacuden una vez. */
+        .ag-otp-error input { border-color: #e11d48; background: #fff1f2; }
+        .dark .ag-otp-error input { border-color: #fb7185; background: rgb(225 29 72 / 0.15); }
+        .ag-otp-error { animation: ag-otp-shake .32s ease-in-out; }
+        @keyframes ag-otp-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+        @media (prefers-reduced-motion: reduce) { .ag-login-dialog[open], .ag-login-dialog[open]::backdrop, .ag-otp-error { animation: none; } }
     </style>
     @vite(['resources/css/app.css', 'resources/js/password-toggle.js'])
 </head>
@@ -490,6 +495,27 @@
                     @include('auth.partials.login-form')
                 </div>
             </dialog>
+            @isset($challengeAccount)
+                {{-- Segundo paso del inicio de sesión, también en ventana flotante sobre la página inicial. --}}
+                <dialog id="two-factor-dialog" class="ag-login-dialog" aria-labelledby="two-factor-title">
+                    <div class="relative w-[min(29rem,calc(100vw-2rem))] rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700 sm:p-9">
+                        <button type="button" data-two-factor-close class="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50" aria-label="Cerrar">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                        </button>
+                        @include('auth.partials.two-factor-form')
+                    </div>
+                </dialog>
+                <script nonce="{{ Vite::cspNonce() }}">
+                    (() => {
+                        const dialog = document.getElementById('two-factor-dialog');
+                        dialog.showModal();
+                        dialog.querySelector('[data-two-factor-close]').addEventListener('click', () => dialog.close());
+                        dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+                        // Al cerrarla queda la página inicial; el paso pendiente vence con la sesión o al volver a iniciar sesión.
+                        dialog.addEventListener('close', () => history.replaceState(null, '', @js(route('home'))));
+                    })();
+                </script>
+            @endisset
             <script nonce="{{ Vite::cspNonce() }}">
                 (() => {
                     const dialog = document.getElementById('login-dialog');
@@ -508,7 +534,7 @@
                     // Al cerrar desde /login, la dirección vuelve a la página inicial.
                     dialog.addEventListener('close', () => { if (location.pathname === new URL(@js(route('login'))).pathname) history.replaceState(null, '', home); });
                     // Se abre sola al entrar a /login, tras un intento fallido o con un aviso (por ejemplo, la sesión cerrada por inactividad).
-                    const autoOpen = @js(($openLogin ?? false) || $errors->hasAny(['email', 'password']) || filled(session('status')));
+                    const autoOpen = @js(! isset($challengeAccount) && (($openLogin ?? false) || $errors->hasAny(['email', 'password']) || filled(session('status'))));
                     if (autoOpen) open();
                 })();
             </script>

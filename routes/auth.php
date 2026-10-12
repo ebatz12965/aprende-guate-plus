@@ -21,6 +21,7 @@ Route::middleware('guest')->group(function () {
 
     Route::get('two-factor-challenge', [TwoFactorAuthenticationController::class, 'challenge'])->name('two-factor.challenge');
     Route::post('two-factor-challenge', [TwoFactorAuthenticationController::class, 'verifyChallenge'])->middleware('throttle:5,1')->name('two-factor.challenge.verify');
+    Route::post('two-factor-challenge/cancel', [TwoFactorAuthenticationController::class, 'cancelChallenge'])->name('two-factor.challenge.cancel');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
