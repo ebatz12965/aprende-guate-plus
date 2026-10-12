@@ -78,7 +78,7 @@
         </section>
         </div>
     </div>
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         document.addEventListener('DOMContentLoaded', () => {
             const key = 'ag-topic-generation-{{ $topic->id }}';
             @if ($lessonPending || $practicePending)

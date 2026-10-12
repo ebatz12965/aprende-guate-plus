@@ -14,7 +14,7 @@ class SecurityHeadersTest extends TestCase
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('X-Frame-Options', 'DENY')
             ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-            ->assertHeader('Cross-Origin-Opener-Policy', 'same-origin')
-            ->assertHeader('Content-Security-Policy', "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'");
+            ->assertHeader('Cross-Origin-Opener-Policy', 'same-origin');
+        $this->assertStringStartsWith("frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'", (string) $response->headers->get('Content-Security-Policy'));
     }
 }

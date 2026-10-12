@@ -163,7 +163,7 @@
     </form>
 </div>
 
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
     window.profileEditor = (education, experience, photoUrl) => ({
         education: education || [],
         experience: experience || [],

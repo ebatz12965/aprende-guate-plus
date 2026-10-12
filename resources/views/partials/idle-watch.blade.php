@@ -18,7 +18,7 @@
         </div>
         <form x-ref="expireForm" method="POST" action="{{ route('session.expire') }}" class="hidden">@csrf</form>
     </div>
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         function idleWatch(config) {
             const KEY = 'ag-last-activity';
             return {

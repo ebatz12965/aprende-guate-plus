@@ -86,7 +86,7 @@
     </section>
 </div>
 
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
     function mentorCalendar(sessions, initialView, initialDate) {
         return {
             sessions,

@@ -314,7 +314,7 @@
     </div>
 
     @once
-        <script>
+        <script nonce="{{ Vite::cspNonce() }}">
             function lessonDeck(deck, order, storageKey, sync = {}) {
                 return {
                     deck, order, storageKey, rootEl: null, i: 0, open: null, current: 0, visited: [], examples: [], flipped: [], fixes: [], steps: 0, decision: null, picked: {}, asText: false,
