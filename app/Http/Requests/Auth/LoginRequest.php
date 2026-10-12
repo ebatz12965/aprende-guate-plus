@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use App\Models\User;
+use App\Rules\TurnstileToken;
 use App\Support\Audit;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
@@ -23,6 +24,8 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            // Si Cloudflare no responde, el acceso sigue funcionando (ya hay límite de intentos).
+            ...TurnstileToken::rules('login', allowWhenUnavailable: true),
         ];
     }
 

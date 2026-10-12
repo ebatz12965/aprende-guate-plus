@@ -43,6 +43,14 @@ return [
         'timeout' => (int) env('ELEVENLABS_TIMEOUT', 30),
     ],
 
+    // Cloudflare Turnstile (verificación contra bots en acceso, registro y recuperación de contraseña).
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret' => env('TURNSTILE_SECRET_KEY'),
+        // Dominios desde los que se acepta un token (por defecto, el de APP_URL).
+        'hostnames' => array_values(array_filter(array_map('trim', explode(',', (string) (env('TURNSTILE_HOSTNAMES') ?: parse_url((string) env('APP_URL', ''), PHP_URL_HOST)))))),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

@@ -24,7 +24,7 @@ class SecurityHeaders
         $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
         // Scripts: solo los propios y los que llevan el nonce. Un <script> o un onclick inyectado no se ejecuta.
         // 'unsafe-eval' es necesario porque Alpine.js evalúa sus expresiones (x-data, @click) con Function().
-        $scripts = "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval'".$this->viteDevServer();
+        $scripts = "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval' https://challenges.cloudflare.com".$this->viteDevServer();
         $policy = "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self' https://accounts.google.com; {$scripts}";
         // Con depuración activa (local) la política solo avisa en la consola: la página de error de Laravel usa scripts en línea.
         $response->headers->set(config('app.debug') ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy', $policy);

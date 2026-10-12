@@ -18,6 +18,8 @@
 
     <label for="login-remember" class="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-600"><input id="login-remember" type="checkbox" class="rounded border-slate-300 text-blue-700 shadow-sm focus:ring-blue-600" name="remember"> Recordar mi sesión</label>
 
+    <x-turnstile action="login" />
+
     <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2">Ingresar a la plataforma<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
 </form>
 
