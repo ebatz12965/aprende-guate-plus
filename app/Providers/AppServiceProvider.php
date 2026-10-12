@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\Rules\Password;
 use Laravel\Telescope\TelescopeServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -58,6 +59,20 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute($settings['generation_minute_limit'])->by('ai-generation-minute:'.$identity),
                 Limit::perDay($settings['generation_daily_limit'])->by('ai-generation-day:'.$identity),
             ];
+        });
+
+        // El registro envía un correo de verificación: el límite frena bots y el envío masivo a buzones ajenos.
+        RateLimiter::for('register', fn (Request $request) => [
+            Limit::perMinute(3)->by('register-minute:'.$request->ip()),
+            Limit::perDay(20)->by('register-day:'.$request->ip()),
+        ]);
+
+        // Contraseñas de al menos 10 caracteres con mayúsculas, minúsculas y números. Fuera de local y pruebas también se
+        // rechazan las que aparecen en filtraciones conocidas (solo se envían los 5 primeros caracteres de su hash SHA-1).
+        Password::defaults(function () {
+            $rule = Password::min(10)->mixedCase()->numbers();
+
+            return $this->app->environment(['local', 'testing']) ? $rule : $rule->uncompromised();
         });
 
         // El super administrador recibe solo las habilidades del catálogo de administración. No hay un

@@ -3,6 +3,7 @@
 namespace App\Services\Interviews;
 
 use App\AI\AiGateway;
+use App\AI\PromptData;
 use App\Models\InterviewStage;
 use Illuminate\Support\Str;
 
@@ -54,12 +55,12 @@ class InterviewEvaluationService
             if ($kind === 'question') {
                 $number++;
 
-                return "\nPREGUNTA {$number}: {$turn->content}";
+                return "\nPREGUNTA {$number}: ".PromptData::clean($turn->content, 1000);
             }
 
             return match ($kind) {
-                'follow_up' => "REPREGUNTA: {$turn->content}",
-                'answer' => 'RESPUESTA: '.Str::limit($turn->content, 2000, ''),
+                'follow_up' => 'REPREGUNTA: '.PromptData::clean($turn->content, 1000),
+                'answer' => 'RESPUESTA: '.PromptData::clean($turn->content, 2000),
                 default => null,
             };
         })->filter()->implode("\n");

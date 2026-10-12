@@ -17,7 +17,7 @@ Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    Route::post('register', [RegisteredUserController::class, 'store'])->middleware('throttle:register');
 
     Route::get('two-factor-challenge', [TwoFactorAuthenticationController::class, 'challenge'])->name('two-factor.challenge');
     Route::post('two-factor-challenge', [TwoFactorAuthenticationController::class, 'verifyChallenge'])->middleware('throttle:5,1')->name('two-factor.challenge.verify');

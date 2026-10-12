@@ -32,6 +32,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = ['name', 'email', 'password'];
 
+    /** Valores por defecto mientras el modelo no se recarga de la base. */
+    protected $attributes = ['has_local_password' => true];
+
     protected $hidden = [
         'password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes',
     ];

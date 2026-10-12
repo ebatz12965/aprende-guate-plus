@@ -20,8 +20,8 @@ class EmailAccountSecurityTest extends TestCase
         $response = $this->post('/register', [
             'name' => 'Cuenta por correo',
             'email' => 'correo@ejemplo.test',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'ClaveSegura2026',
+            'password_confirmation' => 'ClaveSegura2026',
         ]);
 
         $user = User::where('email', 'correo@ejemplo.test')->firstOrFail();

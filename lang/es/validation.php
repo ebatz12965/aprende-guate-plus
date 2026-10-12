@@ -115,7 +115,7 @@ return [
         'mixed'         => 'La :attribute debe contener al menos una letra mayúscula y una minúscula.',
         'numbers'       => 'La :attribute debe contener al menos un número.',
         'symbols'       => 'La :attribute debe contener al menos un símbolo.',
-        'uncompromised' => 'La :attribute proporcionada se ha visto comprometida en una filtración de datos (data leak). Elija una :attribute diferente.',
+        'uncompromised' => 'Esa :attribute aparece en filtraciones de datos conocidas y es fácil de adivinar. Elige otra.',
     ],
     'present'                => 'El campo :attribute debe estar presente.',
     'present_if'             => 'El campo :attribute debe estar presente cuando :other es :value.',
