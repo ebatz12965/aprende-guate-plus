@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Contracts\User as SocialUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 
 class SocialiteController extends Controller
 {
@@ -31,7 +32,10 @@ class SocialiteController extends Controller
     {
         $request->session()->put('socialite.intent', 'confirm');
 
-        return Socialite::driver('google')->with(['prompt' => 'select_account', 'login_hint' => $request->user()->email])->redirect();
+        /** @var AbstractProvider $driver */
+        $driver = Socialite::driver('google');
+
+        return $driver->with(['prompt' => 'select_account', 'login_hint' => $request->user()->email])->redirect();
     }
 
     public static function recentlyConfirmed(Request $request): bool

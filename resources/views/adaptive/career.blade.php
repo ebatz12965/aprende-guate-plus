@@ -145,7 +145,7 @@
                 <div class="flex items-start gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-100 text-sm font-extrabold text-blue-800">05</span><div><h2 class="font-extrabold text-slate-900">Currículum vitae</h2><p class="mt-1 text-sm leading-6 text-slate-500">Tu PDF es privado y solo tú puedes verlo.</p></div></div>
                 <input type="file" name="cv" accept="application/pdf" class="mt-5 block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-bold file:text-blue-700 hover:file:bg-blue-100">
                 @error('cv')<p class="mt-2 text-sm font-medium text-rose-600">{{ $message }}</p>@enderror
-                @if($profile->cv_path)<a class="mt-4 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900" href="{{ Storage::disk('public')->url($profile->cv_path) }}" target="_blank" rel="noopener noreferrer">Ver CV actual ↗</a>@endif
+                @if($profile->cv_path)<a class="mt-4 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900" href="{{ route('adaptive.career.cv') }}" target="_blank" rel="noopener noreferrer">Ver CV actual ↗</a>@endif
             </section>
 
             <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
