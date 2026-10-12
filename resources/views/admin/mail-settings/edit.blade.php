@@ -75,7 +75,7 @@
     </section>
 </div>
 
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
     (() => {
         const encryption = document.getElementById('smtp-encryption');
         const port = document.getElementById('smtp-port');

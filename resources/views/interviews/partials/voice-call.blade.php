@@ -66,7 +66,7 @@
     <audio x-ref="audio" autoplay class="hidden"></audio>
 </section>
 
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
 function voiceCall(config) {
     const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content;
     const CLOSING = 'hemos terminado la entrevista';

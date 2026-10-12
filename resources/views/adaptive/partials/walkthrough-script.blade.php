@@ -1,6 +1,6 @@
 {{-- Reproductor de los extractos animados de Office (se incluye una vez por página). --}}
 <style>@keyframes wt-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }</style>
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
 function officeWalkthrough(wt, audio, tabs) {
     const APPS = { excel: ['Excel', '#107C41', 'X'], word: ['Word', '#185ABD', 'W'], powerpoint: ['PowerPoint', '#C43E1C', 'P'], outlook: ['Outlook', '#0F6CBD', 'O'] };
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

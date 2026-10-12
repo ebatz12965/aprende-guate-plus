@@ -61,19 +61,40 @@ class TwoFactorAuthenticationService
 
     public function verify(string $secret, string $code): bool
     {
+        return $this->matchingCounter($secret, $code) !== null;
+    }
+
+    /** Periodo de 30 s al que corresponde el código (se acepta uno antes y uno después por desfase de reloj). */
+    public function matchingCounter(string $secret, string $code): ?int
+    {
         $code = preg_replace('/\s+/', '', $code) ?? '';
         if (! preg_match('/^\d{6}$/', $code)) {
-            return false;
+            return null;
         }
 
         $counter = intdiv(time(), 30);
         for ($offset = -1; $offset <= 1; $offset++) {
             if (hash_equals($this->codeForCounter($secret, $counter + $offset), $code)) {
-                return true;
+                return $counter + $offset;
             }
         }
 
-        return false;
+        return null;
+    }
+
+    /** Código de la aplicación de la cuenta; cada código sirve una sola vez (alguien que lo vea no puede reutilizarlo). */
+    public function verifyForUser(User $user, string $code): bool
+    {
+        if (! $user->two_factor_secret) {
+            return false;
+        }
+        $counter = $this->matchingCounter($user->two_factor_secret, $code);
+        if ($counter === null || ($user->two_factor_last_counter !== null && $counter <= $user->two_factor_last_counter)) {
+            return false;
+        }
+        $user->forceFill(['two_factor_last_counter' => $counter])->save();
+
+        return true;
     }
 
     public function recoveryCodes(): array

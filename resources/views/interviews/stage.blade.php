@@ -224,7 +224,7 @@
     @endif
 </div>
 
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
 function interviewChat(config) {
     return {
         ...config, answer: '', sending: false, error: '', finished: false,

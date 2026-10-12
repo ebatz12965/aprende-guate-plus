@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     @auth
-        <script>
+        <script nonce="{{ Vite::cspNonce() }}">
             if (localStorage.getItem('student-navigation') === 'side') document.documentElement.classList.add('student-side-preference');
             if (localStorage.getItem('platform-theme') === 'dark') document.documentElement.classList.add('dark');
         </script>
@@ -480,7 +480,7 @@
             src="{{ asset('images/quetzal-guia.jpg') }}" alt="Abrir guía Quetzi"
             class="h-full w-full rounded-full object-cover object-top"></button>
 </div>
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
     function platformGuide() {
         return {
             open: false,
@@ -610,7 +610,7 @@
             x-text="unreadTotal > 9 ? '9+' : unreadTotal"
             class="absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-full bg-orange-500 px-1 text-xs font-extrabold text-white"></span></button>
 </div>
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
     function mentorChatWidget() {
         return {
             open: false,

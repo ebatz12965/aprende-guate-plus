@@ -22,7 +22,7 @@
         </form>
     </section>
 </div>
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
 function tutorChat() {
     return {
         message: '', loading: false,

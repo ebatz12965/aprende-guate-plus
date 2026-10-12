@@ -9,7 +9,7 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/aprende-guate-app-icon.png') }}">
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         if (localStorage.getItem('platform-theme') === 'dark') document.documentElement.classList.add('dark');
         document.addEventListener('DOMContentLoaded', () => {
             const isDark = document.documentElement.classList.contains('dark');
@@ -17,6 +17,8 @@
                 el.textContent = isDark ? 'Tema claro' : 'Tema oscuro';
             });
         });
+
+        document.addEventListener('DOMContentLoaded', () => document.getElementById('landing-theme-toggle')?.addEventListener('click', toggleLandingTheme));
 
         function toggleLandingTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
@@ -459,7 +461,7 @@
 <body>
     <header class="topbar"><a href="{{ route('home') }}" class="brand"><img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt=""
                 class="brand-mark-image"><span>Aprende Guate</span></a>
-        <nav class="top-actions" aria-label="Acciones de cuenta"><button type="button" class="theme-toggle" onclick="toggleLandingTheme()"
+        <nav class="top-actions" aria-label="Acciones de cuenta"><button type="button" class="theme-toggle" id="landing-theme-toggle"
                 aria-label="Cambiar tema"><svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><span data-theme-label>Tema oscuro</span></button>@auth <a class="button" href="{{ route('adaptive.dashboard') }}">Ir
                     a mi panel</a>
             @else
@@ -488,7 +490,7 @@
                     @include('auth.partials.login-form')
                 </div>
             </dialog>
-            <script>
+            <script nonce="{{ Vite::cspNonce() }}">
                 (() => {
                     const dialog = document.getElementById('login-dialog');
                     const home = @js(route('home'));

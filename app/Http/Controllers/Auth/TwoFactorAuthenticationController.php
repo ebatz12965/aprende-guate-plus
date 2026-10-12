@@ -9,10 +9,16 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 
 class TwoFactorAuthenticationController extends Controller
 {
+    /** Intentos fallidos de código por cuenta antes de bloquear el segundo paso. */
+    private const MAX_ATTEMPTS = 5;
+
+    private const LOCKOUT_SECONDS = 900;
+
     public function begin(Request $request, TwoFactorAuthenticationService $twoFactor): RedirectResponse
     {
         $request->validate(['current_password' => ['required', 'current_password']]);
@@ -27,7 +33,8 @@ class TwoFactorAuthenticationController extends Controller
         $secret = $request->session()->get('two_factor.setup_secret');
         abort_unless(is_string($secret) && $secret !== '', 422, 'Inicia nuevamente la configuración de verificación en dos pasos.');
 
-        if (! $twoFactor->verify($secret, $data['code'])) {
+        $counter = $twoFactor->matchingCounter($secret, $data['code']);
+        if ($counter === null) {
             return back()->withErrors(['code' => 'El código no es válido. Revisa la hora de tu teléfono e inténtalo de nuevo.']);
         }
 
@@ -36,6 +43,7 @@ class TwoFactorAuthenticationController extends Controller
             'two_factor_secret' => $secret,
             'two_factor_recovery_codes' => array_map(fn (string $code) => Hash::make($code), $codes),
             'two_factor_confirmed_at' => now(),
+            'two_factor_last_counter' => $counter,
         ])->save();
 
         $request->session()->forget('two_factor.setup_secret');
@@ -51,7 +59,7 @@ class TwoFactorAuthenticationController extends Controller
             'code' => ['required', 'string', 'max:20'],
         ]);
         $user = $request->user();
-        $isAuthenticatorCode = $user->two_factor_secret && $twoFactor->verify($user->two_factor_secret, $data['code']);
+        $isAuthenticatorCode = $twoFactor->verifyForUser($user, $data['code']);
 
         if (! $isAuthenticatorCode && ! $twoFactor->consumeRecoveryCode($user, $data['code'])) {
             return back()->withErrors(['two_factor_code' => 'El código de autenticación o recuperación no es válido.']);
@@ -62,6 +70,7 @@ class TwoFactorAuthenticationController extends Controller
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
             'two_factor_reminder_shown_at' => null,
+            'two_factor_last_counter' => null,
         ])->save();
 
         return redirect()->route('profile.edit')->with('success', 'La verificación en dos pasos fue desactivada. Te recomendamos activarla nuevamente cuando puedas.');
@@ -87,10 +96,21 @@ class TwoFactorAuthenticationController extends Controller
             return redirect()->route('login')->withErrors(['email' => $user->suspensionMessage()]);
         }
 
-        $isAuthenticatorCode = $twoFactor->verify($user->two_factor_secret, $data['code']);
+        // Además del límite por IP de la ruta, cada cuenta tiene su propio límite: cambiar de IP no da más intentos.
+        $limiterKey = 'two-factor-challenge:'.$user->id;
+        if (RateLimiter::tooManyAttempts($limiterKey, self::MAX_ATTEMPTS)) {
+            $minutes = (int) ceil(RateLimiter::availableIn($limiterKey) / 60);
+
+            return back()->withErrors(['code' => "Demasiados intentos fallidos. Espera {$minutes} minuto(s) e inténtalo de nuevo."]);
+        }
+
+        $isAuthenticatorCode = $twoFactor->verifyForUser($user, $data['code']);
         if (! $isAuthenticatorCode && ! $twoFactor->consumeRecoveryCode($user, $data['code'])) {
+            RateLimiter::hit($limiterKey, self::LOCKOUT_SECONDS);
+
             return back()->withErrors(['code' => 'El código no es válido. Inténtalo nuevamente.']);
         }
+        RateLimiter::clear($limiterKey);
 
         Auth::login($user, (bool) $request->session()->pull('two_factor.remember', false));
         $request->session()->forget('two_factor.login_user_id');

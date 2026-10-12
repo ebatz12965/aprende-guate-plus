@@ -74,6 +74,7 @@ require __DIR__.'/auth.php';
 
 Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])->name('socialite.redirect');
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback']);
+Route::get('/auth/google/confirmar', [SocialiteController::class, 'confirm'])->middleware(['auth', 'throttle:10,1'])->name('socialite.confirm');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/espacio/cambiar', [WorkspaceController::class, 'switch'])->name('workspace.switch');
@@ -127,7 +128,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/mentorias', [StudentMentorshipController::class, 'index'])->name('adaptive.mentorship');
     Route::post('/mentorias/{mentor}/solicitar', [StudentMentorshipController::class, 'store'])->middleware('throttle:10,1')->name('adaptive.mentorship.request');
     Route::get('/mentorias/sesiones/{session}', [MentorshipConversationController::class, 'show'])->name('mentorship.sessions.show');
-    Route::post('/mentorias/sesiones/{session}/mensajes', [MentorshipConversationController::class, 'send'])->name('mentorship.sessions.messages.send');
+    Route::post('/mentorias/sesiones/{session}/mensajes', [MentorshipConversationController::class, 'send'])->middleware('throttle:30,1')->name('mentorship.sessions.messages.send');
     Route::get('/mentorias/sesiones/{session}/mensajes', [MentorshipConversationController::class, 'messages'])->name('mentorship.sessions.messages');
     Route::get('/mentorias/widget', [MentorshipConversationController::class, 'widget'])->name('mentorship.widget');
     Route::post('/mentorias/widget/{session}/leer', [MentorshipConversationController::class, 'markWidgetRead'])->name('mentorship.widget.read');
@@ -140,6 +141,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notificaciones/leer-todas', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
     Route::get('/perfil-profesional', [CareerProfileController::class, 'edit'])->name('adaptive.career');
     Route::patch('/perfil-profesional', [CareerProfileController::class, 'update'])->name('adaptive.career.update');
+    Route::get('/perfil-profesional/cv', [CareerProfileController::class, 'cv'])->name('adaptive.career.cv');
     Route::post('/perfil-profesional/enlace', [CareerProfileController::class, 'regeneratePublicLink'])->middleware('throttle:10,1')->name('adaptive.career.public-link');
     Route::get('/solicitar-ser-mentor', [MentorApplicationController::class, 'create'])->name('mentor-application.create');
     Route::post('/solicitar-ser-mentor/cuestionario', [MentorApplicationController::class, 'generateQuestionnaire'])->middleware('throttle:ai-generation')->name('mentor-application.questionnaire');

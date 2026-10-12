@@ -31,7 +31,7 @@
                 $dependsOff = collect($module['depends'] ?? [])->filter(fn ($dep) => $modules[$dep]['state']['status'] !== Modules::ACTIVE);
             @endphp
             <section id="modulo-{{ $module['key'] }}" class="scroll-mt-28 rounded-2xl border bg-white p-5 shadow-sm sm:p-6 {{ $state['status'] === Modules::ACTIVE ? 'border-slate-200' : 'border-amber-200' }}"
-                x-data="{ status: '{{ $current }}' }">
+                x-data="{ status: @js($current) }">
                 <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
@@ -79,7 +79,7 @@
                         $duration = $mine ? old('duration', 'none') : ($keepsUntil ? 'custom' : 'none');
                         $untilValue = $mine ? old('until') : ($keepsUntil ? $state['until']->format('Y-m-d\TH:i') : '');
                     @endphp
-                    <div x-show="status === 'maintenance'" x-cloak class="space-y-4" x-data="{ duration: '{{ $duration }}' }">
+                    <div x-show="status === 'maintenance'" x-cloak class="space-y-4" x-data="{ duration: @js($duration) }">
                         <div>
                             <label for="message-{{ $module['key'] }}" class="block text-sm font-semibold text-slate-700">Aviso para las personas <span class="font-normal text-slate-500">(opcional)</span></label>
                             <textarea id="message-{{ $module['key'] }}" name="message" rows="2" maxlength="500" class="{{ $field }}" placeholder="Estamos haciendo mejoras en «{{ $module['label'] }}». Vuelve en un rato.">{{ $mine ? old('message') : $state['message'] }}</textarea>

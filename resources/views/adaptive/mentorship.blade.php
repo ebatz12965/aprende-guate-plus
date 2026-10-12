@@ -100,7 +100,7 @@
                 </form>
             </section>
         </div>
-        <script>
+        <script nonce="{{ Vite::cspNonce() }}">
             function mentorRequestModal() {
                 return {
                     open: false,

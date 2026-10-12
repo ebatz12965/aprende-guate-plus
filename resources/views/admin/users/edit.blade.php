@@ -99,7 +99,7 @@
                         Mientras esté suspendida, la persona no puede entrar (tampoco con Google), su sesión abierta se cierra, no recibe avisos ni correos, su perfil público se oculta y sus mentorías abiertas se cancelan con aviso a la otra persona. Sus datos se conservan.
                     </p>
                     @if ($canSuspend)
-                        <form action="{{ route('admin.users.suspend', $user) }}" method="POST" class="mt-5 space-y-4" x-data="{ duration: '{{ old('duration', '7') }}' }">
+                        <form action="{{ route('admin.users.suspend', $user) }}" method="POST" class="mt-5 space-y-4" x-data="{ duration: @js(old('duration', '7')) }">
                             @csrf
                             <fieldset>
                                 <legend class="text-sm font-semibold text-slate-700">Duración</legend>

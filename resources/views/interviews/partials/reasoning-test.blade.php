@@ -79,7 +79,7 @@
     </div>
 </form>
 
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
 function reasoningTest(config) {
     return {
         ...config, i: 0, chosen: {}, answered: 0, remaining: 0, clock: '', submitting: false, timer: null,

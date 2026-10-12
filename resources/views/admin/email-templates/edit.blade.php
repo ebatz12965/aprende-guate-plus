@@ -70,7 +70,7 @@
             </section>
 
             @if ($custom)
-                <form method="POST" action="{{ route('admin.email-templates.destroy', $key) }}" onsubmit="return confirm('¿Restaurar el texto original? Se perderán los cambios de esta plantilla.')" class="rounded-2xl border border-rose-200 bg-rose-50 p-5">
+                <form method="POST" action="{{ route('admin.email-templates.destroy', $key) }}" x-data @submit="if (! confirm('¿Restaurar el texto original? Se perderán los cambios de esta plantilla.')) $event.preventDefault()" class="rounded-2xl border border-rose-200 bg-rose-50 p-5">
                     @csrf @method('DELETE')
                     <p class="text-sm font-bold text-rose-900">Restaurar el texto original</p>
                     <p class="mt-1 text-sm text-rose-800">Descarta la versión personalizada y vuelve al texto con el que viene la plataforma.</p>
@@ -90,7 +90,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ Vite::cspNonce() }}">
     (() => {
         const form = document.getElementById('template-form');
         const frame = document.getElementById('template-preview');

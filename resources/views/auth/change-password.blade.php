@@ -13,7 +13,7 @@
         <div>
             <x-input-label for="password" value="Nueva contraseña" />
             <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" required autocomplete="new-password" />
-            <p class="mt-1 text-xs text-slate-500">Usa al menos 8 caracteres. Una frase larga es más segura y fácil de recordar.</p>
+            <p class="mt-1 text-xs text-slate-500">Mínimo 10 caracteres, con mayúsculas, minúsculas y números. Una frase larga es más segura y fácil de recordar.</p>
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
         <div>

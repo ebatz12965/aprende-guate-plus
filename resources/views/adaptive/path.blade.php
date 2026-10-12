@@ -61,7 +61,7 @@
         <div x-show="view === 'classic'" x-cloak>@include('adaptive.partials.path.classic')</div>
     </div>
 
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         function pathView(config) {
             const KEY = 'ag-path-view';
             const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;

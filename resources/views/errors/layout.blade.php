@@ -15,7 +15,7 @@
     <meta name="robots" content="noindex">
     <title>{{ $title }} · Aprende Guate</title>
     <link rel="icon" type="image/png" href="{{ $logo }}">
-    <script>try { if (localStorage.getItem('platform-theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}</script>
+    <script nonce="{{ Vite::cspNonce() }}">try { if (localStorage.getItem('platform-theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}</script>
     <style>
         :root { --ground: #F8FAFC; --surface: #FFFFFF; --ink: #0F172A; --text: #334155; --muted: #64748B; --border: #E2E8F0; --blue: #1976D2; --blue-ink: #1565C0; --tint: #E3F2FD; }
         .dark { --ground: #020617; --surface: #0F172A; --ink: #F8FAFC; --text: #CBD5E1; --muted: #94A3B8; --border: #334155; --blue: #2196F3; --blue-ink: #81D4FA; --tint: rgb(25 118 210 / .2); }
@@ -58,9 +58,9 @@
             <div class="actions">
                 @foreach ($actions ?? [[ 'Ir al inicio', $home, true ]] as [$label, $url, $primary])
                     @if ($url === 'back')
-                        <button type="button" class="btn {{ $primary ? 'btn-primary' : '' }}" onclick="history.length > 1 ? history.back() : location.assign('{{ $home }}')">{{ $label }}</button>
+                        <button type="button" class="btn {{ $primary ? 'btn-primary' : '' }}" data-error-action="back" data-home="{{ $home }}">{{ $label }}</button>
                     @elseif ($url === 'reload')
-                        <button type="button" class="btn {{ $primary ? 'btn-primary' : '' }}" onclick="location.reload()">{{ $label }}</button>
+                        <button type="button" class="btn {{ $primary ? 'btn-primary' : '' }}" data-error-action="reload">{{ $label }}</button>
                     @else
                         <a class="btn {{ $primary ? 'btn-primary' : '' }}" href="{{ $url }}">{{ $label }}</a>
                     @endif
@@ -69,5 +69,11 @@
         </section>
         <footer>Plataforma educativa de Guatemala</footer>
     </main>
+    <script nonce="{{ Vite::cspNonce() }}">
+        document.querySelectorAll('[data-error-action]').forEach((button) => button.addEventListener('click', () => {
+            if (button.dataset.errorAction === 'reload') return location.reload();
+            history.length > 1 ? history.back() : location.assign(button.dataset.home);
+        }));
+    </script>
 </body>
 </html>
