@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\TwoFactorAuthenticationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use ReflectionMethod;
 use Tests\TestCase;
@@ -94,6 +95,47 @@ class TwoFactorAndCvSecurityTest extends TestCase
             ->assertSessionMissing('two_factor.login_user_id')
             ->assertSessionMissing('two_factor.remember');
         $this->get(route('two-factor.challenge'))->assertRedirect(route('login'));
+    }
+
+    public function test_new_recovery_codes_replace_the_old_ones_and_require_the_password(): void
+    {
+        [$user] = $this->userWithTwoFactor();
+        $old = 'AAAA-1111';
+        $user->forceFill(['two_factor_recovery_codes' => [Hash::make($old)]])->save();
+
+        $this->actingAs($user)->post(route('two-factor.recovery-codes.regenerate'), ['current_password' => 'incorrecta'])
+            ->assertSessionHasErrorsIn('recoveryCodes', 'current_password');
+
+        $this->actingAs($user)->post(route('two-factor.recovery-codes.regenerate'), ['current_password' => 'password'])
+            ->assertRedirect(route('profile.edit', ['section' => 'security']))
+            ->assertSessionHas('two_factor.recovery_codes', fn (array $codes) => count($codes) === 8);
+
+        $user->refresh();
+        $this->assertCount(8, $user->two_factor_recovery_codes);
+        $this->assertFalse(app(TwoFactorAuthenticationService::class)->consumeRecoveryCode($user, $old));
+    }
+
+    public function test_the_recovery_codes_pdf_is_only_available_right_after_generating_them(): void
+    {
+        [$user] = $this->userWithTwoFactor();
+
+        $this->actingAs($user)->get(route('two-factor.recovery-codes.download'))->assertNotFound();
+
+        $this->actingAs($user)->post(route('two-factor.recovery-codes.regenerate'), ['current_password' => 'password']);
+        $this->actingAs($user)->get(route('profile.edit', ['section' => 'security']))
+            ->assertSee('Descargar PDF')->assertSee('Copiar códigos');
+        $this->actingAs($user)->get(route('two-factor.recovery-codes.download'))
+            ->assertOk()->assertHeader('Content-Type', 'application/pdf');
+
+        $this->travel(16)->minutes();
+        $this->actingAs($user)->get(route('two-factor.recovery-codes.download'))->assertNotFound();
+    }
+
+    public function test_recovery_codes_cannot_be_generated_without_two_factor(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('two-factor.recovery-codes.regenerate'), ['current_password' => 'password'])->assertForbidden();
     }
 
     public function test_cvs_are_private_and_only_their_owner_can_download_them(): void
