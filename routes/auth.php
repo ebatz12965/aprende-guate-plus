@@ -49,6 +49,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('two-factor-authentication/setup', [TwoFactorAuthenticationController::class, 'begin'])->name('two-factor.setup');
     Route::post('two-factor-authentication/confirm', [TwoFactorAuthenticationController::class, 'confirm'])->name('two-factor.confirm');
+    Route::post('two-factor-authentication/recovery-codes', [TwoFactorAuthenticationController::class, 'regenerateRecoveryCodes'])->middleware('throttle:6,1')->name('two-factor.recovery-codes.regenerate');
+    Route::get('two-factor-authentication/recovery-codes.pdf', [TwoFactorAuthenticationController::class, 'downloadRecoveryCodes'])->name('two-factor.recovery-codes.download');
     Route::delete('two-factor-authentication', [TwoFactorAuthenticationController::class, 'disable'])->name('two-factor.disable');
 
     Route::get('verify-email', EmailVerificationPromptController::class)

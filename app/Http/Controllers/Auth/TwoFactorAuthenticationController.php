@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\TwoFactorAuthenticationService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -18,6 +20,9 @@ class TwoFactorAuthenticationController extends Controller
     private const MAX_ATTEMPTS = 5;
 
     private const LOCKOUT_SECONDS = 900;
+
+    /** Minutos durante los que se puede descargar el PDF de los códigos recién generados. */
+    private const RECOVERY_DOWNLOAD_MINUTES = 15;
 
     public function begin(Request $request, TwoFactorAuthenticationService $twoFactor): RedirectResponse
     {
@@ -38,18 +43,56 @@ class TwoFactorAuthenticationController extends Controller
             return back()->withErrors(['code' => 'El código no es válido. Revisa la hora de tu teléfono e inténtalo de nuevo.']);
         }
 
-        $codes = $twoFactor->recoveryCodes();
         $request->user()->forceFill([
             'two_factor_secret' => $secret,
-            'two_factor_recovery_codes' => array_map(fn (string $code) => Hash::make($code), $codes),
             'two_factor_confirmed_at' => now(),
             'two_factor_last_counter' => $counter,
         ])->save();
 
         $request->session()->forget('two_factor.setup_secret');
-        $request->session()->flash('two_factor.recovery_codes', $codes);
+        $this->issueRecoveryCodes($request, $twoFactor);
 
         return redirect()->route('profile.edit')->with('success', 'La verificación en dos pasos fue activada. Guarda tus códigos de recuperación en un lugar seguro.');
+    }
+
+    /** Genera códigos de recuperación nuevos; los anteriores dejan de servir. */
+    public function regenerateRecoveryCodes(Request $request, TwoFactorAuthenticationService $twoFactor): RedirectResponse
+    {
+        abort_unless($request->user()->hasTwoFactorEnabled(), 403);
+        $request->validateWithBag('recoveryCodes', ['current_password' => ['required', 'current_password']]);
+
+        $this->issueRecoveryCodes($request, $twoFactor);
+
+        return redirect()->route('profile.edit', ['section' => 'security'])->with('success', 'Generamos códigos de recuperación nuevos. Los anteriores ya no sirven.');
+    }
+
+    /** PDF con los códigos recién generados; solo existe durante unos minutos después de generarlos. */
+    public function downloadRecoveryCodes(Request $request): Response
+    {
+        $pending = $request->session()->get('two_factor.recovery_codes_download');
+        abort_unless(is_array($pending) && ($pending['expires_at'] ?? 0) > now()->timestamp, 404);
+
+        $pdf = Pdf::loadView('profile.recovery-codes-pdf', [
+            'user' => $request->user(),
+            'codes' => $pending['codes'],
+            'generatedAt' => now()->setTimestamp($pending['generated_at']),
+        ])->setPaper('a4')->setOption(['dpi' => 144, 'defaultFont' => 'Figtree', 'isFontSubsettingEnabled' => true]);
+
+        return $pdf->download('codigos-de-recuperacion-aprende-guate.pdf');
+    }
+
+    /** Guarda solo los hashes; el texto se muestra una vez y queda disponible para el PDF durante 15 minutos. */
+    private function issueRecoveryCodes(Request $request, TwoFactorAuthenticationService $twoFactor): void
+    {
+        $codes = $twoFactor->recoveryCodes();
+        $request->user()->forceFill(['two_factor_recovery_codes' => array_map(fn (string $code) => Hash::make($code), $codes)])->save();
+
+        $request->session()->flash('two_factor.recovery_codes', $codes);
+        $request->session()->put('two_factor.recovery_codes_download', [
+            'codes' => $codes,
+            'generated_at' => now()->timestamp,
+            'expires_at' => now()->addMinutes(self::RECOVERY_DOWNLOAD_MINUTES)->timestamp,
+        ]);
     }
 
     public function disable(Request $request, TwoFactorAuthenticationService $twoFactor): RedirectResponse
@@ -72,6 +115,7 @@ class TwoFactorAuthenticationController extends Controller
             'two_factor_reminder_shown_at' => null,
             'two_factor_last_counter' => null,
         ])->save();
+        $request->session()->forget('two_factor.recovery_codes_download');
 
         return redirect()->route('profile.edit')->with('success', 'La verificación en dos pasos fue desactivada. Te recomendamos activarla nuevamente cuando puedas.');
     }
