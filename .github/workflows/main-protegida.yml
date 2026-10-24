@@ -1,0 +1,53 @@
+name: Rama main protegida
+
+# El plan gratuito de GitHub no permite proteger ramas en repositorios privados. Este workflow revisa
+# cada cambio que llega a main: si no viene de un PR fusionado (o fue un force push), falla y abre un
+# issue de alerta para revertirlo. El bloqueo previo está en .githooks/pre-push.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  verificar:
+    name: Cambios en main solo por PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar que el commit viene de un PR fusionado
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          FORCED: ${{ github.event.forced }}
+          COMPARE: ${{ github.event.compare }}
+        run: |
+          prs=0
+          # GitHub puede tardar unos segundos en asociar el commit de merge con su PR.
+          for intento in 1 2 3 4; do
+            prs=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '[.[] | select(.merged_at != null and .base.ref == "main")] | length')
+            [ "$prs" -gt 0 ] && break
+            sleep 10
+          done
+
+          if [ "$prs" -gt 0 ] && [ "$FORCED" != "true" ]; then
+            echo "OK: $SHA llegó a main por un PR fusionado."
+            exit 0
+          fi
+
+          motivo="push directo sin PR"
+          [ "$FORCED" = "true" ] && motivo="force push"
+          cuerpo=$(printf '%s\n\n%s\n%s\n%s\n\n%s' \
+            "Llegó un cambio a \`main\` que no pasó por un PR fusionado." \
+            "- Motivo: $motivo" \
+            "- Commit: $SHA" \
+            "- Usuario: $ACTOR" \
+            "Revisa el cambio ($COMPARE) y, si no corresponde, reviértelo con un PR. Antes de desplegar, confirma que las pruebas y la auditoría de seguridad pasan.")
+          gh issue create --repo "$REPO" --title "Alerta: $motivo a main ($ACTOR)" --body "$cuerpo"
+          echo "::error::Cambio en main sin PR ($motivo). Se abrió un issue de alerta."
+          exit 1
