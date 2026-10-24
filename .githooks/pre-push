@@ -1,0 +1,15 @@
+#!/bin/sh
+# Impide hacer push directo a main: los cambios entran solo por PR.
+# Se activa una vez por clon con: git config core.hooksPath .githooks
+# GitHub no permite proteger ramas en repositorios privados del plan gratuito, así que este gancho
+# y el workflow «Rama main protegida» hacen ese papel.
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [ "$remote_ref" = "refs/heads/main" ]; then
+        echo "Push directo a main bloqueado." >&2
+        echo "Sube una rama y abre un PR: git push -u origin <rama> && gh pr create --base main" >&2
+        exit 1
+    fi
+done
+
+exit 0
