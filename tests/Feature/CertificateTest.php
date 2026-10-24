@@ -27,7 +27,7 @@ class CertificateTest extends TestCase
         foreach ([1, 2] as $position) {
             $item = $path->items()->create(['title' => "Fase {$position}", 'position' => $position, 'status' => $position === 1 ? 'completed' : 'in_progress',
                 'quiz' => ['question' => '¿Listo?', 'options' => ['Sí', 'No', 'Quizá'], 'answer' => 0]]);
-            $item->topics()->create(['title' => "Tema {$position}", 'learning_objective' => 'Aplicar', 'practice_type' => 'case_study', 'position' => 1]);
+            $item->topics()->create(['title' => "Tema {$position}", 'learning_objective' => 'Aplicar', 'practice_type' => 'case_study', 'position' => 1, 'status' => 'completed']);
         }
 
         return $path;

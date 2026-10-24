@@ -93,7 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/mis-certificados/{certificate}', [CertificateController::class, 'show'])->name('adaptive.certificates.show');
     Route::get('/mis-certificados/{certificate}/pdf', [CertificateController::class, 'download'])->middleware('throttle:20,1')->name('adaptive.certificates.pdf');
     Route::get('/mi-ruta/fases/{item}', [LearningPathController::class, 'showItem'])->name('adaptive.path.item.show');
-    Route::post('/mi-ruta/fases/{item}/quiz', [LearningPathController::class, 'submitQuiz'])->name('adaptive.path.item.quiz');
+    Route::post('/mi-ruta/fases/{item}/quiz', [LearningPathController::class, 'submitQuiz'])->middleware('throttle:10,1')->name('adaptive.path.item.quiz');
     Route::get('/mi-ruta/temas/{topic}', [TopicController::class, 'show'])->name('adaptive.topic.show');
     Route::get('/biblioteca/{libraryTopic}/narracion/{step}', LibraryNarrationController::class)->whereNumber('step')->name('library.narration');
     Route::post('/mi-ruta/temas/{topic}/leccion', [TopicController::class, 'generateLesson'])->middleware('throttle:ai-generation')->name('adaptive.topic.lesson');

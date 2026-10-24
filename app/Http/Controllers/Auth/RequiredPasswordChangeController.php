@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Support\Audit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -33,8 +35,10 @@ class RequiredPasswordChangeController extends Controller
             'password.different' => 'La nueva contraseña debe ser distinta de la temporal.',
         ]);
 
-        $user->forceFill(['password' => Hash::make($request->string('password')->toString()), 'password_change_required' => false])->save();
-        // Las demás sesiones abiertas con la contraseña temporal se cierran.
+        $password = $request->string('password')->toString();
+        $user->forceFill(['password' => Hash::make($password), 'password_change_required' => false, 'remember_token' => Str::random(60)])->save();
+        // Las demás sesiones abiertas con la contraseña temporal se cierran (middleware auth.session); esta sigue abierta.
+        Auth::logoutOtherDevices($password);
         $request->session()->regenerate();
         Audit::log('accounts', 'Cambió su contraseña temporal', $user);
 

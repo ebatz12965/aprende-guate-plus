@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\SocialiteController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class PasswordController extends Controller
@@ -37,7 +39,10 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
             'password_change_required' => false,
             'has_local_password' => true,
+            'remember_token' => Str::random(60),
         ])->save();
+        // Cierra las demás sesiones y «recordarme» de otros equipos (middleware auth.session); esta sigue abierta.
+        Auth::logoutOtherDevices($validated['password']);
         $request->session()->forget('auth.google_confirmed_at');
 
         return back()->with('status', 'password-updated');

@@ -54,6 +54,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Dominios extra que se aceptan en el encabezado Host, separados por comas. El de APP_URL y sus subdominios
+    // siempre se aceptan; fuera de local, una petición con otro Host se rechaza.
+    'trusted_hosts' => array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_HOSTS', ''))))),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
