@@ -33,6 +33,11 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(SecurityHeaders::class);
+        // Los enlaces de los correos (restablecer contraseña, verificar correo) se arman con el Host de la petición:
+        // fuera de local solo se aceptan el dominio de APP_URL, sus subdominios y los de TRUSTED_HOSTS.
+        $middleware->trustHosts(at: fn () => array_map(fn (string $host) => '^'.preg_quote($host).'$', config('app.trusted_hosts', [])));
+        // Guarda la huella de la contraseña en la sesión: al cambiarla o restablecerla se cierran las demás sesiones.
+        $middleware->authenticateSessions();
         $middleware->web(append: [EnsureAccountIsActive::class, EnforceIdleTimeout::class, EnsurePasswordChanged::class, EnsureModuleAvailable::class]);
         $middleware->alias([
             'admin' => EnsureAdminAccess::class,

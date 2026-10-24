@@ -14,6 +14,9 @@ use Illuminate\View\View;
 
 class LearningPathController extends Controller
 {
+    /** Segundos de espera después de una respuesta incorrecta del mini-quiz. */
+    private const RETRY_SECONDS = 30;
+
     public function show(Request $request): View
     {
         $path = $request->user()->learningPaths()->active()->with('items.topics')->latest()->first();
@@ -76,7 +79,23 @@ class LearningPathController extends Controller
     {
         $user = $request->user();
         $path = $user->activeLearningPathOrFail();
-        $item = $path->items()->findOrFail($item);
+        $item = $path->items()->with('topics')->findOrFail($item);
+
+        // Las mismas reglas que muestra la pantalla de la fase, ahora también en el servidor.
+        abort_if($path->hasIncompleteItemsBefore($item->position), 403, 'Completa el mini-quiz anterior para desbloquear esta fase.');
+        if ($item->status === 'completed') {
+            return redirect()->route('adaptive.path');
+        }
+        if ($item->topics->contains(fn ($topic) => $topic->status !== 'completed')) {
+            return back()->with('quiz_error', 'Completa todos los temas de esta fase antes de responder el mini-quiz.');
+        }
+        // Tras una respuesta incorrecta hay una pausa breve: el quiz es para repasar, no para adivinar.
+        $lastWrong = LearningPathItemQuizAttempt::where('learning_path_item_id', $item->id)->where('user_id', $user->id)
+            ->where('is_correct', false)->where('attempted_at', '>', now()->subSeconds(self::RETRY_SECONDS))->exists();
+        if ($lastWrong) {
+            return back()->with('quiz_error', 'Repasa el concepto y el ejemplo un momento. Podrás responder de nuevo en '.self::RETRY_SECONDS.' segundos.');
+        }
+
         $data = $request->validate(['answer' => ['required', 'integer', 'between:0,2']]);
         $selectedAnswer = (int) $data['answer'];
         $isCorrect = $selectedAnswer === (int) data_get($item->quiz, 'answer', -1);
@@ -93,7 +112,10 @@ class LearningPathController extends Controller
             return back()->with('quiz_error', 'Aún no es la respuesta correcta. Revisa el concepto y el ejemplo e inténtalo otra vez.');
         }
 
-        $item->update(['status' => 'completed']);
+        // Solo una petición completa la fase, aunque lleguen dos envíos a la vez.
+        if ($path->items()->whereKey($item->id)->where('status', '!=', 'completed')->update(['status' => 'completed']) === 0) {
+            return redirect()->route('adaptive.path');
+        }
         $this->queueEligibleMilestoneChallenges($path);
 
         if (! $path->items()->where('status', '!=', 'completed')->exists()) {

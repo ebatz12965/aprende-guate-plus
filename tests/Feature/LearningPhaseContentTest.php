@@ -63,7 +63,8 @@ class LearningPhaseContentTest extends TestCase
         ]);
         $this->assertDatabaseHas('learning_path_items', ['id' => $item->id, 'status' => 'pending']);
 
-        // Al completar la ruta se emite el certificado y se muestra.
+        // Tras la pausa por la respuesta incorrecta, al completar la ruta se emite el certificado y se muestra.
+        $this->travel(31)->seconds();
         $this->actingAs($user)->post(route('adaptive.path.item.quiz', $item), ['answer' => '0'])
             ->assertRedirect(route('adaptive.certificates.show', Certificate::sole()));
 

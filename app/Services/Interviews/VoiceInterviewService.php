@@ -256,18 +256,29 @@ class VoiceInterviewService
         $stage->update(['content' => $content]);
     }
 
-    /** El uso lo informa el navegador (eventos response.done de OpenAI); se acota para no registrar valores absurdos. */
+    /**
+     * El uso lo informa el navegador (eventos response.done de OpenAI); se acota para no registrar valores absurdos.
+     * Se registra una sola vez por llamada: solo si la solicitud que abrió createCall sigue «processing». Así, reenviar
+     * voz/terminar no suma más tokens al presupuesto global.
+     */
     private function recordUsage(InterviewStage $stage, array $usage, int $seconds): void
     {
+        $requestId = (int) ($stage->content['voice']['request_id'] ?? 0);
+        $userId = $stage->simulation->user_id;
         $input = min(self::MAX_REPORTED_TOKENS, max(0, (int) ($usage['input_tokens'] ?? 0)));
         $output = min(self::MAX_REPORTED_TOKENS, max(0, (int) ($usage['output_tokens'] ?? 0)));
-        $model = (string) ($stage->content['voice']['model'] ?? $this->catalog->configuration(self::AGENT)['model']);
-        $userId = $stage->simulation->user_id;
+        $seconds = min(max(0, $seconds), (int) config('ai.voice.max_seconds') + 60);
 
+        $claimed = $requestId > 0 && AiRequest::whereKey($requestId)->where('user_id', $userId)->where('operation', 'interview_voice')->where('status', 'processing')
+            ->update(['status' => 'completed', 'input_tokens' => $input, 'output_tokens' => $output, 'total_tokens' => $input + $output,
+                'duration_ms' => $seconds * 1000, 'completed_at' => now()]) === 1;
+        if (! $claimed) {
+            return;
+        }
+
+        $model = (string) ($stage->content['voice']['model'] ?? $this->catalog->configuration(self::AGENT)['model']);
         AiTokenUsage::create(['user_id' => $userId, 'operation' => 'interview_voice', 'agent_slug' => self::AGENT, 'provider' => 'openai', 'model' => $model,
             'prompt_tokens' => $input, 'completion_tokens' => $output, 'total_tokens' => $input + $output, 'successful' => true, 'duration_ms' => $seconds * 1000]);
-        AiRequest::whereKey($stage->content['voice']['request_id'] ?? 0)->update(['status' => 'completed', 'input_tokens' => $input, 'output_tokens' => $output,
-            'total_tokens' => $input + $output, 'duration_ms' => $seconds * 1000, 'completed_at' => now()]);
     }
 
     private function callsToday(User $user): int

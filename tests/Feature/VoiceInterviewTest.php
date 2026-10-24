@@ -213,6 +213,24 @@ class VoiceInterviewTest extends TestCase
         $this->assertSame(800, (int) AiTokenUsage::where('operation', 'interview_voice')->sum('total_tokens'));
     }
 
+    public function test_resending_the_end_of_a_call_does_not_add_usage_again(): void
+    {
+        $this->fakeSecret();
+        $hr = $this->startByVoice();
+        $this->actingAs($this->user)->postJson(route('adaptive.interviews.stage.voice.session', [$this->simulation, $hr]))->assertOk();
+
+        // Cada reenvío trae el tope de tokens; solo el primero cuenta para el presupuesto.
+        foreach (range(1, 3) as $attempt) {
+            $this->actingAs($this->user)->postJson(route('adaptive.interviews.stage.voice.finish', [$this->simulation, $hr]), [
+                'transcript' => [['role' => 'interviewer', 'text' => 'Hola, ¿me escuchas?']], 'usage' => ['input_tokens' => 900000, 'output_tokens' => 900000], 'seconds' => 3600,
+            ])->assertStatus(422);
+        }
+
+        $usage = AiTokenUsage::where('operation', 'interview_voice')->sole();
+        $this->assertSame(400000, $usage->total_tokens);
+        $this->assertSame((config('ai.voice.max_seconds') + 60) * 1000, $usage->duration_ms);
+    }
+
     public function test_the_interview_can_continue_by_chat(): void
     {
         $hr = $this->startByVoice();

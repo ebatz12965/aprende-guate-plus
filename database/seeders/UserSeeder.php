@@ -10,6 +10,13 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        // Contraseña «password» y rol de administración: nunca fuera de local ni de pruebas, aunque se llame con --class.
+        if (! app()->environment(['local', 'testing'])) {
+            $this->command?->error('UserSeeder crea cuentas con contraseña conocida y solo se ejecuta en local o en pruebas.');
+
+            return;
+        }
+
         $admin = User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
