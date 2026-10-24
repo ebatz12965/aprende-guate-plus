@@ -12,6 +12,7 @@ use Illuminate\Http\Middleware\TrustHosts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Exception\SuspiciousOperationException;
 use Tests\TestCase;
 
@@ -27,11 +28,17 @@ class SecurityAuditFixesTest extends TestCase
         $this->app['env'] = 'production';
 
         $this->artisan('db:seed', ['--force' => true])->assertSuccessful();
-        $this->artisan('db:seed', ['--class' => UserSeeder::class, '--force' => true])->assertSuccessful();
+        $this->assertDatabaseHas('roles', ['name' => 'Admin']);
+
+        // Llamarlo directo (db:seed --class=UserSeeder) se detiene con un error.
+        try {
+            $this->app->make(UserSeeder::class)->run();
+            $this->fail('UserSeeder no debe ejecutarse en producción.');
+        } catch (RuntimeException) {
+        }
 
         $this->assertDatabaseMissing('users', ['email' => 'admin@example.com']);
         $this->assertDatabaseMissing('users', ['email' => 'student@example.com']);
-        $this->assertDatabaseHas('roles', ['name' => 'Admin']);
     }
 
     public function test_example_accounts_are_still_seeded_locally(): void

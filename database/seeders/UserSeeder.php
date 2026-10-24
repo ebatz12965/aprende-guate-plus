@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class UserSeeder extends Seeder
 {
@@ -12,9 +13,7 @@ class UserSeeder extends Seeder
     {
         // Contraseña «password» y rol de administración: nunca fuera de local ni de pruebas, aunque se llame con --class.
         if (! app()->environment(['local', 'testing'])) {
-            $this->command?->error('UserSeeder crea cuentas con contraseña conocida y solo se ejecuta en local o en pruebas.');
-
-            return;
+            throw new RuntimeException('UserSeeder crea cuentas con contraseña conocida y solo se ejecuta en local o en pruebas.');
         }
 
         $admin = User::updateOrCreate(
