@@ -46,6 +46,7 @@ final class AdminAccess
         'ia.orquestador' => 'Orquestador de agentes y precios de modelos',
         'correo.configurar' => 'Correo saliente (SMTP)',
         'modulos.gestionar' => 'Poner módulos en mantenimiento o en vista previa',
+        'publicidad.configurar' => 'Espacios publicitarios (Google AdSense)',
     ];
 
     /** @return list<string> */

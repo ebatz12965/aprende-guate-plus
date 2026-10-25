@@ -179,5 +179,7 @@
         <p class="text-sm leading-6 text-slate-600">¿Cambió tu meta? <a href="{{ route('adaptive.diagnostic') }}"
                 class="font-bold text-blue-700 underline underline-offset-4 hover:text-blue-900">Rehacer mi diagnóstico</a> crea una ruta nueva que reemplaza la actual.</p>
     @endif
+
+    <x-espacio-publicitario lugar="panel" />
 </div>
 @endsection

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdsSettingsController;
 use App\Http\Controllers\Admin\AiOrchestratorController;
 use App\Http\Controllers\Admin\AiPulseController;
 use App\Http\Controllers\Admin\AiSettingsController;
@@ -39,6 +40,8 @@ Route::get('/', fn () => view('welcome'))->name('home');
 // Verificación pública de certificados: la página a la que lleva el código QR.
 Route::get('/certificados/{certificate}', [CertificateController::class, 'verify'])->middleware('throttle:30,1')->name('certificates.verify');
 Route::view('/acerca-de-nosotros', 'about')->name('about');
+// Autoriza a Google a vender anuncios del sitio; solo responde con la publicidad activada (RF-16).
+Route::get('/ads.txt', [AdsSettingsController::class, 'adsTxt'])->name('ads.txt');
 Route::view('/terminos-y-condiciones', 'legal.terms')->name('legal.terms');
 Route::view('/politica-de-privacidad', 'legal.privacy')->name('legal.privacy');
 Route::view('/politica-de-cookies', 'legal.cookies')->name('legal.cookies');
@@ -216,6 +219,10 @@ Route::prefix('admin')->as('admin.')->middleware(['auth', 'verified', 'admin'])-
         Route::delete('plantillas-correo/{key}', [EmailTemplateController::class, 'destroy'])->name('email-templates.destroy');
         Route::match(['get', 'post'], 'plantillas-correo/{key}/vista-previa', [EmailTemplateController::class, 'preview'])->name('email-templates.preview');
         Route::post('plantillas-correo/{key}/probar', [EmailTemplateController::class, 'sendTest'])->middleware('throttle:10,1')->name('email-templates.test');
+    });
+    Route::middleware('can:publicidad.configurar')->group(function () {
+        Route::get('publicidad', [AdsSettingsController::class, 'edit'])->name('ads-settings.edit');
+        Route::put('publicidad', [AdsSettingsController::class, 'update'])->name('ads-settings.update');
     });
     Route::middleware('can:avisos.publicar')->group(function () {
         Route::get('avisos', [AnnouncementController::class, 'index'])->name('announcements.index');

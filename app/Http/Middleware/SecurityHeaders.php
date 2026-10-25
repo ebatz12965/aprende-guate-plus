@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Ads;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Vite;
@@ -25,6 +26,10 @@ class SecurityHeaders
         // Scripts: solo los propios y los que llevan el nonce. Un <script> o un onclick inyectado no se ejecuta.
         // 'unsafe-eval' es necesario porque Alpine.js evalúa sus expresiones (x-data, @click) con Function().
         $scripts = "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval' https://challenges.cloudflare.com".$this->viteDevServer();
+        // Los dominios de AdSense solo se permiten en las respuestas que muestran un espacio publicitario.
+        if ($request->attributes->get(Ads::REQUEST_FLAG)) {
+            $scripts .= ' '.implode(' ', Ads::SCRIPT_HOSTS);
+        }
         $policy = "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self' https://accounts.google.com; {$scripts}";
         // Con depuración activa (local) la política solo avisa en la consola: la página de error de Laravel usa scripts en línea.
         $response->headers->set(config('app.debug') ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy', $policy);

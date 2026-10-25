@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Ads;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
@@ -66,6 +67,27 @@ class PlatformSetting extends Model
             'has_password' => $encryptedPassword !== '',
             'from_address' => $values['mail_from_address'] ?? '',
             'from_name' => $values['mail_from_name'] ?? '',
+        ];
+    }
+
+    /**
+     * Espacios publicitarios (Google AdSense). Apagados por defecto; los lugares permitidos están en App\Support\Ads.
+     *
+     * @return array{enabled: bool, client: string, slots: array<string, string>}
+     */
+    public static function adsSettings(): array
+    {
+        try {
+            $values = self::values();
+        } catch (Throwable) {
+            $values = [];
+        }
+
+        return [
+            'enabled' => ($values['ads_enabled'] ?? '0') === '1',
+            'client' => (string) ($values['ads_client'] ?? ''),
+            'slots' => collect(Ads::PLACEMENTS)->keys()
+                ->mapWithKeys(fn (string $place) => [$place => (string) ($values['ads_slot_'.$place] ?? '')])->all(),
         ];
     }
 
