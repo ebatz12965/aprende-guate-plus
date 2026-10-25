@@ -89,7 +89,7 @@
                 </a>
             @endcan
 
-            @canany(['correo.configurar', 'avisos.publicar', 'modulos.gestionar'])
+            @canany(['correo.configurar', 'avisos.publicar', 'modulos.gestionar', 'publicidad.configurar'])
                 <p class="admin-sidebar-label mt-7">CONFIGURACIÓN</p>
             @endcanany
             @can('modulos.gestionar')
@@ -103,6 +103,11 @@
                 </a>
                 <a href="{{ route('admin.email-templates.index') }}" class="{{ $navItemClass('admin.email-templates.*') }}">
                     <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Plantillas de correo
+                </a>
+            @endcan
+            @can('publicidad.configurar')
+                <a href="{{ route('admin.ads-settings.edit') }}" class="{{ $navItemClass('admin.ads-settings.*') }}">
+                    <svg class="admin-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 15l2.5-6L12 15M7.8 13h3.4M15 9v6h1.5a2.5 2.5 0 0 0 0-5H15"/></svg>Publicidad
                 </a>
             @endcan
             @can('avisos.publicar')

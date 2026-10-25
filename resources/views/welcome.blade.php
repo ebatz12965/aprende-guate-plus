@@ -25,4 +25,5 @@
         <article class="feature"><span class="number">{{ $number }}</span><h2>{{ $title }}</h2><p>{{ $description }}</p></article>
     @endforeach
 </section>
+<x-espacio-publicitario lugar="inicio" class="mt-8" />
 @endsection
