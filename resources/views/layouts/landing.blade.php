@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprende Guate</title>
+    <title>@yield('title', 'Aprende Guate')</title>
+    @hasSection('description')
+        <meta name="description" content="@yield('description')">
+    @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/aprende-guate-app-icon.png') }}">
@@ -466,7 +469,7 @@
 <body>
     <header class="topbar"><a href="{{ route('home') }}" class="brand"><img src="{{ asset('images/aprende-guate-app-icon.png') }}" alt=""
                 class="brand-mark-image"><span>Aprende Guate</span></a>
-        <nav class="top-actions" aria-label="Acciones de cuenta"><button type="button" class="theme-toggle" id="landing-theme-toggle"
+        <nav class="top-actions" aria-label="Acciones de cuenta"><a class="login" href="{{ route('about') }}" @if (request()->routeIs('about')) aria-current="page" @endif>Acerca de nosotros</a><button type="button" class="theme-toggle" id="landing-theme-toggle"
                 aria-label="Cambiar tema"><svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><span data-theme-label>Tema oscuro</span></button>@auth <a class="button" href="{{ route('adaptive.dashboard') }}">Ir
                     a mi panel</a>
             @else

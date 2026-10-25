@@ -8,6 +8,7 @@
         <nav class="text-xs font-semibold" aria-label="Información legal">
             <p class="mb-3 text-[11px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300">Información</p>
             <div class="grid md:gap-2">
+                <a href="{{ route('about') }}" class="py-2 transition hover:text-blue-700 md:py-0 dark:hover:text-blue-300">Acerca de nosotros</a>
                 <a href="{{ route('legal.terms') }}" class="py-2 transition hover:text-blue-700 md:py-0 dark:hover:text-blue-300">Términos y condiciones</a>
                 <a href="{{ route('legal.privacy') }}" class="py-2 transition hover:text-blue-700 md:py-0 dark:hover:text-blue-300">Política de privacidad</a>
                 <a href="{{ route('legal.cookies') }}" class="py-2 transition hover:text-blue-700 md:py-0 dark:hover:text-blue-300">Política de cookies</a>
