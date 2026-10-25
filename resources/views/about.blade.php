@@ -48,19 +48,22 @@
     <section class="grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:items-start" aria-labelledby="quienes-somos">
         <div>
             <h2 id="quienes-somos" class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Quiénes somos</h2>
+            {{-- Palabras del fundador y contexto de la justificación de la investigación (INVESTIGACIÓN PG II, 1.2 y 1.3). --}}
             <div class="mt-4 space-y-4 text-base leading-7 text-slate-700 dark:text-slate-300">
-                <p>Aprende Guate nació como proyecto de graduación de Ingeniería en Sistemas en la Universidad Mariano Gálvez de Guatemala, con una pregunta concreta: ¿cómo ayudar a alguien a prepararse para un trabajo sin darle el mismo curso que a todos?</p>
-                <p>La respuesta fue una plataforma que primero entiende tu meta y tu nivel, y después te acompaña paso a paso: lecciones, prácticas con casos de trabajo guatemaltecos, retos con evidencia, mentoría y preparación para entrevistas.</p>
-                <p>Está pensada para jóvenes que buscan su primer empleo y para personas que ya trabajan y quieren crecer o cambiar de área, empezando por competencias que el mercado pide en todas partes, como Microsoft Office.</p>
+                <p>Aprende Guate nació como una propuesta fresca e innovadora para la etapa actual de las tecnologías y de las competencias digitales que pide el mundo laboral.</p>
+                <p>Surgió de una realidad que vive mucha gente que busca prepararse: hay cursos, tutoriales y bolsas de empleo, pero cada recurso atiende solo una parte del camino, y cada persona tiene que decidir sola qué aprender, en qué orden y cómo demostrarlo ante un empleador. Además, no todos parten del mismo lugar: quien empieza desde cero necesita un acompañamiento distinto al de quien ya trabaja y quiere crecer o cambiar de área.</p>
+                <p>La investigación que dio origen al proyecto lo confirmó: en su encuesta diagnóstica, las personas participantes dijeron que querían fortalecer el uso de herramientas digitales y de ofimática, que les faltaban práctica y tiempo, y que su preparación para entrevistas era apenas regular.</p>
+                <p>Por eso Aprende Guate se presenta como una <strong class="font-bold text-slate-900 dark:text-white">herramienta de apoyo personal</strong>, para que diseñes tu propia ruta de aprendizaje y desarrolles las competencias digitales que quieres obtener o reforzar. La inteligencia artificial te orienta y te acompaña, pero no decide por ti.</p>
+                <p class="text-sm leading-6 text-slate-600 dark:text-slate-400">El proyecto se desarrolló como trabajo de graduación de Ingeniería en Sistemas de Información en la Universidad Mariano Gálvez de Guatemala.</p>
             </div>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
             <h3 class="text-xl font-extrabold text-slate-900 dark:text-white">Nuestro objetivo</h3>
-            <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Que cada persona complete su ruta, tenga evidencia evaluada de lo que sabe hacer y termine con un perfil profesional listo para mostrar a un empleador.</p>
+            <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Orientarte sobre qué aprender, en qué orden y cómo demostrarlo, para que completes tu ruta con evidencia de lo que sabes hacer y un perfil profesional listo para mostrar a un empleador.</p>
             <dl class="mt-5 grid gap-3 text-sm">
-                <div class="rounded-xl bg-blue-50 px-4 py-3 dark:bg-slate-800"><dt class="font-bold text-blue-700 dark:text-sky-300">Para quién</dt><dd class="mt-1 text-slate-700 dark:text-slate-300">Personas en Guatemala que buscan empleo o quieren crecer en el suyo.</dd></div>
-                <div class="rounded-xl bg-blue-50 px-4 py-3 dark:bg-slate-800"><dt class="font-bold text-blue-700 dark:text-sky-300">Qué ofrecemos</dt><dd class="mt-1 text-slate-700 dark:text-slate-300">Ruta personal, Tutor IA, retos, mentoría, simulador de entrevistas y certificados.</dd></div>
-                <div class="rounded-xl bg-blue-50 px-4 py-3 dark:bg-slate-800"><dt class="font-bold text-blue-700 dark:text-sky-300">Cómo se usa</dt><dd class="mt-1 text-slate-700 dark:text-slate-300">En español, desde el celular o la computadora.</dd></div>
+                <div class="rounded-xl bg-blue-50 px-4 py-3 dark:bg-slate-800"><dt class="font-bold text-blue-700 dark:text-sky-300">Para quién</dt><dd class="mt-1 text-slate-700 dark:text-slate-300">Estudiantes, egresados, personas que trabajan y personas en búsqueda de empleo en Guatemala.</dd></div>
+                <div class="rounded-xl bg-blue-50 px-4 py-3 dark:bg-slate-800"><dt class="font-bold text-blue-700 dark:text-sky-300">Qué ofrecemos</dt><dd class="mt-1 text-slate-700 dark:text-slate-300">En un solo lugar: ruta personal, práctica evaluada, Tutor IA, mentoría, simulador de entrevistas y certificados.</dd></div>
+                <div class="rounded-xl bg-blue-50 px-4 py-3 dark:bg-slate-800"><dt class="font-bold text-blue-700 dark:text-sky-300">Cómo se usa</dt><dd class="mt-1 text-slate-700 dark:text-slate-300">Gratis, en español, desde el celular o la computadora.</dd></div>
             </dl>
         </div>
     </section>
