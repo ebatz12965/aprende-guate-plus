@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => view('welcome'))->name('home');
 // Verificación pública de certificados: la página a la que lleva el código QR.
 Route::get('/certificados/{certificate}', [CertificateController::class, 'verify'])->middleware('throttle:30,1')->name('certificates.verify');
+Route::view('/acerca-de-nosotros', 'about')->name('about');
 Route::view('/terminos-y-condiciones', 'legal.terms')->name('legal.terms');
 Route::view('/politica-de-privacidad', 'legal.privacy')->name('legal.privacy');
 Route::view('/politica-de-cookies', 'legal.cookies')->name('legal.cookies');
