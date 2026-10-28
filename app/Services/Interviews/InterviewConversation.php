@@ -11,15 +11,26 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Turnos de una entrevista simulada. El orden lo marca el banco de preguntas; la IA solo decide si repregunta
- * (como mucho una vez por pregunta y tres en toda la entrevista). Si no está disponible, se repregunta
+ * Turnos de una entrevista simulada por chat. El orden lo marca el banco de preguntas; la IA solo decide si repregunta
+ * (como mucho una vez por pregunta y dos en toda la entrevista). Si no está disponible, se repregunta
  * cuando la respuesta es muy corta y, si no, se sigue con la próxima pregunta.
+ *
+ * Escribir toma más tiempo que hablar: por chat se hacen como mucho CHAT_QUESTIONS preguntas, y la pantalla muestra
+ * una duración estimada honesta (sin límite de tiempo) y un progreso que también avanza con las repreguntas.
  */
 class InterviewConversation
 {
     public const MAX_ANSWER = 2000;
 
-    private const MAX_FOLLOW_UPS = 3;
+    /** Preguntas principales por chat (el banco puede traer hasta 7; la voz usa ai.voice.questions). */
+    public const CHAT_QUESTIONS = 5;
+
+    public const MAX_FOLLOW_UPS = 2;
+
+    /** Minutos estimados por respuesta escrita: principal y repregunta. */
+    private const MINUTES_PER_ANSWER = [3, 4];
+
+    private const MINUTES_PER_FOLLOW_UP = 2;
 
     private const SHORT_ANSWER_WORDS = 12;
 
@@ -29,6 +40,7 @@ class InterviewConversation
     public function begin(InterviewStage $stage): void
     {
         $content = $stage->content;
+        $content['questions'] = array_slice($content['questions'], 0, self::CHAT_QUESTIONS);
         $this->say($stage, $content['opening'], 'opening', null);
         $this->say($stage, $content['questions'][0]['text'], 'question', 0);
         $stage->update(['status' => 'in_progress', 'started_at' => $stage->started_at ?? now(), 'content' => $content + ['current' => 0, 'followed_up' => [], 'follow_ups' => 0]]);
@@ -50,7 +62,7 @@ class InterviewConversation
         $current = (int) $content['current'];
         $new = [$this->say($stage, $answer, 'answer', $current, 'candidate')];
 
-        // ¿Repregunta? Solo tras la pregunta principal, una vez por pregunta y hasta tres en total.
+        // ¿Repregunta? Solo tras la pregunta principal, una vez por pregunta y hasta dos en total.
         $canFollowUp = ($last->meta['kind'] ?? null) === 'question'
             && ! in_array($current, $content['followed_up'], true)
             && $content['follow_ups'] < self::MAX_FOLLOW_UPS;
@@ -82,6 +94,50 @@ class InterviewConversation
         EvaluateInterviewStageJob::dispatch($stage->id)->onQueue('ai');
 
         return array_map(fn (InterviewTurn $turn) => $turn->toChat(), $new);
+    }
+
+    /**
+     * Avance de la entrevista por chat. Una repregunta cuenta como media pregunta, así la barra se mueve en cada
+     * respuesta y la persona sabe cuánto le falta.
+     *
+     * @return array{question: int, total: int, follow_up: bool, percent: int}
+     */
+    public static function progress(InterviewStage $stage): array
+    {
+        $content = $stage->content ?? [];
+        $total = max(1, count($content['questions'] ?? []));
+        if ($stage->status !== 'in_progress') {
+            return ['question' => $total, 'total' => $total, 'follow_up' => false, 'percent' => 100];
+        }
+        $current = (int) ($content['current'] ?? 0);
+        $followUp = ($stage->turns()->reorder('position', 'desc')->first()?->meta['kind'] ?? null) === 'follow_up';
+
+        return ['question' => $current + 1, 'total' => $total, 'follow_up' => $followUp, 'percent' => (int) round(($current + ($followUp ? 0.5 : 0)) / $total * 100)];
+    }
+
+    /**
+     * Minutos estimados de una entrevista por chat, redondeados a 5: escribir con calma toma de 3 a 4 minutos
+     * por pregunta, más las repreguntas.
+     *
+     * @return array{questions: int, min: int, max: int}
+     */
+    public static function estimate(int $questions): array
+    {
+        $round = fn (int $minutes) => (int) (ceil($minutes / 5) * 5);
+
+        return [
+            'questions' => $questions,
+            'min' => $round($questions * self::MINUTES_PER_ANSWER[0] + self::MINUTES_PER_FOLLOW_UP),
+            'max' => $round($questions * self::MINUTES_PER_ANSWER[1] + self::MAX_FOLLOW_UPS * self::MINUTES_PER_FOLLOW_UP),
+        ];
+    }
+
+    /** Texto de la duración por chat: «5 preguntas · unos 20 a 25 minutos». */
+    public static function estimateLabel(int $questions): string
+    {
+        $e = self::estimate($questions);
+
+        return trans_choice('{1} 1 pregunta|[2,*] :count preguntas', $e['questions']).' · unos '.$e['min'].' a '.$e['max'].' minutos';
     }
 
     /** Pregunta de seguimiento o null para pasar a la siguiente. */

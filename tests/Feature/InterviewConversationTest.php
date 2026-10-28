@@ -89,6 +89,59 @@ class InterviewConversationTest extends TestCase
         Http::assertSentCount(2);
     }
 
+    public function test_by_chat_there_are_at_most_five_questions_and_two_follow_ups(): void
+    {
+        $follow = $this->reply(['follow_up' => true, 'question' => '¿Me das un ejemplo concreto?']);
+        Http::fake(['*' => Http::sequence()->push($this->reply($this->bank(7)))->push($follow)->push($follow)->whenEmpty(Http::response($follow))]);
+        $hr = $this->stage(1);
+        $this->actingAs($this->user)->post(route('adaptive.interviews.stage.start', [$this->simulation, $hr]));
+
+        // El banco trae 7 preguntas, pero por chat solo se hacen 5.
+        $this->assertCount(5, $hr->fresh()->content['questions']);
+
+        // La IA siempre quiere repreguntar: solo se permiten 2 en toda la entrevista.
+        $kinds = [];
+        for ($i = 1; $i <= 7; $i++) {
+            if ($i === 7) {
+                $this->travel(61)->seconds(); // límite de respuestas por minuto (ai-tutor)
+            }
+            $kinds[] = $this->answer($hr, "Respuesta {$i} con un ejemplo de mi práctica.")->json('turns.1.kind');
+        }
+        $this->assertSame(['follow_up', 'question', 'follow_up', 'question', 'question', 'question', 'closing'], $kinds);
+        $this->assertSame('submitted', $hr->fresh()->status);
+    }
+
+    public function test_the_progress_also_moves_with_follow_ups(): void
+    {
+        Http::fake(['*' => Http::sequence()->push($this->reply($this->bank()))->push($this->reply(['follow_up' => true, 'question' => '¿Qué resultado obtuvieron?']))]);
+        $hr = $this->stage(1);
+        $this->actingAs($this->user)->post(route('adaptive.interviews.stage.start', [$this->simulation, $hr]));
+
+        // Una repregunta cuenta como media pregunta: 0.5 de 5 = 10 %.
+        $this->answer($hr, 'Trabajé con mi equipo en un proyecto.')
+            ->assertJsonPath('follow_up', true)->assertJsonPath('question', 1)->assertJsonPath('total', 5)->assertJsonPath('percent', 10);
+        $this->actingAs($this->user)->get(route('adaptive.interviews.stage', [$this->simulation, $hr]))
+            ->assertSee('Repregunta sobre la pregunta 1 de 5');
+        $this->answer($hr, 'Entregamos a tiempo y bajamos los reclamos a la mitad.')
+            ->assertJsonPath('follow_up', false)->assertJsonPath('question', 2)->assertJsonPath('percent', 20);
+    }
+
+    public function test_the_chat_shows_an_honest_duration_a_length_hint_and_how_to_pause(): void
+    {
+        $hr = $this->stage(1);
+        // Antes de elegir el modo: la duración estimada por chat, sin cronómetro.
+        $this->actingAs($this->user)->get(route('adaptive.interviews.stage', [$this->simulation, $hr]))->assertOk()
+            ->assertSee('por chat: 5 preguntas · unos 20 a 25 minutos')->assertSee('sin límite de tiempo')->assertDontSee('· 20 minutos');
+        $this->actingAs($this->user)->get(route('adaptive.interviews.show', $this->simulation))->assertSee('unos 20–25 min por chat');
+
+        Http::fake(['*' => Http::response($this->reply($this->bank()))]);
+        $this->actingAs($this->user)->post(route('adaptive.interviews.stage.start', [$this->simulation, $hr]));
+        $this->actingAs($this->user)->get(route('adaptive.interviews.stage', [$this->simulation, $hr]))->assertOk()
+            ->assertSee('5 preguntas · unos 20 a 25 minutos · sin límite de tiempo')
+            ->assertSee('Responde en 3 a 6 líneas')
+            ->assertSee('Seguir más tarde');
+    }
+
     public function test_a_discriminatory_follow_up_from_the_model_is_discarded(): void
     {
         Http::fake(['*' => Http::sequence()

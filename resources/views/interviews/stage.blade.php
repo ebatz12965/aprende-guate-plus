@@ -11,13 +11,22 @@
         'technical_interview' => ['Explica cómo llegas a tu respuesta, no solo la respuesta.', 'Si no sabes algo, dilo y explica cómo lo averiguarías: eso también cuenta.', 'Usa ejemplos de tus prácticas o de trabajos anteriores.'],
         default => ['Lee el caso y el entregable completos antes de empezar.', 'Organiza tu respuesta en pasos y justifica tus decisiones.', 'Revisa tu entrega antes de enviarla: cuenta como en una prueba real.'],
     };
+    // Duración honesta según el modo: por chat no hay cronómetro; la voz tiene una llamada con tiempo máximo.
+    $chatQuestions = \App\Services\Interviews\InterviewConversation::CHAT_QUESTIONS;
+    $mode = $stage->content['mode'] ?? null;
+    $durationText = match (true) {
+        ! $stage->isInterview() => $stage->duration_minutes.' minutos',
+        $mode === 'voice' => 'llamada de hasta '.(int) ceil(config('ai.voice.max_seconds') / 60).' minutos',
+        $mode === 'chat' => \App\Services\Interviews\InterviewConversation::estimateLabel(count($stage->content['questions'] ?? [])).' · sin límite de tiempo',
+        default => 'por chat: '.\App\Services\Interviews\InterviewConversation::estimateLabel($chatQuestions),
+    };
     $poll = fn (string $until) => "{ async check() { try { const r = await fetch('".route('adaptive.interviews.stage.status', [$simulation, $stage])."', { headers: { Accept: 'application/json', 'X-Background-Request': '1' } }); if (r.ok) { const s = await r.json(); if ({$until}) { window.location.reload(); return; } } } catch (e) {} setTimeout(() => this.check(), 3000); } }";
 @endphp
 <div class="mx-auto max-w-3xl">
     <a href="{{ route('adaptive.interviews.show', $simulation) }}" class="inline-flex min-h-10 items-center text-sm font-bold text-blue-700 hover:text-blue-900">← {{ $simulation->job_title }}</a>
 
     <section class="mt-4 learning-panel">
-        <p class="text-sm font-semibold text-slate-500">Etapa {{ $stage->position }} de 4 · {{ $stage->duration_minutes }} minutos</p>
+        <p class="text-sm font-semibold text-slate-500">Etapa {{ $stage->position }} de 4 · {{ $durationText }}</p>
         <h1 class="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">{{ $stage->title }}</h1>
 
         @if ($stage->interviewer)
@@ -60,7 +69,7 @@
                         @csrf
                         <button name="mode" value="chat" class="rounded-2xl border-2 border-slate-200 p-4 text-left hover:border-blue-500 hover:bg-blue-50 focus-visible:border-blue-600">
                             <span class="block font-extrabold text-slate-900">Por chat</span>
-                            <span class="mt-1 block text-sm leading-6 text-slate-600">Respondes por escrito, una pregunta a la vez y a tu ritmo.</span>
+                            <span class="mt-1 block text-sm leading-6 text-slate-600">Respondes por escrito, una pregunta a la vez y a tu ritmo: {{ \App\Services\Interviews\InterviewConversation::estimateLabel($chatQuestions) }}, sin límite de tiempo. Puedes pausar y seguir después.</span>
                         </button>
                         <button name="mode" value="voice" @disabled($voiceUnavailable) class="rounded-2xl border-2 border-slate-200 p-4 text-left hover:border-blue-500 hover:bg-blue-50 focus-visible:border-blue-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-slate-200 disabled:hover:bg-transparent">
                             <span class="block font-extrabold text-slate-900">Por voz <span class="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800">corta</span></span>
@@ -102,13 +111,14 @@
     @elseif ($stage->status === 'in_progress' && ($stage->content['mode'] ?? null) === 'voice')
         @include('interviews.partials.voice-call')
     @elseif ($stage->status === 'in_progress')
-        @php $content = $stage->content; @endphp
+        @php $progress = \App\Services\Interviews\InterviewConversation::progress($stage); @endphp
         <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
-            x-data="interviewChat({ turns: @js($turns), url: @js(route('adaptive.interviews.stage.answer', [$simulation, $stage])), question: {{ ($content['current'] ?? 0) + 1 }}, total: {{ count($content['questions'] ?? []) }}, draftKey: 'ag-interview-{{ $stage->id }}', max: {{ \App\Services\Interviews\InterviewConversation::MAX_ANSWER }}, initials: @js($initials) })"
+            x-data="interviewChat({ turns: @js($turns), url: @js(route('adaptive.interviews.stage.answer', [$simulation, $stage])), question: {{ $progress['question'] }}, total: {{ $progress['total'] }}, followUp: @js($progress['follow_up']), percent: {{ $progress['percent'] }}, draftKey: 'ag-interview-{{ $stage->id }}', max: {{ \App\Services\Interviews\InterviewConversation::MAX_ANSWER }}, initials: @js($initials) })"
            >
-            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
-                <p class="text-sm font-bold text-slate-700" aria-live="polite">Pregunta <span x-text="question"></span> de <span x-text="total"></span></p>
-                <div class="h-2 w-32 rounded-full bg-slate-100" aria-hidden="true"><div class="h-full rounded-full bg-blue-600 transition-all" :style="`width: ${Math.min(100, (question - 1) / total * 100)}%`"></div></div>
+            <div class="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-3">
+                {{-- Las repreguntas también avanzan la barra: así se ve cuánto falta. --}}
+                <p class="text-sm font-bold text-slate-700" aria-live="polite" x-text="followUp ? `Repregunta sobre la pregunta ${question} de ${total}` : `Pregunta ${question} de ${total}`">{{ $progress['follow_up'] ? 'Repregunta sobre la pregunta' : 'Pregunta' }} {{ $progress['question'] }} de {{ $progress['total'] }}</p>
+                <div class="h-2 w-32 shrink-0 rounded-full bg-slate-100" role="progressbar" aria-label="Avance de la entrevista" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="percent"><div class="h-full rounded-full bg-blue-600 transition-all" :style="`width: ${Math.min(100, percent)}%`"></div></div>
             </div>
             <div x-ref="log" class="max-h-[60vh] min-h-[18rem] space-y-4 overflow-y-auto p-5" role="log" aria-live="polite" aria-label="Conversación de la entrevista">
                 <template x-for="(turn, index) in turns" :key="index">
@@ -128,14 +138,17 @@
             </div>
             <form @submit.prevent="send()" class="border-t border-slate-100 p-4" x-show="! finished">
                 <label for="answer" class="sr-only">Tu respuesta</label>
+                <p id="answer-hint" class="mb-2 text-sm leading-6 text-slate-600">Responde en 3 a 6 líneas, como lo harías en una entrevista real: con un ejemplo concreto basta.</p>
                 <textarea id="answer" x-ref="input" x-model="answer" @input="saveDraft()" @keydown.ctrl.enter.prevent="send()" @keydown.meta.enter.prevent="send()"
-                    :maxlength="max" rows="4" placeholder="Escribe tu respuesta…" :disabled="sending"
+                    aria-describedby="answer-hint" :maxlength="max" rows="4" placeholder="Escribe tu respuesta…" :disabled="sending"
                     class="block w-full resize-y rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500"></textarea>
                 <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
                     <p class="text-xs text-slate-500"><span x-text="answer.length"></span>/<span x-text="max"></span> · Ctrl + Enter para enviar · tu borrador se guarda en este navegador</p>
                     <button class="inline-flex min-h-11 items-center rounded-xl bg-blue-700 px-5 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50" :disabled="sending || answer.trim().length < 2" x-text="sending ? 'Enviando…' : 'Enviar respuesta'"></button>
                 </div>
                 <p x-show="error" x-cloak class="mt-2 text-sm font-medium text-rose-700" x-text="error" role="alert"></p>
+                <p class="mt-3 border-t border-slate-100 pt-3 text-sm text-slate-600">¿Necesitas una pausa? Tus respuestas enviadas quedan guardadas y sigues donde te quedaste.
+                    <a href="{{ route('adaptive.interviews.show', $simulation) }}" class="font-bold text-blue-700 underline-offset-4 hover:underline">Seguir más tarde</a></p>
             </form>
             <p x-show="finished" x-cloak class="border-t border-slate-100 p-4 text-sm font-semibold text-emerald-800">Entrevista terminada. Preparando tu retroalimentación…</p>
         </section>
@@ -254,7 +267,7 @@ function interviewChat(config) {
                     return;
                 }
                 this.turns.push(...data.turns.filter((turn) => turn.role !== 'candidate'));
-                this.question = data.question; this.total = data.total;
+                this.question = data.question; this.total = data.total; this.followUp = data.follow_up; this.percent = data.percent;
                 this.answer = ''; this.clearDraft();
                 if (data.status !== 'in_progress') {
                     this.finished = true;

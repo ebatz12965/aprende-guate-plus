@@ -198,12 +198,7 @@ class InterviewController extends Controller
         $turns = $conversation->answer($stage, $data['answer']);
         $stage->refresh();
 
-        return response()->json([
-            'turns' => $turns,
-            'status' => $stage->status,
-            'question' => ($stage->content['current'] ?? 0) + 1,
-            'total' => count($stage->content['questions'] ?? []),
-        ]);
+        return response()->json(['turns' => $turns, 'status' => $stage->status] + InterviewConversation::progress($stage));
     }
 
     public function retryEvaluation(InterviewSimulation $simulation, InterviewStage $stage): RedirectResponse

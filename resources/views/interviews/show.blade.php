@@ -65,7 +65,12 @@
                             <div class="flex flex-wrap items-center gap-2">
                                 <h2 class="text-lg font-extrabold text-slate-900">{{ $stage->title }}</h2>
                                 <span class="rounded-full px-2.5 py-0.5 text-xs font-bold ring-1 ring-inset {{ $statusChip($stage->status) }}">{{ InterviewStage::STATUSES[$stage->status] ?? $stage->status }}</span>
-                                <span class="text-sm text-slate-500">{{ $stage->duration_minutes }} min</span>
+                                @if ($stage->isInterview())
+                                    @php $estimate = \App\Services\Interviews\InterviewConversation::estimate(\App\Services\Interviews\InterviewConversation::CHAT_QUESTIONS); @endphp
+                                    <span class="text-sm text-slate-500">unos {{ $estimate['min'] }}–{{ $estimate['max'] }} min por chat</span>
+                                @else
+                                    <span class="text-sm text-slate-500">{{ $stage->duration_minutes }} min</span>
+                                @endif
                             </div>
                             @if ($stage->interviewer)
                                 <div class="mt-3 flex items-center gap-3">
