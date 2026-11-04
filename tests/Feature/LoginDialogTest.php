@@ -14,7 +14,7 @@ class LoginDialogTest extends TestCase
     {
         $this->get(route('login'))->assertOk()
             // La página inicial se sigue viendo detrás de la ventana.
-            ->assertSee('Construye habilidades para tu futuro con IA.')
+            ->assertSee('Avanza hacia')
             ->assertSee('id="login-dialog"', false)->assertSee('Inicia sesión')
             ->assertSee('const autoOpen = true;', false)
             ->assertSee('aprende-guate-app-icon.png', false);
