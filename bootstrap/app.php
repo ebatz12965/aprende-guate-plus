@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureAdminAccess;
 use App\Http\Middleware\EnsureModuleAvailable;
 use App\Http\Middleware\EnsurePasswordChanged;
+use App\Http\Middleware\PreventRequestForgery;
 use App\Http\Middleware\SecurityHeaders;
 use App\Support\ErrorPage;
 use App\Support\ErrorReference;
@@ -38,7 +39,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustHosts(at: fn () => array_map(fn (string $host) => '^'.preg_quote($host).'$', config('app.trusted_hosts', [])));
         // Guarda la huella de la contraseña en la sesión: al cambiarla o restablecerla se cierran las demás sesiones.
         $middleware->authenticateSessions();
-        $middleware->web(append: [EnsureAccountIsActive::class, EnforceIdleTimeout::class, EnsurePasswordChanged::class, EnsureModuleAvailable::class]);
+        $middleware->web(append: [EnsureAccountIsActive::class, EnforceIdleTimeout::class, EnsurePasswordChanged::class, EnsureModuleAvailable::class],
+            replace: [Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class => PreventRequestForgery::class]);
         $middleware->alias([
             'admin' => EnsureAdminAccess::class,
             'role' => RoleMiddleware::class,
