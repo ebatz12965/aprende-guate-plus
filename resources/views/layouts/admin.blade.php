@@ -8,8 +8,6 @@
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/aprende-guate-app-icon.png') }}">
     <script nonce="{{ Vite::cspNonce() }}">if (localStorage.getItem('admin-theme') === 'dark') document.documentElement.classList.add('dark');</script>
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="admin-shell min-h-screen bg-slate-100 font-sans text-slate-800 antialiased">

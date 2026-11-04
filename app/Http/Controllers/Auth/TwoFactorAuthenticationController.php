@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\TwoFactorAuthenticationService;
+use App\Support\SecurityEvents;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -158,6 +159,7 @@ class TwoFactorAuthenticationController extends Controller
         $limiterKey = 'two-factor-challenge:'.$user->id;
         if (RateLimiter::tooManyAttempts($limiterKey, self::MAX_ATTEMPTS)) {
             $minutes = (int) ceil(RateLimiter::availableIn($limiterKey) / 60);
+            SecurityEvents::lockout('two_factor', $user->email, $request->ip());
 
             return back()->with('two_factor_locked', true)->withErrors(['code' => "Demasiados intentos fallidos. Espera {$minutes} minuto(s) e inténtalo de nuevo."]);
         }
@@ -165,8 +167,11 @@ class TwoFactorAuthenticationController extends Controller
         $isAuthenticatorCode = $twoFactor->verifyForUser($user, $data['code']);
         if (! $isAuthenticatorCode && ! $twoFactor->consumeRecoveryCode($user, $data['code'])) {
             RateLimiter::hit($limiterKey, self::LOCKOUT_SECONDS);
+            SecurityEvents::failedTwoFactor($user, $request->ip());
             $remaining = RateLimiter::remaining($limiterKey, self::MAX_ATTEMPTS);
             if ($remaining === 0) {
+                SecurityEvents::lockout('two_factor', $user->email, $request->ip());
+
                 return back()->with('two_factor_locked', true)->withErrors(['code' => 'Demasiados intentos fallidos. Espera '.(int) ceil(self::LOCKOUT_SECONDS / 60).' minuto(s) e inténtalo de nuevo.']);
             }
 

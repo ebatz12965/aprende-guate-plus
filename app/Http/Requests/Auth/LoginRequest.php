@@ -5,6 +5,7 @@ namespace App\Http\Requests\Auth;
 use App\Models\User;
 use App\Rules\TurnstileToken;
 use App\Support\Audit;
+use App\Support\SecurityEvents;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +36,7 @@ class LoginRequest extends FormRequest
 
         if (! Auth::validate($this->only('email', 'password'))) {
             RateLimiter::hit($this->throttleKey());
+            SecurityEvents::failedLogin((string) $this->input('email'), $this->ip());
             throw ValidationException::withMessages(['email' => trans('auth.failed')]);
         }
 
@@ -57,6 +59,7 @@ class LoginRequest extends FormRequest
         }
 
         event(new Lockout($this));
+        SecurityEvents::lockout('login', (string) $this->input('email'), $this->ip());
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([

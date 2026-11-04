@@ -27,7 +27,9 @@ class ContentSecurityPolicyTest extends TestCase
             foreach ($scripts[0] as $tag) {
                 $this->assertStringContainsString('nonce="'.$match[1].'"', $tag, "{$url}: {$tag}");
             }
-            $this->assertStringNotContainsString("'unsafe-inline'", $policy);
+            // Los scripts nunca permiten código en línea; solo los estilos lo admiten (atributos style de las vistas).
+            preg_match('/script-src [^;]+/', $policy, $scriptSrc);
+            $this->assertStringNotContainsString("'unsafe-inline'", $scriptSrc[0]);
         }
     }
 
