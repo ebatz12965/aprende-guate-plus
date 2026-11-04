@@ -6,9 +6,9 @@ use App\AI\AiGateway;
 use App\Models\ChallengeSubmission;
 use App\Services\Learning\ChallengeService;
 use App\Services\Learning\EvidenceTextExtractor;
+use App\Support\Archivos;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class EvaluateChallengeSubmissionJob implements ShouldQueue
@@ -53,11 +53,11 @@ class EvaluateChallengeSubmissionJob implements ShouldQueue
 
     private function readInspectableExcerpt(ChallengeSubmission $submission, EvidenceTextExtractor $extractor): ?string
     {
-        if (! $submission->attachment_path || ! Storage::disk('local')->exists($submission->attachment_path)) {
+        if (! $submission->attachment_path) {
             return null;
         }
 
-        return $extractor->extract(Storage::disk('local')->path($submission->attachment_path), $submission->attachment_name, $submission->attachment_mime);
+        return Archivos::conRutaLocal($submission->attachment_path, fn (string $ruta) => $extractor->extract($ruta, $submission->attachment_name, $submission->attachment_mime));
     }
 
     private function attachmentNote(ChallengeSubmission $submission): ?string
