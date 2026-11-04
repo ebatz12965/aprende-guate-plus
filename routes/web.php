@@ -47,6 +47,7 @@ Route::view('/politica-de-privacidad', 'legal.privacy')->name('legal.privacy');
 Route::view('/politica-de-cookies', 'legal.cookies')->name('legal.cookies');
 Route::view('/preguntas-frecuentes', 'legal.faq')->name('legal.faq');
 Route::get('/perfil/{slug}', [CareerProfileController::class, 'show'])->where('slug', '[A-Za-z0-9]{24}')->name('adaptive.public-profile');
+Route::get('/perfil/{slug}/foto', [CareerProfileController::class, 'publicPhoto'])->where('slug', '[A-Za-z0-9]{24}')->name('adaptive.public-profile.photo');
 
 Route::get('/dashboard', function () {
     $space = session('active_space');
@@ -146,6 +147,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/perfil-profesional', [CareerProfileController::class, 'edit'])->name('adaptive.career');
     Route::patch('/perfil-profesional', [CareerProfileController::class, 'update'])->name('adaptive.career.update');
     Route::get('/perfil-profesional/cv', [CareerProfileController::class, 'cv'])->name('adaptive.career.cv');
+    Route::get('/perfil-profesional/foto', [CareerProfileController::class, 'photo'])->name('adaptive.career.photo');
     Route::post('/perfil-profesional/enlace', [CareerProfileController::class, 'regeneratePublicLink'])->middleware('throttle:10,1')->name('adaptive.career.public-link');
     Route::get('/solicitar-ser-mentor', [MentorApplicationController::class, 'create'])->name('mentor-application.create');
     Route::post('/solicitar-ser-mentor/cuestionario', [MentorApplicationController::class, 'generateQuestionnaire'])->middleware('throttle:ai-generation')->name('mentor-application.questionnaire');

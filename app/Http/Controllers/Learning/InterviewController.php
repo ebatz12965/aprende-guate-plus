@@ -14,11 +14,11 @@ use App\Services\Interviews\InterviewConversation;
 use App\Services\Interviews\PracticalTestService;
 use App\Services\Interviews\ReasoningTestService;
 use App\Services\Interviews\VoiceInterviewService;
+use App\Support\Archivos;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -237,7 +237,7 @@ class InterviewController extends Controller
         $answers = ['text' => $data['answer'] ?? '', 'late' => $late];
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
-            $answers['file'] = ['path' => $file->store('interview-evidence/'.$request->user()->id, 'local'), 'name' => $file->getClientOriginalName(), 'mime' => $file->getMimeType(), 'size' => $file->getSize()];
+            $answers['file'] = ['path' => $file->store('interview-evidence/'.$request->user()->id, Archivos::nombre()), 'name' => $file->getClientOriginalName(), 'mime' => $file->getMimeType(), 'size' => $file->getSize()];
         }
         DB::transaction(function () use ($stage, $answers) {
             $stage->update(['answers' => $answers, 'status' => 'submitted', 'submitted_at' => now(), 'content' => ['evaluation_status' => 'queued'] + ($stage->content ?? [])]);
@@ -253,9 +253,9 @@ class InterviewController extends Controller
     {
         $this->ensureStage($simulation, $stage);
         $file = $stage->answers['file'] ?? null;
-        abort_unless($file && Storage::disk('local')->exists($file['path']), 404);
+        abort_unless($file && Archivos::disco()->exists($file['path']), 404);
 
-        return Storage::disk('local')->download($file['path'], $file['name']);
+        return Archivos::disco()->download($file['path'], $file['name']);
     }
 
     private function ensureStage(InterviewSimulation $simulation, InterviewStage $stage): void
@@ -270,7 +270,7 @@ class InterviewController extends Controller
         // Los archivos entregados en la prueba práctica también se borran del disco.
         foreach ($simulation->stages()->get() as $stage) {
             if (isset($stage->answers['file']['path'])) {
-                Storage::disk('local')->delete($stage->answers['file']['path']);
+                Archivos::disco()->delete($stage->answers['file']['path']);
             }
         }
         $simulation->delete();

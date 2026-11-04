@@ -7,10 +7,10 @@ use App\Http\Requests\Learning\SubmitChallengeEvidenceRequest;
 use App\Jobs\EvaluateChallengeSubmissionJob;
 use App\Models\Challenge;
 use App\Models\ChallengeSubmission;
+use App\Support\Archivos;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -54,10 +54,10 @@ class ChallengeController extends Controller
 
         if ($request->hasFile('attachment')) {
             if ($existing?->attachment_path) {
-                Storage::disk('local')->delete($existing->attachment_path);
+                Archivos::disco()->delete($existing->attachment_path);
             }
             $file = $request->file('attachment');
-            $path = $file->store('challenge-evidence/'.$request->user()->id, 'local');
+            $path = $file->store('challenge-evidence/'.$request->user()->id, Archivos::nombre());
             $payload = array_merge($payload, ['attachment_path' => $path, 'attachment_name' => $file->getClientOriginalName(), 'attachment_mime' => $file->getMimeType(), 'attachment_size' => $file->getSize(), 'attachment_analysis' => null]);
         }
 
@@ -84,8 +84,8 @@ class ChallengeController extends Controller
     public function downloadAttachment(ChallengeSubmission $submission): StreamedResponse
     {
         $this->authorize('view', $submission);
-        abort_unless($submission->attachment_path && Storage::disk('local')->exists($submission->attachment_path), 404);
+        abort_unless($submission->attachment_path && Archivos::disco()->exists($submission->attachment_path), 404);
 
-        return Storage::disk('local')->download($submission->attachment_path, $submission->attachment_name);
+        return Archivos::disco()->download($submission->attachment_path, $submission->attachment_name);
     }
 }

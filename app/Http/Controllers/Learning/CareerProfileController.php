@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Learning;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Learning\UpdateCareerProfileRequest;
 use App\Models\StudentProfile;
+use App\Support\Archivos;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -32,23 +33,23 @@ class CareerProfileController extends Controller
         if ($request->hasFile('cv')) {
             if ($profile->cv_path) {
                 // Los CV anteriores a este cambio estaban en el disco público.
-                Storage::disk('local')->delete($profile->cv_path);
+                Archivos::disco()->delete($profile->cv_path);
                 Storage::disk('public')->delete($profile->cv_path);
             }
             // El CV tiene datos personales: va al disco privado y solo lo descarga su dueño.
-            $data['cv_path'] = $request->file('cv')->store('cvs/'.$request->user()->id, 'local');
+            $data['cv_path'] = $request->file('cv')->store('cvs/'.$request->user()->id, Archivos::nombre());
         }
 
         if ($request->boolean('remove_photo') && ! $request->hasFile('profile_photo') && $profile->photo_path) {
-            Storage::disk('public')->delete($profile->photo_path);
+            Archivos::fotos()->delete($profile->photo_path);
             $data['photo_path'] = null;
         }
 
         if ($request->hasFile('profile_photo')) {
             if ($profile->photo_path) {
-                Storage::disk('public')->delete($profile->photo_path);
+                Archivos::fotos()->delete($profile->photo_path);
             }
-            $data['photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+            $data['photo_path'] = $request->file('profile_photo')->store('profile-photos', Archivos::nombreFotos());
         }
 
         $profile->update($data);
@@ -59,12 +60,35 @@ class CareerProfileController extends Controller
     public function cv(Request $request): StreamedResponse
     {
         $profile = StudentProfile::where('user_id', $request->user()->id)->first();
-        abort_unless($profile?->cv_path && Storage::disk('local')->exists($profile->cv_path), 404);
+        abort_unless($profile?->cv_path && Archivos::disco()->exists($profile->cv_path), 404);
 
-        return Storage::disk('local')->response($profile->cv_path, 'CV.pdf', [
+        return Archivos::disco()->response($profile->cv_path, 'CV.pdf', [
             'Content-Type' => 'application/pdf',
             'Cache-Control' => 'private, no-store',
         ]);
+    }
+
+    /** Foto de perfil de la persona que inició sesión. */
+    public function photo(Request $request): StreamedResponse
+    {
+        return $this->photoResponse(StudentProfile::where('user_id', $request->user()->id)->first(), 'private');
+    }
+
+    /** Foto del perfil público: solo si el perfil está activo y la cuenta no está suspendida. */
+    public function publicPhoto(string $slug): StreamedResponse
+    {
+        $profile = StudentProfile::with('user')->where('public_slug', $slug)->where('is_public', true)->firstOrFail();
+        abort_if($profile->user->isSuspended(), 404);
+
+        return $this->photoResponse($profile, 'public');
+    }
+
+    private function photoResponse(?StudentProfile $profile, string $cache): StreamedResponse
+    {
+        abort_unless($profile?->photo_path && Archivos::fotos()->exists($profile->photo_path), 404);
+
+        // La URL cambia con cada foto nueva (?v=), así que el navegador puede guardarla un día.
+        return Archivos::fotos()->response($profile->photo_path, null, ['Cache-Control' => $cache.', max-age=86400', 'X-Content-Type-Options' => 'nosniff']);
     }
 
     public function regeneratePublicLink(Request $request): RedirectResponse

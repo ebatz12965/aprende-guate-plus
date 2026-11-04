@@ -3,9 +3,9 @@
 namespace App\Services\Library;
 
 use App\Models\AiRequest;
+use App\Support\Archivos;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -65,7 +65,7 @@ class ElevenLabsNarrator
                     continue;
                 }
                 $path = "{$directory}/".($index + 1).'.mp3';
-                Storage::disk('local')->put($path, $response->body());
+                Archivos::disco()->put($path, $response->body());
                 $files[] = $path;
                 $characters += mb_strlen($text);
             } catch (Throwable $exception) {

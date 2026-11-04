@@ -47,7 +47,35 @@ return [
             'report' => false,
         ],
 
+        // Bucket privado de Amazon S3 (carpeta «archivos/»). Sin llaves: en el servidor usa el rol de la EC2.
+        's3_archivos' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION', 'us-east-2'),
+            'bucket' => env('AWS_BUCKET'),
+            'root' => 'archivos',
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => true,
+        ],
+
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Discos de la plataforma
+    |--------------------------------------------------------------------------
+    |
+    | «archivos»: CV, evidencias de retos, adjuntos de entrevistas y narraciones de la biblioteca.
+    | «fotos»: fotos de perfil. Ambos se sirven a través de la aplicación (nunca con una URL directa),
+    | así que pueden estar en el disco del servidor o en el bucket privado sin cambiar el código.
+    |
+    */
+
+    'archivos' => env('ARCHIVOS_DISK', 'local'),
+
+    'fotos' => env('FOTOS_DISK', 'public'),
 
     /*
     |--------------------------------------------------------------------------

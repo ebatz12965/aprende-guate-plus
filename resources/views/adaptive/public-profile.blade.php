@@ -1,7 +1,7 @@
 @extends('layouts.platform')
 
 @section('content')
-@php($photoUrl = $profile->photo_path ? Storage::disk('public')->url($profile->photo_path) : null)
+@php($photoUrl = $profile->photo_path ? route('adaptive.public-profile.photo', ['slug' => $profile->public_slug, 'v' => substr(md5($profile->photo_path), 0, 8)]) : null)
 <div class="mx-auto w-full max-w-5xl">
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="bg-gradient-to-br from-slate-950 via-blue-950 to-blue-800 px-6 py-9 text-white sm:px-10 sm:py-11">

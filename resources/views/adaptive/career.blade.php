@@ -1,7 +1,7 @@
 @extends('layouts.platform')
 
 @section('content')
-@php($photoUrl = $profile->photo_path ? Storage::disk('public')->url($profile->photo_path) : null)
+@php($photoUrl = $profile->photo_path ? route('adaptive.career.photo', ['v' => substr(md5($profile->photo_path), 0, 8)]) : null)
 <div class="mx-auto w-full max-w-6xl">
     <div class="flex flex-col justify-between gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end">
         <div class="max-w-2xl">
